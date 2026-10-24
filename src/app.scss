@@ -1,0 +1,78 @@
+page,
+view,
+text,
+button,
+input,
+textarea,
+image,
+scroll-view,
+rich-text,
+form,
+cover-view,
+cover-image,
+view::before,
+view::after,
+button::before,
+button::after {
+  box-sizing: border-box;
+}
+
+page {
+  --bg-canvas: #f7f8f4;
+  --bg-surface: #fcfdf9;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #eff3ec;
+  --ink-strong: #16241b;
+  --ink-body: #2d3d33;
+  --ink-muted: #5b6c60;
+  --ink-soft: #7b8c80;
+  --brand-green: #183f2a;
+  --brand-green-hover: #245b39;
+  --brand-green-soft: #e7f1ea;
+  --focus-border: #489968;
+  --focus-ring: 0 0 0 6px rgba(72, 153, 104, 0.16);
+  --border-subtle: #dfe6dc;
+  --border-strong: #c6d3c3;
+  --radius-sm: 20px;
+  --radius-md: 28px;
+  --radius-lg: 36px;
+  --shadow-card: 0 8px 32px rgba(20, 44, 29, 0.05);
+  color: var(--ink-strong);
+  background: var(--bg-canvas);
+  font-size: 28px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+button:not([size='mini']) {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  font-weight: inherit;
+  line-height: inherit;
+  background: transparent;
+  border: 0;
+}
+
+button::after {
+  border: 0;
+  display: none;
+}
+
+page button,
+page input,
+page textarea,
+page picker {
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}

@@ -1,0 +1,18 @@
+{
+  "miniprogramRoot": "dist/",
+  "projectname": "xiaoqiu-weapp",
+  "description": "晓球校园足球平台小程序",
+  "appid": "wx2f23476f9811908c",
+  "libVersion": "3.17.3",
+  "setting": {
+    "urlCheck": false,
+    "es6": false,
+    "enhance": false,
+    "compileHotReLoad": false,
+    "ignoreDevUnusedFiles": true,
+    "bigPackageSizeSupport": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram"
+}

@@ -1,0 +1,64 @@
+.identity-badge {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  background: #eaf2ed;
+  vertical-align: middle;
+}
+
+.identity-badge__icon {
+  width: 26px;
+  height: 26px;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.identity-badge__check {
+  position: absolute;
+  right: -4px;
+  bottom: -3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff url('../../assets/profile-icons/check.svg') center / 13px 13px no-repeat;
+  border: 1px solid #5c806a;
+}
+
+.identity-badge--player .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/football.svg');
+}
+
+.identity-badge--captain .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/trophy.svg');
+}
+
+.identity-badge--reporter .identity-badge__icon,
+.identity-badge--coach .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/pencil.svg');
+}
+
+.identity-badge--operator .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/users.svg');
+}
+
+.identity-badge--admin .identity-badge__icon,
+.identity-badge--reviewer .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/shield-check.svg');
+}
+
+.identity-badge--official .identity-badge__icon,
+.identity-badge--referee .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/bell.svg');
+}
+
+.identity-badge--student .identity-badge__icon,
+.identity-badge--profile .identity-badge__icon {
+  background-image: url('../../assets/profile-icons/user-circle.svg');
+}

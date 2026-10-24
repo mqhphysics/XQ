@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <circle cx="30" cy="30" r="27" fill="#f3f7ef" stroke="#8ca692" stroke-width="1.3"/>
+  <circle cx="30" cy="30" r="23" stroke="#c5d5c7" stroke-width="1" stroke-dasharray="2 3.6"/>
+  <text x="30.8" y="16.5" text-anchor="middle" fill="#6c8973" fill-opacity=".8" font-family="Microsoft YaHei,PingFang SC,sans-serif" font-size="6.5" font-weight="600" letter-spacing="1.6">主队</text>
+  <rect x="15.5" y="20" width="29" height="20" rx="2.2" stroke="#8ba68f" stroke-width="1.2"/>
+  <path d="M21 20v20m18-20v20M15.5 26h4v8h-4m29-8h-4v8h4" stroke="#b1c4b2" stroke-width="1"/>
+  <circle cx="30" cy="30" r="8.3" fill="#e6efe1" stroke="#719078" stroke-width="1.2"/>
+  <path d="m30 25.5 4.3 3.1-1.6 5.1h-5.4l-1.6-5.1z" fill="#719078"/>
+  <path d="m30 25.5-.1-3.6m4.4 6.7 3.6-1.2m-5.2 6.3 2.1 2.9m-7.5-2.9-2.1 2.9m.5-8-3.6-1.2" stroke="#719078" stroke-width="1"/>
+  <path d="M19.5 43c2.5 3.3 6 5 10.5 5m10.5-5c-2.5 3.3-6 5-10.5 5m-6.5-1.7-.3-3.3m3.7 4.6.4-3m9.1 1.7.3-3.3m-3.7 4.6-.4-3" stroke="#9cb59d" stroke-width="1" stroke-linecap="round"/>
+  <circle cx="50.5" cy="50.5" r="10.5" fill="#f7f8f4"/>
+  <circle cx="50.5" cy="50.5" r="8.5" fill="#e3eddd" stroke="#7c9a80" stroke-width="1.2"/>
+  <path d="M50.5 46.7v7.6m-3.8-3.8h7.6" stroke="#52745b" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
