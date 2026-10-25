@@ -35,18 +35,11 @@
 ## 验证情况
 
 - 已验证：`tsc --noEmit` 通过；正式构建成功，产出 18 个页面。
-- 没有验证：没有在微信开发者工具模拟器或真机上运行；L01、L02、L03 没有做手动复现测试。建议按 `audit-report.md` 第六节的验收清单测一遍：拖动中弹窗、叠层弹窗、大名单放弃。
+- 没有验证：L01、L02、L03 没有做手动复现测试。
 
 ## 仍需处理
 
-1. 包体积。正式构建的 `dist` 约 2.6MB，超过 2MB 主包限制。模拟器应该能跑，但真机预览和上传大概率会被拒（没有实际验证）。主要是 4 张本地大图，共约 1.1MB：
-   - `login-art/stadium-particle-plate.weapp.png`
-   - `home-visual/home-campus-action.webp`
-   - `home-visual/home-team-celebration.webp`
-   - `home-visual/home-team-huddle.webp`
-
-   做法：把这些图改为走媒体网关，再配置分包。这是下一步最优先的事。
-2. 审计报告里这次没做的条目：
+1. 审计报告里这次没做的条目：
    - L04 共享帖子卡片点赞无效
    - L05 返回 Tab 不刷新
    - L06、L07 背景上传闭环
@@ -56,7 +49,7 @@
    - L11 退出登录后快照残留
    - P01–P08 加载与流畅度
    - S02–S05 遗留代码清理
-3. 子 agent 审查补充（详见本次会话记录）：
+2. 子 agent 审查补充（详见本次会话记录）：
    - 消息页下拉刷新在发送中会卡在转圈状态
    - 首页点赞读的是过期状态
    - `.native-reaction-heart`、`.native-badge` 没有样式（`weapp-ui.scss` 恢复后需复查是否已覆盖）
