@@ -1,338 +1,273 @@
-import { Image, Text, View } from '@tarojs/components'
+import { Image, ScrollView, Slot, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { type PropsWithChildren, useEffect, useMemo, useState } from 'react'
-import brandMark from '../../assets/home-visual/brand-mark.png'
-import unselectedTeamCrest from '../../assets/navigation/unselected-team.svg'
-import { peekProduct, productRepository, sizedMediaUrl } from '../../services/api'
-import { clearSession, readSession, subscribeToSessionWrites } from '../../store/session'
-import { knownTournamentId } from '../../store/tournament'
-import type { AuthSession, HomeResponse, TeamSummary } from '../../types'
-import { TeamCrest, UserAvatar } from '../team-crest'
+import { useEffect, useState, type ReactNode } from 'react'
+import loadingRingIcon from '../../assets/loading-ring.svg'
+import brandBallMark from '../../assets/login-art/ball.webp'
+import { peekProduct, productRepository } from '../../services/api'
+import { readSession, subscribeToSessionWrites } from '../../store/session'
+import {
+  knownTournamentId,
+  rememberTournamentId,
+  subscribeToTournamentWrites,
+} from '../../store/tournament'
+import type {
+  AuthSession,
+  HomeResponse,
+  TabSection,
+  TournamentSummary,
+} from '../../types'
+import { UserAvatar } from '../team-crest'
 import './index.scss'
 
-export type NavSection = 'home' | 'schedule' | 'team' | 'data' | 'me'
-
-interface AppShellProps extends PropsWithChildren {
-  active: NavSection
-  onSectionChange?: (section: NavSection) => void
+interface AppShellProps {
+  active: TabSection
   tournamentId?: string
-  showBack?: boolean
-  onBack?: () => void
+  refreshing?: boolean
+  onRefresh?: () => void
+  onScrollToLower?: () => void
   onBrandClick?: () => void
+  onSelectTournament?: (tournament: TournamentSummary) => void
+  children: ReactNode
 }
 
-interface HeaderMetrics {
-  top: number
-  rowHeight: number
-  height: number
-}
-
-const NAV_SECTIONS: NavSection[] = ['home', 'schedule', 'team', 'data', 'me']
-
-let cachedMetrics: HeaderMetrics | null = null
-const cachedTeamsByTournament = new Map<string, TeamSummary[]>()
-const cachedPrimaryTeamByTournament = new Map<string, string | null>()
-
-export function getHeaderMetrics(): HeaderMetrics {
-  if (cachedMetrics) return cachedMetrics
-  try {
-    const windowInfo = Taro.getWindowInfo()
-    const menu = Taro.getMenuButtonBoundingClientRect?.()
-    const status = windowInfo.statusBarHeight ?? 20
-    const top = menu?.top || status + 6
-    const rowHeight = Math.max(32, menu?.height || 32)
-    cachedMetrics = {
-      top,
-      rowHeight,
-      height: top + rowHeight + 12,
-    }
-    return cachedMetrics
-  } catch {
-    return {
-      top: 26,
-      rowHeight: 32,
-      height: 70,
-    }
-  }
-}
+const NAV_ITEMS: Array<{
+  key: TabSection
+  label: string
+}> = [
+  { key: 'home', label: '首页' },
+  { key: 'schedule', label: '赛程' },
+  { key: 'stats', label: '数据' },
+  { key: 'me', label: '我的' },
+]
 
 export function AppShell({
   active,
-  onSectionChange,
   tournamentId,
-  showBack = false,
-  onBack,
+  refreshing = false,
+  onRefresh,
+  onScrollToLower,
   onBrandClick,
+  onSelectTournament,
   children,
 }: AppShellProps) {
   const [session, setSession] = useState<AuthSession | null>(() => readSession())
-  const [menuOpen, setMenuOpen] = useState(false)
-  const resolvedTournamentId = tournamentId || knownTournamentId() || '__default__'
-
-  const [teams, setTeams] = useState<TeamSummary[]>(() => {
-    const fromMap = cachedTeamsByTournament.get(resolvedTournamentId)
-    if (fromMap) return fromMap
-    const homeSnap = peekProduct<HomeResponse>('/public/home')
-    return homeSnap?.teams ?? []
-  })
-
-  const [primaryTeamId, setPrimaryTeamId] = useState<string | null>(
-    () => cachedPrimaryTeamByTournament.get(resolvedTournamentId) ?? null,
+  const [activeId, setActiveId] = useState<string>(
+    () => tournamentId || knownTournamentId() || '',
   )
-
-  const metrics = useMemo(() => getHeaderMetrics(), [])
-  const activeIndex = Math.max(0, NAV_SECTIONS.indexOf(active))
+  const [tournaments, setTournaments] = useState<TournamentSummary[]>(() => {
+    const initialId = tournamentId || knownTournamentId()
+    const cachedHome = peekProduct<HomeResponse>(
+      `/public/home${initialId ? `?tournamentId=${encodeURIComponent(initialId)}` : ''}`,
+    )
+    return cachedHome?.tournaments ?? []
+  })
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   useEffect(() => {
     return subscribeToSessionWrites(() => {
       setSession(readSession())
-      cachedPrimaryTeamByTournament.clear()
+    })
+  }, [])
+
+  useEffect(() => {
+    if (tournamentId) {
+      setActiveId(tournamentId)
+    }
+  }, [tournamentId])
+
+  useEffect(() => {
+    return subscribeToTournamentWrites(() => {
+      const latest = knownTournamentId()
+      if (latest) {
+        setActiveId(latest)
+      }
     })
   }, [])
 
   useEffect(() => {
     let cancelled = false
-    const existing = cachedTeamsByTournament.get(resolvedTournamentId)
-    if (existing) {
-      setTeams(existing)
-    } else {
-      void productRepository
-        .getHome(tournamentId || knownTournamentId() || undefined)
-        .then((res) => {
-          if (cancelled) return
-          cachedTeamsByTournament.set(resolvedTournamentId, res.teams)
-          cachedTeamsByTournament.set(res.tournament.id, res.teams)
-          setTeams(res.teams)
-        })
-        .catch(() => {})
-    }
-
-    if (session?.accessToken) {
-      void productRepository
-        .getTeamPreferences(tournamentId || knownTournamentId() || undefined)
-        .then((pref) => {
-          if (cancelled) return
-          const nextPrimaryId = pref.primaryTeam?.id ?? null
-          cachedPrimaryTeamByTournament.set(resolvedTournamentId, nextPrimaryId)
-          setPrimaryTeamId(nextPrimaryId)
-        })
-        .catch(() => {})
-    } else {
-      setPrimaryTeamId(null)
-    }
-
+    const targetId = tournamentId || activeId || undefined
+    void productRepository
+      .getHome(targetId)
+      .then((res) => {
+        if (cancelled) return
+        setTournaments(res.tournaments)
+        const resolvedId = targetId || res.tournament.id
+        setActiveId(resolvedId)
+        rememberTournamentId(resolvedId)
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
-  }, [resolvedTournamentId, tournamentId, session?.accessToken])
+  }, [activeId, tournamentId])
 
-  const favoriteTeam = useMemo(() => {
-    if (!primaryTeamId) return null
-    return teams.find((item) => item.id === primaryTeamId) ?? null
-  }, [primaryTeamId, teams])
+  const currentTournament =
+    tournaments.find((item) => item.id === activeId) ?? tournaments[0] ?? null
 
-  const favoriteCrestUrl = sizedMediaUrl(favoriteTeam?.crestUrl, { width: 128 })
+  const handleChooseTournament = (item: TournamentSummary) => {
+    setPickerOpen(false)
+    setActiveId(item.id)
+    rememberTournamentId(item.id)
+    onSelectTournament?.(item)
+  }
 
-  const handleSelectSection = (section: NavSection) => {
-    setMenuOpen(false)
-    if (section === active) return
-    if (onSectionChange) {
-      onSectionChange(section)
+  const handleOpenBrand = () => {
+    if (onBrandClick) {
+      onBrandClick()
       return
     }
-    void Taro.reLaunch({
-      url: `/pages/home/index?section=${section}`,
+    if (active !== 'home') {
+      void Taro.reLaunch({ url: '/pages/home/index' })
+    }
+  }
+
+  const handleOpenProfile = () => {
+    if (session?.user) {
+      if (active !== 'me') {
+        void Taro.showToast({
+          title: '「我的」页面将在后续步骤开放',
+          icon: 'none',
+        })
+      }
+      return
+    }
+    void Taro.showToast({
+      title: '登录页将在后续步骤开放',
+      icon: 'none',
     })
   }
 
-  const handleBack = () => {
-    setMenuOpen(false)
-    if (onBack) {
-      onBack()
+  const handleSwitchTab = (item: (typeof NAV_ITEMS)[number]) => {
+    if (item.key === active) return
+    if (item.key === 'home') {
+      void Taro.reLaunch({ url: '/pages/home/index' })
       return
     }
-    const pages = Taro.getCurrentPages()
-    if (pages.length > 1) {
-      void Taro.navigateBack()
-    } else {
-      handleSelectSection('home')
-    }
-  }
-
-  const handleLogout = () => {
-    clearSession()
-    setSession(null)
-    setMenuOpen(false)
-    void Taro.showToast({ title: '已退出登录', icon: 'none' })
+    void Taro.showToast({
+      title: `「${item.label}」页面将在后续步骤开放`,
+      icon: 'none',
+    })
   }
 
   return (
     <View className="app-shell">
-      <View
-        className="app-shell__topbar"
-        style={{
-          paddingTop: `${metrics.top}px`,
-          paddingBottom: '12px',
-          height: `${metrics.height}px`,
-        }}
-      >
-        <View
-          className="app-shell__topbar-inner"
-          style={{
-            height: `${metrics.rowHeight}px`,
-            minHeight: `${metrics.rowHeight}px`,
-          }}
-        >
-          <View
-            className="app-shell__left"
-            style={{
-              height: `${metrics.rowHeight}px`,
-            }}
-          >
-            {showBack ? (
-              <View className="app-shell__back-btn" onClick={handleBack}>
-                <View className="app-shell__back-icon" />
-              </View>
-            ) : (
-              <View className="app-shell__account-wrap">
-                <View
-                  className="app-shell__account-btn"
-                  onClick={() => setMenuOpen((prev) => !prev)}
-                >
-                  <UserAvatar
-                    name={session?.user.displayName || '访客'}
-                    avatarUrl={session?.user.avatarUrl}
-                    size="small"
-                  />
-                </View>
-                {menuOpen ? (
-                  <View className="app-shell__account-menu">
-                    <View className="app-shell__account-summary">
-                      <Text className="app-shell__account-title">
-                        {session ? session.user.displayName : '游客浏览模式'}
-                      </Text>
-                      <Text className="app-shell__account-sub">
-                        {session
-                          ? session.user.email || session.user.username
-                          : '登录后可发帖、评论与管理主队'}
-                      </Text>
-                    </View>
-                    <View
-                      className="app-shell__menu-item"
-                      onClick={() => handleSelectSection('me')}
-                    >
-                      <Text>{session ? '进入个人中心' : '前往登录 / 注册'}</Text>
-                    </View>
-                    {session ? (
-                      <View
-                        className="app-shell__menu-item app-shell__menu-item--danger"
-                        onClick={handleLogout}
-                      >
-                        <Text>退出当前账号</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                ) : null}
-              </View>
-            )}
+      {/* 固定顶部品牌导航栏 */}
+      <View className="app-shell__topbar">
+        <View className="app-shell__brand" onClick={handleOpenBrand}>
+          <Image
+            className="app-shell__brand-logo"
+            src={brandBallMark}
+            mode="aspectFit"
+          />
+          <View className="app-shell__brand-copy">
+            <Text className="app-shell__brand-title">晓球</Text>
+            <Text className="app-shell__brand-sub">校园足球社区</Text>
           </View>
+        </View>
 
-          <View
-            className="app-shell__brand-area"
-            style={{
-              height: `${metrics.rowHeight}px`,
-            }}
-          >
+        <View className="app-shell__actions">
+          {currentTournament ? (
             <View
-              className="app-shell__brand"
+              className="app-shell__tour-pill"
               onClick={() => {
-                setMenuOpen(false)
-                if (onBrandClick) onBrandClick()
-                else handleSelectSection('home')
+                if (tournaments.length > 1 && onSelectTournament) {
+                  setPickerOpen((prev) => !prev)
+                }
               }}
             >
-              <Image className="app-shell__brand-logo" src={brandMark} mode="aspectFit" />
-              <Text className="app-shell__brand-name">晓球</Text>
+              <Text className="app-shell__tour-text">
+                {currentTournament.name}
+              </Text>
+              {tournaments.length > 1 && onSelectTournament ? (
+                <Text className="app-shell__tour-caret">▾</Text>
+              ) : null}
             </View>
+          ) : null}
+
+          <View className="app-shell__user-pill" onClick={handleOpenProfile}>
+            {session?.user ? (
+              <>
+                <UserAvatar
+                  name={session.user.displayName}
+                  avatarUrl={session.user.avatarUrl}
+                  size="small"
+                />
+                <Text className="app-shell__user-name">
+                  {session.user.displayName}
+                </Text>
+              </>
+            ) : (
+              <Text className="app-shell__login-text">登录</Text>
+            )}
           </View>
         </View>
       </View>
 
-      <View className="app-shell__body" onClick={() => menuOpen && setMenuOpen(false)}>
-        {children}
-      </View>
+      {pickerOpen && tournaments.length > 1 ? (
+        <View className="app-shell__tour-menu">
+          {tournaments.map((item) => (
+            <View
+              key={item.id}
+              className={`app-shell__tour-option ${item.id === currentTournament?.id ? 'app-shell__tour-option--active' : ''}`}
+              onClick={() => handleChooseTournament(item)}
+            >
+              <Text className="app-shell__tour-option-name">{item.name}</Text>
+              <Text className="app-shell__tour-option-meta">
+                {item.seasonLabel}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
-      <View className="app-shell__tabbar">
-        <View className="app-shell__tabbar-track">
+      {/* 中间自定义下拉刷新 + 触底加载滚动容器（与原版 NativeRefreshScroll 一致） */}
+      <ScrollView
+        scrollY
+        enableFlex
+        showScrollbar={false}
+        lowerThreshold={280}
+        refresherEnabled={Boolean(onRefresh)}
+        refresherThreshold={68}
+        refresherDefaultStyle="none"
+        refresherBackground="transparent"
+        refresherTriggered={Boolean(onRefresh && refreshing)}
+        onRefresherRefresh={() => onRefresh?.()}
+        onScrollToLower={() => onScrollToLower?.()}
+        className="app-shell__scroll"
+      >
+        <Slot name="refresher">
           <View
-            className="app-shell__tabbar-highlight"
-            style={{
-              transform: `translate3d(${activeIndex * 100}%, 0, 0)`,
-              opacity: active === 'team' ? 0 : 1,
-            }}
-          />
-        </View>
-
-        <View
-          className={`app-shell__tab ${active === 'home' ? 'app-shell__tab--active' : ''}`}
-          onClick={() => handleSelectSection('home')}
-        >
-          <View className="app-shell__tab-icon app-shell__tab-icon--home" />
-          <Text className="app-shell__tab-label">首页</Text>
-        </View>
-
-        <View
-          className={`app-shell__tab ${active === 'schedule' ? 'app-shell__tab--active' : ''}`}
-          onClick={() => handleSelectSection('schedule')}
-        >
-          <View className="app-shell__tab-icon app-shell__tab-icon--schedule" />
-          <Text className="app-shell__tab-label">赛程</Text>
-        </View>
-
-        <View
-          className={`app-shell__team-tab ${active === 'team' ? 'app-shell__team-tab--active' : ''}`}
-          onClick={() => handleSelectSection('team')}
-        >
-          {favoriteTeam ? (
-            favoriteCrestUrl ? (
+            className={`native-refresh-indicator ${refreshing ? 'native-refresh-indicator--active' : ''}`}
+          >
+            <View className="native-refresh-indicator__badge">
               <Image
-                className="app-shell__team-crest-img"
-                src={favoriteCrestUrl}
+                className="native-refresh-indicator__icon"
+                src={loadingRingIcon}
                 mode="aspectFit"
               />
-            ) : (
-              <TeamCrest
-                teamCode={favoriteTeam.teamCode}
-                name={favoriteTeam.shortName}
-                color={favoriteTeam.primaryColor || undefined}
-                crestUrl={favoriteTeam.crestUrl}
-                size="medium"
-              />
-            )
-          ) : (
-            <Image
-              className="app-shell__team-crest-img app-shell__team-crest-img--empty"
-              src={unselectedTeamCrest}
-              mode="aspectFit"
-            />
-          )}
-        </View>
+            </View>
+          </View>
+        </Slot>
 
-        <View
-          className={`app-shell__tab ${active === 'data' ? 'app-shell__tab--active' : ''}`}
-          onClick={() => handleSelectSection('data')}
-        >
-          <View className="app-shell__tab-icon app-shell__tab-icon--data" />
-          <Text className="app-shell__tab-label">数据</Text>
-        </View>
+        <View className="app-shell__content">{children}</View>
+      </ScrollView>
 
-        <View
-          className={`app-shell__tab ${active === 'me' ? 'app-shell__tab--active' : ''}`}
-          onClick={() => handleSelectSection('me')}
-        >
-          <View className="app-shell__tab-icon app-shell__tab-icon--me" />
-          <Text className="app-shell__tab-label">我的</Text>
-        </View>
+      {/* 固定底部 Tab 栏 */}
+      <View className="app-shell__tabbar">
+        {NAV_ITEMS.map((item) => {
+          const isActive = item.key === active
+          return (
+            <View
+              key={item.key}
+              className={`app-shell__tab ${isActive ? 'app-shell__tab--active' : ''}`}
+              onClick={() => handleSwitchTab(item)}
+            >
+              <View className={`app-shell__tab-icon app-shell__tab-icon--${item.key}`} />
+              <Text className="app-shell__tab-label">{item.label}</Text>
+            </View>
+          )
+        })}
       </View>
     </View>
   )

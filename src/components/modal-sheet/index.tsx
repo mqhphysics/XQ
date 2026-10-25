@@ -1,161 +1,235 @@
-import { Image, RootPortal, ScrollView, Text, View } from '@tarojs/components'
+import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { type PropsWithChildren, type ReactNode, useEffect, useState } from 'react'
-import brandMark from '../../assets/home-visual/brand-mark.png'
-import { readSession } from '../../store/session'
+import { useEffect, useState, type ReactNode } from 'react'
+import { productRepository } from '../../services/api'
+import { readSession, subscribeToSessionWrites } from '../../store/session'
+import type { AuthSession } from '../../types'
 import './index.scss'
 
-export interface ModalSheetProps extends PropsWithChildren {
+interface ModalSheetProps {
   title?: string
-  eyebrow?: string
+  subtitle?: string
   variant?: 'default' | 'warm-notice'
-  dismissOnAnyTap?: boolean
   hideCloseButton?: boolean
-  footer?: ReactNode
+  closeOnCardTap?: boolean
   onClose: () => void
+  children: ReactNode
 }
 
 export function ModalSheet({
   title,
-  eyebrow,
+  subtitle,
   variant = 'default',
-  dismissOnAnyTap = false,
   hideCloseButton = false,
-  footer,
+  closeOnCardTap = false,
   onClose,
   children,
 }: ModalSheetProps) {
-  const isWarm = variant === 'warm-notice'
-  const tapAnywhereToClose = dismissOnAnyTap || isWarm
-  const showClose = !hideCloseButton && !isWarm
+  const showHeader = Boolean(title || subtitle || !hideCloseButton)
 
   return (
-    <RootPortal>
+    <View className="modal-sheet" onClick={onClose}>
       <View
-        className={`modal-sheet-mask ${isWarm ? 'modal-sheet-mask--warm' : ''}`}
-        catchMove
-        onClick={onClose}
+        className={`modal-sheet__card ${variant === 'warm-notice' ? 'modal-sheet__card--warm' : ''}`}
+        onClick={(e) => {
+          if (closeOnCardTap) {
+            onClose()
+            return
+          }
+          e.stopPropagation()
+        }}
       >
-        <View
-          className={`modal-sheet ${isWarm ? 'modal-sheet--warm' : ''}`}
-          onClick={(event) => {
-            if (!tapAnywhereToClose) {
-              event.stopPropagation()
-            }
-          }}
-        >
-          {title ? (
-            <View className={`modal-sheet__head ${isWarm ? 'modal-sheet__head--warm' : ''}`}>
-              <View className="modal-sheet__title-wrap">
-                {eyebrow ? <Text className="modal-sheet__eyebrow">{eyebrow}</Text> : null}
-                <Text className="modal-sheet__title">{title}</Text>
-              </View>
-              {showClose ? (
-                <View
-                  className="modal-sheet__close"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onClose()
-                  }}
-                >
-                  <Text>×</Text>
-                </View>
+        {showHeader ? (
+          <View className="modal-sheet__header">
+            <View className="modal-sheet__header-copy">
+              {title ? <Text className="modal-sheet__title">{title}</Text> : null}
+              {subtitle ? (
+                <Text className="modal-sheet__subtitle">{subtitle}</Text>
               ) : null}
             </View>
-          ) : null}
-
-          <ScrollView className="modal-sheet__scroll" scrollY showScrollbar={false}>
-            <View className="modal-sheet__content">{children}</View>
-          </ScrollView>
-
-          {footer ? <View className="modal-sheet__footer">{footer}</View> : null}
-          {isWarm ? <Text className="modal-sheet__warm-hint">点击任意位置关闭</Text> : null}
-        </View>
+            {!hideCloseButton ? (
+              <View className="modal-sheet__close" onClick={onClose}>
+                <Text className="modal-sheet__close-text">×</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+        <ScrollView scrollY className="modal-sheet__body">
+          {children}
+        </ScrollView>
       </View>
-    </RootPortal>
+    </View>
   )
 }
 
-const WELCOME_ITEMS = [
+const WELCOME_GUIDE_STORAGE_KEY = 'xq_welcome_guide_seen_v1'
+
+type WelcomeIconKind = 'schedule' | 'team' | 'camera' | 'wechat'
+
+function buildWelcomeIconSvg(kind: WelcomeIconKind): string {
+  const stroke = '#244b35'
+  const common = `fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+  let body = ''
+
+  if (kind === 'schedule') {
+    body = `
+      <rect x="3.5" y="5" width="17" height="15.5" rx="3" ${common} />
+      <path d="M8 3.5V6.5M16 3.5V6.5M3.5 9.5H20.5" ${common} />
+      <circle cx="8.5" cy="13.5" r="1" fill="${stroke}" />
+      <circle cx="12" cy="13.5" r="1" fill="${stroke}" />
+      <circle cx="15.5" cy="13.5" r="1" fill="${stroke}" />
+    `
+  } else if (kind === 'team') {
+    body = `
+      <path d="M12 3.2L19 6.2V11.6C19 16.1 16 19.4 12 20.8C8 19.4 5 16.1 5 11.6V6.2L12 3.2Z" ${common} />
+      <path d="M9.4 12.1L11.2 13.9L14.8 10.3" ${common} />
+    `
+  } else if (kind === 'camera') {
+    body = `
+      <path d="M4 8.2C4 6.98 4.98 6 6.2 6H8.1L9.4 4.3H14.6L15.9 6H17.8C19.02 6 20 6.98 20 8.2V17.3C20 18.52 19.02 19.5 17.8 19.5H6.2C4.98 19.5 4 18.52 4 17.3V8.2Z" ${common} />
+      <circle cx="12" cy="12.8" r="3.4" ${common} />
+    `
+  } else {
+    body = `
+      <rect x="6.5" y="3.2" width="11" height="17.6" rx="2.6" ${common} />
+      <path d="M10 6.2H14" ${common} />
+      <circle cx="12" cy="17.4" r="1" fill="${stroke}" />
+    `
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${body}</svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+const WELCOME_ITEMS: Array<{
+  icon: WelcomeIconKind
+  title: string
+  text: string
+}> = [
   {
-    badge: '赛程',
-    text: '在「赛程」「数据」查看比赛时间、实时比分与积分榜，顶栏可切换不同赛事与组别。',
+    icon: 'schedule',
+    title: '查赛程与实时比分',
+    text: '在「赛程」与「数据」随时查看小组积分、淘汰赛对阵和球员榜单。',
   },
   {
-    badge: '主队',
-    text: '选定你的学院或主队后，它的最新赛况与动态会在首页优先为你呈现。',
+    icon: 'team',
+    title: '设置主队与加入球队',
+    text: '在「我的」设置支持的主队，或者申请加入学院球队参与赛事。',
   },
   {
-    badge: '动态',
-    text: '在「绿茵动态」发布球场瞬间、阅读赛后快报，下拉即可刷新智能推荐内容。',
+    icon: 'camera',
+    title: '发绿茵动态与战报',
+    text: '在首页分享比赛现场照片、进球瞬间与赛后感言，为球队助威。',
   },
   {
-    badge: '同步',
-    text: '小程序与网页端共享你的账号、球员档案、主队偏好与官方公告。',
+    icon: 'wechat',
+    title: '绑定微信快捷登录',
+    text: '支持学号密码与微信一键登录，网页端与小程序数据实时互通。',
   },
 ]
 
-const welcomedMemory = new Set<string>()
+function welcomeKeyFor(session: AuthSession | null): string {
+  const userId = session?.user?.id
+  return userId ? `${WELCOME_GUIDE_STORAGE_KEY}:${userId}` : `${WELCOME_GUIDE_STORAGE_KEY}:guest`
+}
 
 export function CampusWelcomeCard() {
-  const session = readSession()
-  const identityKey = session?.user
-    ? `${session.user.organizationId}:${session.user.id}`
-    : 'guest-device'
-  const storageKey = `xiaoqiu:weapp:welcome:v2:${identityKey}`
-  const [open, setOpen] = useState(false)
+  const [session, setSession] = useState<AuthSession | null>(() => readSession())
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (welcomedMemory.has(identityKey)) return
-    try {
-      const seen = Taro.getStorageSync(storageKey)
-      if (!seen) {
-        setOpen(true)
-      }
-    } catch {
-      setOpen(true)
-    }
-  }, [identityKey, storageKey])
+    return subscribeToSessionWrites(() => {
+      setSession(readSession())
+    })
+  }, [])
 
-  const handleDismiss = () => {
-    welcomedMemory.add(identityKey)
-    setOpen(false)
+  useEffect(() => {
+    let cancelled = false
+    const key = welcomeKeyFor(session)
     try {
-      Taro.setStorageSync(storageKey, true)
+      const seen = Taro.getStorageSync(key)
+      if (seen) {
+        setVisible(false)
+        return
+      }
     } catch {
       // ignore storage errors
     }
+
+    if (session?.accessToken) {
+      void productRepository
+        .getCampusMe()
+        .then((me) => {
+          if (cancelled) return
+          if (me?.onboardingCompletedAt) {
+            try {
+              Taro.setStorageSync(key, '1')
+            } catch {
+              // ignore
+            }
+            setVisible(false)
+          } else {
+            setVisible(true)
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setVisible(true)
+          }
+        })
+    } else {
+      setVisible(true)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [session])
+
+  const dismiss = () => {
+    const key = welcomeKeyFor(session)
+    try {
+      Taro.setStorageSync(key, '1')
+    } catch {
+      // ignore
+    }
+    setVisible(false)
+    if (session?.accessToken) {
+      void productRepository.completeOnboarding().catch(() => {})
+    }
   }
 
-  if (!open) return null
+  if (!visible) return null
 
   return (
-    <RootPortal>
-      <View className="modal-sheet-mask modal-sheet-mask--warm" catchMove onClick={handleDismiss}>
-        <View className="welcome-card" onClick={handleDismiss}>
-          <View className="welcome-card__header">
-            <View className="welcome-card__mark">
-              <Image className="welcome-card__logo" src={brandMark} mode="aspectFit" />
-            </View>
-            <Text className="welcome-card__title">欢迎来到晓球</Text>
-            <Text className="welcome-card__subtitle">这里认真记录我们学校的每一场校园足球。</Text>
-          </View>
+    <View className="welcome-overlay" onClick={dismiss}>
+      <View className="welcome-card" onClick={dismiss}>
+        <Text className="welcome-card__kicker">WELCOME TO XIAOQIU</Text>
+        <Text className="welcome-card__title">欢迎来到晓球</Text>
+        <Text className="welcome-card__lead">
+          华中师范大学校园足球赛事与社区平台。在这里，每一场校园比赛都被认真记录：
+        </Text>
 
-          <View className="welcome-card__list">
-            {WELCOME_ITEMS.map((item) => (
-              <View key={item.badge} className="welcome-card__item">
-                <View className="welcome-card__item-icon">
-                  <Text>{item.badge}</Text>
-                </View>
+        <View className="welcome-card__list">
+          {WELCOME_ITEMS.map((item) => (
+            <View key={item.title} className="welcome-card__item">
+              <View className="welcome-card__icon-box">
+                <Image
+                  className="welcome-card__icon-svg"
+                  src={buildWelcomeIconSvg(item.icon)}
+                  mode="aspectFit"
+                />
+              </View>
+              <View className="welcome-card__copy">
+                <Text className="welcome-card__item-title">{item.title}</Text>
                 <Text className="welcome-card__item-text">{item.text}</Text>
               </View>
-            ))}
-          </View>
-
-          <Text className="welcome-card__footer">当前为校内测试版本，遇到任何问题欢迎随时反馈</Text>
-          <Text className="welcome-card__hint">点击任意处继续</Text>
+            </View>
+          ))}
         </View>
+
+        <Text className="welcome-card__hint">点击任意位置开始探索</Text>
       </View>
-    </RootPortal>
+    </View>
   )
 }

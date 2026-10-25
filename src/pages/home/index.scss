@@ -1,56 +1,26 @@
-/* 1. 顶部居中下拉刷新状态条（彻底解决刷新图标偏左问题） */
-.home-refresh-banner {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 14rpx;
-  padding: 18rpx 24rpx 6rpx;
-  box-sizing: border-box;
-  text-align: center;
-}
-
-.home-refresh-banner__spinner {
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-  border: 4rpx solid rgba(226, 109, 45, 0.22);
-  border-top-color: #e26d2d;
-  animation: home-spin 0.72s linear infinite;
-  flex-shrink: 0;
-}
-
-.home-refresh-banner__text {
-  font-size: 23rpx;
-  font-weight: 700;
-  color: #a84f1f;
-}
-
-@keyframes home-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .home-page {
   display: flex;
   flex-direction: column;
-  gap: 28rpx;
+  gap: 24rpx;
 }
 
-/* 2. 顶部赛季标语与轮播图 */
+/* 1. 顶部赛季标语、右上角当前赛事胶囊与轮播图 */
 .home-hero {
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  overflow: hidden;
+  border: 2rpx solid #e4e7df;
+  border-radius: 24rpx;
+  background: #faf9f4;
 }
 
 .home-hero__copy {
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
-  padding: 0 4rpx;
+  gap: 10rpx;
+  padding: 22rpx 24rpx 24rpx;
+  box-sizing: border-box;
+  background: #faf9f4;
 }
 
 .home-hero__eyebrow-row {
@@ -62,17 +32,16 @@
 
 .home-hero__eyebrow {
   font-size: 21rpx;
-  font-weight: 800;
-  letter-spacing: 2rpx;
-  color: #1f6b45;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  color: #718075;
 }
 
 .home-hero__current-tour {
   padding: 5rpx 14rpx;
   border-radius: 999rpx;
-  background: rgba(31, 107, 69, 0.1);
-  color: #165134;
+  background: rgba(36, 75, 53, 0.1);
+  color: #244b35;
   font-size: 21rpx;
   font-weight: 700;
 }
@@ -80,52 +49,30 @@
 .home-hero__headline {
   display: flex;
   align-items: baseline;
-  gap: 16rpx;
 }
 
 .home-hero__title {
-  font-size: 46rpx;
-  line-height: 1.15;
-  font-weight: 800;
-  color: #162119;
+  display: inline-block;
+  color: #244b35;
+  font-family: 'Songti SC', 'STSong', 'SimSun', serif;
+  font-size: 49rpx;
+  font-weight: 900;
+  line-height: 1.22;
+  white-space: nowrap;
 }
 
 .home-hero__title--warm {
-  color: #c85c24;
-}
-
-/* 赛事切换药丸条 */
-.home-tour-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-}
-
-.home-tour-switcher__pill {
-  padding: 10rpx 22rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.88);
-  border: 2rpx solid rgba(24, 36, 27, 0.08);
-  color: #4f5e53;
-  font-size: 23rpx;
-  font-weight: 700;
-}
-
-.home-tour-switcher__pill--active {
-  background: #1a281e;
-  border-color: #1a281e;
-  color: #ffffff;
+  margin-left: 14rpx;
+  color: #b67d54;
 }
 
 /* 轮播卡片 */
 .home-hero__carousel {
   position: relative;
-  height: 332rpx;
-  border-radius: 28rpx;
+  width: 100%;
+  height: 310rpx;
   overflow: hidden;
   background: #dfe7dd;
-  border: 2rpx solid rgba(24, 36, 27, 0.08);
-  box-shadow: 0 16rpx 36rpx rgba(22, 34, 25, 0.08);
 }
 
 .home-hero__swiper,
@@ -142,31 +89,31 @@
 
 .home-hero__caption {
   position: absolute;
-  left: 20rpx;
-  right: 20rpx;
-  bottom: 18rpx;
+  left: 16rpx;
+  right: 16rpx;
+  bottom: 12rpx;
   z-index: 2;
   display: flex;
   align-items: center;
   gap: 12rpx;
-  padding: 12rpx 18rpx;
-  border-radius: 18rpx;
-  background: linear-gradient(135deg, rgba(24, 18, 14, 0.78), rgba(45, 27, 15, 0.68));
+  padding: 10rpx 16rpx;
+  border-radius: 16rpx;
+  background: rgba(25, 45, 31, 0.68);
   color: #ffffff;
 }
 
 .home-hero__caption--with-controls {
-  right: 196rpx;
+  right: 184rpx;
 }
 
 .home-hero__caption-badge {
   flex-shrink: 0;
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #f08a49, #d96426);
+  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   font-size: 19rpx;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .home-hero__caption-title {
@@ -175,48 +122,53 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 24rpx;
+  font-size: 23rpx;
   font-weight: 700;
 }
 
 .home-hero__controls {
   position: absolute;
-  right: 18rpx;
-  bottom: 18rpx;
+  right: 12rpx;
+  bottom: 12rpx;
   z-index: 3;
   display: flex;
   align-items: center;
   gap: 12rpx;
-  padding: 8rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(18, 25, 19, 0.56);
+  padding-left: 16rpx;
+  border-radius: 40rpx;
+  background: rgba(25, 45, 31, 0.65);
 }
 
 .home-hero__dots {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 10rpx;
 }
 
 .home-hero__dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 999rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.45);
 }
 
 .home-hero__dot--active {
-  width: 26rpx;
-  background: #f59c61;
+  background: #ffffff;
 }
 
 .home-hero__pause {
+  min-width: 72rpx;
+  min-height: 56rpx;
+  padding: 0 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #ffffff;
   font-size: 20rpx;
   font-weight: 700;
 }
 
-/* 3. 搜索栏 */
+/* 2. 搜索栏 */
 .home-search {
   display: flex;
   align-items: center;
@@ -281,56 +233,14 @@
 .home-search__submit {
   padding: 12rpx 26rpx;
   border-radius: 999rpx;
-  background: #1a281e;
+  background: #183f2a;
   color: #ffffff;
   font-size: 24rpx;
   font-weight: 700;
   flex-shrink: 0;
 }
 
-/* 4. 暖橙色边缘渐变官方公告条 */
-.home-notice-bar {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-  padding: 18rpx 22rpx;
-  border-radius: 22rpx;
-  background:
-    radial-gradient(circle at 0% 50%, rgba(255, 160, 94, 0.25), transparent 55%),
-    linear-gradient(135deg, #fffaf5 0%, #fdeddf 100%);
-  border: 2rpx solid rgba(224, 118, 52, 0.24);
-  box-shadow: 0 10rpx 24rpx rgba(185, 86, 30, 0.07);
-}
-
-.home-notice-bar__badge {
-  flex-shrink: 0;
-  padding: 5rpx 14rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #e87735, #c95619);
-  color: #ffffff;
-  font-size: 21rpx;
-  font-weight: 800;
-}
-
-.home-notice-bar__title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 25rpx;
-  font-weight: 700;
-  color: #3a1f10;
-}
-
-.home-notice-bar__more {
-  flex-shrink: 0;
-  font-size: 23rpx;
-  font-weight: 700;
-  color: #b4531e;
-}
-
-/* 5. 通用区块标题与焦点比赛双列网格 */
+/* 3. 通用区块标题与焦点比赛双列网格 */
 .home-section {
   display: flex;
   flex-direction: column;
@@ -344,18 +254,20 @@
   gap: 16rpx;
 }
 
+.home-section__kicker {
+  display: block;
+  margin-bottom: 4rpx;
+  font-size: 20rpx;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #6b7b70;
+}
+
 .home-section__title {
   display: block;
   font-size: 34rpx;
   font-weight: 800;
   color: #162119;
-}
-
-.home-section__sub {
-  display: block;
-  margin-top: 4rpx;
-  font-size: 22rpx;
-  color: #657468;
 }
 
 .home-section__action {
@@ -371,10 +283,50 @@
 .home-focus-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16rpx;
+  gap: 14rpx;
 }
 
-/* 6. 发帖快捷入口条 */
+/* 4. 官方公告单行条 */
+.home-notice-bar {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 22rpx;
+  background: #ffffff;
+  border: 2rpx solid #dfe5dc;
+  box-shadow: 0 6rpx 20rpx rgba(20, 44, 29, 0.04);
+}
+
+.home-notice-bar__badge {
+  flex-shrink: 0;
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: #e8f1eb;
+  color: #183f2a;
+  font-size: 21rpx;
+  font-weight: 800;
+}
+
+.home-notice-bar__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: #16241b;
+}
+
+.home-notice-bar__more {
+  flex-shrink: 0;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #6b7b70;
+}
+
+/* 5. 发帖快捷入口条 */
 .home-compose-entry {
   display: flex;
   align-items: center;
@@ -411,48 +363,30 @@
   flex-shrink: 0;
 }
 
-/* 7. 最短列优先双列瀑布流与底部分页按钮 */
+/* 6. 最短列优先双列瀑布流 */
 .home-feed-masonry {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16rpx;
+  gap: 14rpx;
   align-items: start;
 }
 
 .home-feed-masonry__col {
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 14rpx;
   min-width: 0;
 }
 
-.home-feed-footer {
-  margin-top: 6rpx;
-  display: flex;
-  justify-content: center;
-}
-
-.home-feed-footer__more-btn {
-  width: 100%;
-  padding: 20rpx 28rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.94);
-  border: 2rpx solid rgba(31, 107, 69, 0.2);
-  color: #1b5e3c;
-  font-size: 25rpx;
-  font-weight: 700;
+.home-empty-note {
+  display: block;
+  padding: 24rpx 0;
+  color: #6b7b70;
+  font-size: 24rpx;
   text-align: center;
 }
 
-.home-feed-footer__end {
-  padding: 16rpx 28rpx;
-  color: #708074;
-  font-size: 23rpx;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* 8. 搜索面板与结果卡片 */
+/* 7. 搜索面板与结果卡片 */
 .home-search-panel {
   display: flex;
   flex-direction: column;
@@ -477,8 +411,8 @@
 }
 
 .home-search-cats__item--active {
-  background: #1a281e;
-  border-color: #1a281e;
+  background: #183f2a;
+  border-color: #183f2a;
   color: #ffffff;
 }
 
@@ -528,52 +462,37 @@
   color: #8b988e;
 }
 
-/* 9. 暖橙色公告弹窗内部列表与详情排版 */
+/* 8. 标准白底公告弹窗内部列表与详情排版 */
 .home-notice-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 14rpx;
 }
 
 .home-notice-list__row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16rpx;
   padding: 20rpx 22rpx;
-  border-radius: 22rpx;
-  background: rgba(255, 255, 255, 0.72);
-  border: 2rpx solid rgba(215, 118, 56, 0.18);
-}
-
-.home-notice-list__main {
-  flex: 1;
-  min-width: 0;
+  border-radius: 20rpx;
+  background: #f6f8f4;
+  border: 2rpx solid #dfe5dc;
 }
 
 .home-notice-list__title {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 800;
-  color: #2f1a0f;
-}
-
-.home-notice-list__preview {
-  display: -webkit-box;
-  margin-top: 8rpx;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  font-size: 24rpx;
-  line-height: 1.5;
-  color: #5e4131;
+  flex: 1;
+  min-width: 0;
+  font-size: 27rpx;
+  font-weight: 700;
+  color: #16241b;
 }
 
 .home-notice-list__date {
   flex-shrink: 0;
   font-size: 22rpx;
-  font-weight: 700;
-  color: #a85829;
+  font-weight: 600;
+  color: #6b7b70;
 }
 
 .home-notice-detail {
@@ -584,19 +503,19 @@
 
 .home-notice-detail__meta {
   font-size: 23rpx;
-  font-weight: 700;
-  color: #9e5327;
+  font-weight: 600;
+  color: #6b7b70;
 }
 
 .home-notice-detail__body {
   font-size: 27rpx;
   line-height: 1.72;
-  color: #382215;
+  color: #16241b;
   white-space: pre-wrap;
 }
 
 .home-notice-detail__image {
   width: 100%;
-  border-radius: 22rpx;
+  border-radius: 20rpx;
   overflow: hidden;
 }

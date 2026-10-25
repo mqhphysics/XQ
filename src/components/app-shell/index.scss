@@ -1,13 +1,15 @@
 .app-shell {
-  min-height: 100vh;
-  padding-bottom: calc(168px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
   background: #f7f8f4;
   color: #16241b;
 }
 
 .app-shell__topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 50;
   box-sizing: border-box;
   width: 100%;
@@ -166,9 +168,41 @@
   white-space: nowrap;
 }
 
+.app-shell__scroll {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.native-refresh-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 128px;
+  width: 100%;
+}
+
+.native-refresh-indicator > image,
+.native-refresh-indicator__icon {
+  display: block;
+  width: 58px;
+  height: 58px;
+}
+
+.native-refresh-indicator.is-refreshing > image,
+.native-refresh-indicator.is-refreshing .native-refresh-indicator__icon {
+  animation: native-refresh-turn 0.85s linear infinite;
+}
+
+@keyframes native-refresh-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .app-shell__body {
   width: 100%;
-  padding: 24px 28px;
+  padding: 24px 28px calc(184px + env(safe-area-inset-bottom));
 }
 
 .app-shell__tabbar {

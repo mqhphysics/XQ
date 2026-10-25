@@ -1,5 +1,5 @@
 import { Image, Input, Swiper, SwiperItem, Text, View } from '@tarojs/components'
-import Taro, { useDidHide, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import fallbackActionPhoto from '../../assets/home-visual/home-campus-action.webp'
 import fallbackCelebrationPhoto from '../../assets/home-visual/home-team-celebration.webp'
@@ -23,7 +23,6 @@ import type {
   AuthSession,
   HomeResponse,
   PostSummary,
-  PublishedTournamentItem,
   SearchCategory,
   SearchResponse,
 } from '../../types'
@@ -63,9 +62,6 @@ const FEED_PAGE_SIZE = 8
 
 export default function HomePage() {
   const [session, setSession] = useState<AuthSession | null>(() => readSession())
-  const [tournaments, setTournaments] = useState<PublishedTournamentItem[]>(
-    () => peekProduct<{ items: PublishedTournamentItem[] }>('/public/tournaments')?.items ?? [],
-  )
   const [activeTournamentId, setActiveTournamentId] = useState<string>(
     () => knownTournamentId() || '',
   )
@@ -95,7 +91,7 @@ export default function HomePage() {
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
 
-  // 公告弹窗状态（暖橙色边缘渐变，点击任意位置关闭）
+  // 官方公告弹窗状态（标准白底带右上角 ×）
   const [noticesListOpen, setNoticesListOpen] = useState(false)
   const [activeAnnouncement, setActiveAnnouncement] = useState<PostSummary | null>(null)
 
@@ -129,20 +125,12 @@ export default function HomePage() {
       setError('')
 
       try {
-        const [tourRes, homeData] = await Promise.all([
-          productRepository
-            .getPublishedTournaments(isManualRefresh ? { fresh: true } : undefined)
-            .catch(() => ({ items: [] as PublishedTournamentItem[] })),
-          productRepository.getHome(
-            targetTournamentId || undefined,
-            isManualRefresh ? { fresh: true } : undefined,
-          ),
-        ])
+        const homeData = await productRepository.getHome(
+          targetTournamentId || undefined,
+          isManualRefresh ? { fresh: true } : undefined,
+        )
         if (seq !== homeSeq.current) return
 
-        if (tourRes.items.length > 0) {
-          setTournaments(tourRes.items)
-        }
         setHome(homeData)
         setActiveTournamentId(homeData.tournament.id)
         rememberTournamentId(homeData.tournament.id)
@@ -153,13 +141,12 @@ export default function HomePage() {
         }
       } catch (err) {
         if (seq === homeSeq.current) {
-          setError(err instanceof Error ? err.message : '加载首页数据失败')
+          setError(err instanceof Error ? err.message : '首页读取失败')
         }
       } finally {
         if (seq === homeSeq.current) {
           setLoading(false)
           setRefreshing(false)
-          Taro.stopPullDownRefresh()
         }
       }
     },
@@ -181,23 +168,11 @@ export default function HomePage() {
       .catch(() => {})
   }, [activeTournamentId, session?.accessToken])
 
-  usePullDownRefresh(() => {
-    void loadHomeData(activeTournamentId || undefined, true)
-  })
-
-  const handleSelectTournament = (id: string) => {
-    if (id === activeTournamentId) return
-    setActiveTournamentId(id)
-    setSlideIndex(0)
-    setVisiblePostCount(FEED_PAGE_SIZE)
-    void loadHomeData(id, false)
-  }
-
   const runSearch = useCallback(
     async (keyword: string, cat: SearchCategory) => {
       const trimmed = keyword.trim()
       if (!trimmed) {
-        void Taro.showToast({ title: '请输入搜索关键词', icon: 'none' })
+        void Taro.showToast({ title: '请输入搜索内容', icon: 'none' })
         return
       }
       const seq = ++searchSeq.current
@@ -217,7 +192,7 @@ export default function HomePage() {
         }
       } catch (err) {
         if (seq === searchSeq.current) {
-          setSearchError(err instanceof Error ? err.message : '搜索失败，请稍后重试')
+          setSearchError(err instanceof Error ? err.message : '搜索失败')
         }
       } finally {
         if (seq === searchSeq.current) {
@@ -238,7 +213,7 @@ export default function HomePage() {
 
   const handleToggleLike = async (post: PostSummary) => {
     if (!readSession()) {
-      void Taro.showToast({ title: '登录后可以点赞动态', icon: 'none' })
+      void Taro.showToast({ title: '登录后可以点赞', icon: 'none' })
       return
     }
     if (likingIds.current.has(post.id)) return
@@ -357,32 +332,44 @@ export default function HomePage() {
     void Taro.showToast({ title: '已为你更新推荐动态', icon: 'none', duration: 1200 })
   }
 
+  const handleLoadMorePosts = useCallback(() => {
+    if (searchMode || !hasMorePosts) return
+    setVisiblePostCount((prev) => Math.min(rankedPosts.length, prev + FEED_PAGE_SIZE))
+  }, [hasMorePosts, rankedPosts.length, searchMode])
+
+  const handleOpenPost = (post: PostSummary) => {
+    recordPostInteraction(post)
+    void Taro.navigateTo({
+      url: `/pages/post-detail/index?postId=${encodeURIComponent(post.id)}`,
+    }).catch(() => {
+      void Taro.showToast({
+        title: '帖子详情页将在后续阶段接入',
+        icon: 'none',
+      })
+    })
+  }
+
   return (
     <AppShell
       active="home"
       tournamentId={home?.tournament.id || activeTournamentId || undefined}
+      refreshing={refreshing}
+      onRefresh={() => {
+        void loadHomeData(activeTournamentId || undefined, true)
+        if (searchMode && query.trim()) {
+          void runSearch(query, searchCategory)
+        }
+      }}
+      onScrollToLower={handleLoadMorePosts}
       onBrandClick={() => {
         closeSearch()
-        void Taro.pageScrollTo({ scrollTop: 0, duration: 200 })
       }}
     >
       <CampusWelcomeCard />
 
-      {/* 居中下拉刷新状态指示条 */}
-      {refreshing ? (
-        <View className="home-refresh-banner">
-          <View className="home-refresh-banner__spinner" />
-          <Text className="home-refresh-banner__text">正在同步最新赛况与推荐动态…</Text>
-        </View>
-      ) : null}
-
       <View className="home-page">
         {!home && loading && !error ? (
-          <DataState
-            kind="loading"
-            title="正在进入晓球"
-            description="正在从云托管获取实时赛程、公告与校园动态…"
-          />
+          <DataState kind="loading" title="正在进入晓球" />
         ) : null}
 
         {error && !home ? (
@@ -395,38 +382,21 @@ export default function HomePage() {
           />
         ) : null}
 
-        {/* 1. 顶部赛季标语、赛事切换与公告轮播 */}
+        {/* 1. 顶部赛季标语、右上角当前赛事胶囊与公告轮播 */}
         {!searchMode && home ? (
           <View className="home-hero">
             <View className="home-hero__copy">
               <View className="home-hero__eyebrow-row">
-                <Text className="home-hero__eyebrow">
-                  {home.tournament.seasonName || '2026 校园足球赛季'}
-                </Text>
-                <Text className="home-hero__current-tour">{home.tournament.name}</Text>
+                <Text className="home-hero__eyebrow">2026 校园足球赛季</Text>
+                {home.tournament.name ? (
+                  <Text className="home-hero__current-tour">{home.tournament.name}</Text>
+                ) : null}
               </View>
               <View className="home-hero__headline">
                 <Text className="home-hero__title">绿茵正燃</Text>
                 <Text className="home-hero__title home-hero__title--warm">青春正好</Text>
               </View>
             </View>
-
-            {tournaments.length > 1 ? (
-              <View className="home-tour-switcher">
-                {tournaments.map((tour) => {
-                  const isSelected = tour.id === home.tournament.id
-                  return (
-                    <View
-                      key={tour.id}
-                      className={`home-tour-switcher__pill ${isSelected ? 'home-tour-switcher__pill--active' : ''}`}
-                      onClick={() => handleSelectTournament(tour.id)}
-                    >
-                      <Text>{tour.name || tour.seasonName || '校园赛事'}</Text>
-                    </View>
-                  )
-                })}
-              </View>
-            ) : null}
 
             <View className="home-hero__carousel">
               <Swiper
@@ -444,8 +414,6 @@ export default function HomePage() {
                       onClick={() => {
                         if (slide.post) {
                           setActiveAnnouncement(slide.post)
-                        } else if (allAnnouncements[0]) {
-                          setActiveAnnouncement(allAnnouncements[0])
                         }
                       }}
                     >
@@ -543,7 +511,7 @@ export default function HomePage() {
               ))}
             </View>
 
-            {searching ? <DataState kind="loading" title="正在搜索…" /> : null}
+            {searching ? <DataState kind="loading" title="正在搜索" /> : null}
             {searchError ? (
               <DataState
                 kind="error"
@@ -557,38 +525,19 @@ export default function HomePage() {
             {searchResults && !searching ? (
               <SearchResultsView
                 data={searchResults}
+                onOpenPost={handleOpenPost}
                 onLikePost={(post) => void handleToggleLike(post)}
               />
             ) : null}
           </View>
         ) : home ? (
           <>
-            {/* 4. 官方公告暖橙渐变提示条 */}
-            {allAnnouncements.length > 0 ? (
-              <View
-                className="home-notice-bar"
-                onClick={() => setNoticesListOpen(true)}
-              >
-                <View className="home-notice-bar__badge">
-                  <Text>公告</Text>
-                </View>
-                <Text className="home-notice-bar__title">
-                  {allAnnouncements[0]!.title || allAnnouncements[0]!.body}
-                </Text>
-                <Text className="home-notice-bar__more">查看 ›</Text>
-              </View>
-            ) : null}
-
-            {/* 5. 焦点赛事区 */}
+            {/* 4. 焦点赛事区 */}
             <View className="home-section">
               <View className="home-section__head">
                 <View>
+                  <Text className="home-section__kicker">MATCH CENTRE</Text>
                   <Text className="home-section__title">焦点赛事</Text>
-                  <Text className="home-section__sub">
-                    {primaryTeam
-                      ? `已优先展示你的主队「${primaryTeam.shortName}」及本轮焦点对决`
-                      : '实时比分与近期焦点对决'}
-                  </Text>
                 </View>
                 <View
                   className="home-section__action"
@@ -599,7 +548,7 @@ export default function HomePage() {
                     })
                   }
                 >
-                  <Text>全部赛程 ›</Text>
+                  <Text>查看全部 ›</Text>
                 </View>
               </View>
 
@@ -629,8 +578,24 @@ export default function HomePage() {
               )}
             </View>
 
-            {/* 6. 绿茵动态区（含发帖入口、智能推荐换一批、最短列平衡瀑布流与分页） */}
-            <View className="home-section">
+            {/* 5. 官方公告条（位于焦点赛事与绿茵动态之间，对齐原版布局） */}
+            {allAnnouncements.length > 0 ? (
+              <View
+                className="home-notice-bar"
+                onClick={() => setNoticesListOpen(true)}
+              >
+                <View className="home-notice-bar__badge">
+                  <Text>公告</Text>
+                </View>
+                <Text className="home-notice-bar__title">
+                  {allAnnouncements[0]!.title || '官方公告'}
+                </Text>
+                <Text className="home-notice-bar__more">›</Text>
+              </View>
+            ) : null}
+
+            {/* 6. 绿茵动态区（含发帖入口、换一批推荐按钮、高度平衡双列瀑布流与触底自动加载） */}
+            <View className="home-section" id="native-home-feed-start">
               <View
                 className="home-compose-entry"
                 onClick={() =>
@@ -654,10 +619,8 @@ export default function HomePage() {
 
               <View className="home-section__head">
                 <View>
+                  <Text className="home-section__kicker">CAMPUS FEED</Text>
                   <Text className="home-section__title">绿茵动态</Text>
-                  <Text className="home-section__sub">
-                    结合主队偏好、赛后快报与热度为你智能推荐
-                  </Text>
                 </View>
                 <View className="home-section__action" onClick={handleShuffleFeed}>
                   <Text>换一批 ↻</Text>
@@ -665,63 +628,39 @@ export default function HomePage() {
               </View>
 
               {visiblePosts.length > 0 ? (
-                <>
-                  <View className="home-feed-masonry">
-                    {masonryColumns.map((columnPosts, colIdx) => (
-                      <View key={colIdx} className="home-feed-masonry__col">
-                        {columnPosts.map((post) => (
-                          <PostCard
-                            key={post.id}
-                            post={post}
-                            variant="home"
-                            isRecommendedForTeam={isPostRelatedToTeam(
-                              post,
-                              primaryTeam?.id,
-                              primaryTeam?.name,
-                              primaryTeam?.shortName,
-                            )}
-                            onOpen={(clicked) => {
-                              recordPostInteraction(clicked)
-                              setActiveAnnouncement(clicked)
-                            }}
-                            onLike={(clicked) => void handleToggleLike(clicked)}
-                          />
-                        ))}
-                      </View>
-                    ))}
-                  </View>
-
-                  <View className="home-feed-footer">
-                    {hasMorePosts ? (
-                      <View
-                        className="home-feed-footer__more-btn"
-                        onClick={() => setVisiblePostCount((prev) => prev + FEED_PAGE_SIZE)}
-                      >
-                        <Text>
-                          展开更多动态（已显示 {visiblePosts.length} / {rankedPosts.length} 条）
-                        </Text>
-                      </View>
-                    ) : (
-                      <View className="home-feed-footer__end" onClick={handleShuffleFeed}>
-                        <Text>已经到底啦 · 点此换一批推荐顺序 ↻</Text>
-                      </View>
-                    )}
-                  </View>
-                </>
+                <View className="home-feed-masonry">
+                  {masonryColumns.map((columnPosts, colIdx) => (
+                    <View key={colIdx} className="home-feed-masonry__col">
+                      {columnPosts.map((post) => (
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          variant="home"
+                          isRecommendedForTeam={isPostRelatedToTeam(
+                            post,
+                            primaryTeam?.id,
+                            primaryTeam?.name,
+                            primaryTeam?.shortName,
+                          )}
+                          onOpen={handleOpenPost}
+                          onLike={(clicked) => void handleToggleLike(clicked)}
+                        />
+                      ))}
+                    </View>
+                  ))}
+                </View>
               ) : (
-                <DataState kind="empty" title="暂无绿茵动态" description="快来发布第一条球场动态吧！" />
+                <Text className="home-empty-note">暂无绿茵动态</Text>
               )}
             </View>
           </>
         ) : null}
       </View>
 
-      {/* 7. 官方公告列表弹窗（暖橙色边缘渐变，无关闭按钮，点任意处关闭） */}
+      {/* 7. 官方公告列表弹窗（标准白底弹窗，带右上角关闭按钮） */}
       {noticesListOpen ? (
         <ModalSheet
-          variant="warm-notice"
-          eyebrow="OFFICIAL NOTICES"
-          title="官方与赛事公告"
+          title="官方公告"
           onClose={() => setNoticesListOpen(false)}
         >
           <View className="home-notice-list">
@@ -729,18 +668,14 @@ export default function HomePage() {
               <View
                 key={item.id}
                 className="home-notice-list__row"
-                onClick={(e) => {
-                  e.stopPropagation()
+                onClick={() => {
                   setNoticesListOpen(false)
                   setActiveAnnouncement(item)
                 }}
               >
-                <View className="home-notice-list__main">
-                  <Text className="home-notice-list__title">
-                    {item.title || '官方公告'}
-                  </Text>
-                  <Text className="home-notice-list__preview">{item.body}</Text>
-                </View>
+                <Text className="home-notice-list__title">
+                  {item.title || '官方公告'}
+                </Text>
                 <Text className="home-notice-list__date">
                   {formatShortDate(item.publishedAt)}
                 </Text>
@@ -750,17 +685,14 @@ export default function HomePage() {
         </ModalSheet>
       ) : null}
 
-      {/* 8. 公告 / 快报全文预览弹窗（暖橙色边缘渐变，无关闭按钮，点任意位置关闭） */}
+      {/* 8. 赛事公告全文详情弹窗（标准白底弹窗，带右上角关闭按钮） */}
       {activeAnnouncement ? (
         <ModalSheet
-          variant="warm-notice"
-          eyebrow={activeAnnouncement.type === 'OFFICIAL' ? 'OFFICIAL NOTICE' : 'COMMUNITY POST'}
-          title={activeAnnouncement.title || '动态详情'}
+          title={activeAnnouncement.title || '赛事公告'}
           onClose={() => setActiveAnnouncement(null)}
         >
           <View className="home-notice-detail">
             <Text className="home-notice-detail__meta">
-              {activeAnnouncement.author?.displayName || '晓球官方'} ·{' '}
               {formatDateTime(activeAnnouncement.publishedAt)}
             </Text>
             <Text className="home-notice-detail__body">{activeAnnouncement.body}</Text>
@@ -780,21 +712,23 @@ export default function HomePage() {
 
 function SearchResultsView({
   data,
+  onOpenPost,
   onLikePost,
 }: {
   data: SearchResponse
+  onOpenPost: (post: PostSummary) => void
   onLikePost: (post: PostSummary) => void
 }) {
   const totalCount =
     data.players.length + data.teams.length + data.matches.length + data.posts.length
 
   if (totalCount === 0) {
-    return <DataState kind="empty" title="没有找到相关内容" description="换个关键词或分类试试吧" />
+    return <DataState kind="empty" title="没有找到相关内容" />
   }
 
   return (
     <View className="home-search-results">
-      <Text className="home-search-results__count">共找到 {totalCount} 项结果</Text>
+      <Text className="home-search-results__count">{totalCount} 项结果</Text>
 
       {data.players.map((player) => (
         <View key={player.id} className="home-search-row">
@@ -805,7 +739,7 @@ function SearchResultsView({
           />
           <View className="home-search-row__info">
             <Text className="home-search-row__title">{player.displayName}</Text>
-            <Text className="home-search-row__sub">{player.team?.name || '参赛球员'}</Text>
+            <Text className="home-search-row__sub">{player.team?.name || '球员'}</Text>
           </View>
           <Text className="home-search-row__arrow">›</Text>
         </View>
@@ -822,9 +756,6 @@ function SearchResultsView({
           />
           <View className="home-search-row__info">
             <Text className="home-search-row__title">{team.name}</Text>
-            <Text className="home-search-row__sub">
-              {team.groupName ? `${team.groupName} · ` : ''}参赛球队
-            </Text>
           </View>
           <Text className="home-search-row__arrow">›</Text>
         </View>
@@ -839,6 +770,7 @@ function SearchResultsView({
           key={post.id}
           post={post}
           variant="feed"
+          onOpen={onOpenPost}
           onLike={() => onLikePost(post)}
         />
       ))}
