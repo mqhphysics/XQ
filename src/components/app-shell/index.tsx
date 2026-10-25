@@ -112,8 +112,9 @@ export function AppShell({
         .getTeamPreferences(tournamentId || knownTournamentId() || undefined)
         .then((pref) => {
           if (cancelled) return
-          cachedPrimaryTeamByTournament.set(resolvedTournamentId, pref.primaryTeamId)
-          setPrimaryTeamId(pref.primaryTeamId)
+          const nextPrimaryId = pref.primaryTeam?.id ?? null
+          cachedPrimaryTeamByTournament.set(resolvedTournamentId, nextPrimaryId)
+          setPrimaryTeamId(nextPrimaryId)
         })
         .catch(() => {})
     } else {

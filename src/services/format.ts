@@ -6,23 +6,29 @@ const parsedDatePartCache = new Map<
   { year: number; month: number; day: number; hour: number; minute: number; weekday: number }
 >()
 
-export function formatMatchStatus(status: MatchSummary['status']): string {
-  switch (status) {
-    case 'live':
+export function formatMatchStatus(status: MatchSummary['status'] | string | null | undefined): string {
+  switch (String(status || '').toUpperCase()) {
+    case 'LIVE':
       return '进行中'
-    case 'finished':
+    case 'FINISHED':
+    case 'CONFIRMED':
       return '已结束'
-    case 'postponed':
+    case 'CHECK_IN':
+      return '检录中'
+    case 'POSTPONED':
       return '延期'
-    case 'cancelled':
-      return '取消'
+    case 'CANCELLED':
+    case 'ABANDONED':
+      return '已取消'
+    case 'DRAFT':
+    case 'SCHEDULED':
     default:
       return '即将开始'
   }
 }
 
-export function formatPosition(position: string): string {
-  switch (position) {
+export function formatPosition(position: string | null | undefined): string {
+  switch (String(position || '').toUpperCase()) {
     case 'GK':
       return '门将'
     case 'DF':
@@ -32,15 +38,17 @@ export function formatPosition(position: string): string {
     case 'FW':
       return '前锋'
     default:
-      return position
+      return position || '待定'
   }
 }
 
-export function formatTeamRole(role: string): string {
-  switch (role) {
+export function formatTeamRole(role: string | null | undefined): string {
+  switch (String(role || '').toLowerCase()) {
     case 'captain':
+    case 'team_captain':
       return '队长'
     case 'coach':
+    case 'team_coach':
       return '教练'
     case 'manager':
       return '领队'
@@ -49,8 +57,8 @@ export function formatTeamRole(role: string): string {
   }
 }
 
-export function formatEventLabel(eventType: string): string {
-  switch (eventType) {
+export function formatEventLabel(eventType: string | null | undefined): string {
+  switch (String(eventType || '').toLowerCase()) {
     case 'goal':
       return '进球'
     case 'penalty_goal':
@@ -66,33 +74,54 @@ export function formatEventLabel(eventType: string): string {
     case 'note':
       return '备注'
     default:
-      return eventType
+      return eventType || '事件'
   }
 }
 
-export function formatDateTime(value: string): string {
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) return '待定'
   const parts = parseDateParts(value)
   if (!parts) return value
   return `${pad2(parts.month)}月${pad2(parts.day)}日 ${pad2(parts.hour)}:${pad2(parts.minute)}`
 }
 
-export function formatShortDate(value: string): string {
+export function formatShortDate(value: string | null | undefined): string {
+  if (!value) return '待定'
   const parts = parseDateParts(value)
   if (!parts) return value
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   return `${pad2(parts.month)}/${pad2(parts.day)} ${weekdays[parts.weekday]}`
 }
 
-export function formatKickoffTime(value: string): string {
+export function formatKickoffTime(value: string | null | undefined): string {
+  if (!value) return '待定'
   const parts = parseDateParts(value)
   if (!parts) return value
   return `${pad2(parts.hour)}:${pad2(parts.minute)}`
 }
 
-export function formatDateKey(value: string): string {
+export function formatDateKey(value: string | null | undefined): string {
+  if (!value) return ''
   const parts = parseDateParts(value)
   if (!parts) return value.slice(0, 10)
   return `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}`
+}
+
+export function formatRelativeTime(value: string | null | undefined): string {
+  if (!value) return ''
+  const timestamp = Date.parse(value)
+  if (Number.isNaN(timestamp)) {
+    return formatDateTime(value)
+  }
+  const diffSeconds = Math.floor((Date.now() - timestamp) / 1000)
+  if (diffSeconds < 60) return '刚刚'
+  const diffMinutes = Math.floor(diffSeconds / 60)
+  if (diffMinutes < 60) return `${diffMinutes} 分钟前`
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `${diffHours} 小时前`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return `${diffDays} 天前`
+  return formatDateTime(value)
 }
 
 function parseDateParts(value: string): {

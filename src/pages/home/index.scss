@@ -1,170 +1,602 @@
-.home-preview {
+/* 1. 顶部居中下拉刷新状态条（彻底解决刷新图标偏左问题） */
+.home-refresh-banner {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.home-preview__hero {
-  padding: 32px 28px;
-  background: #ffffff;
-  border: 2px solid #dfe6dc;
-  border-radius: 28px;
-  box-shadow: 0 8px 32px rgba(20, 44, 29, 0.05);
-}
-
-.home-preview__hero-top {
-  display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.home-preview__badge {
-  display: inline-block;
-  padding: 6px 18px;
-  border-radius: 999px;
-  background: #e7f1ea;
-  color: #183f2a;
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.home-preview__title {
-  display: block;
-  margin-top: 18px;
-  color: #16241b;
-  font-size: 40px;
-  font-weight: 900;
-  line-height: 1.25;
-}
-
-.home-preview__subtitle {
-  display: block;
-  margin-top: 10px;
-  color: #5b6c60;
-  font-size: 26px;
-  line-height: 1.5;
-}
-
-.home-preview__tournaments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 24px;
-}
-
-.home-preview__tour-pill {
-  min-height: 68px;
-  margin: 0;
-  padding: 0 26px;
-  border-radius: 999px;
-  border: 2px solid #d5ded7;
-  background: #f7f9f5;
-  color: #35513a;
-  font-size: 25px;
-  font-weight: 700;
-  line-height: 64px;
-}
-
-.home-preview__tour-pill--active {
-  background: #183f2a;
-  border-color: #183f2a;
-  color: #ffffff;
-}
-
-.home-preview__section {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.home-preview__section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.home-preview__section-title {
-  color: #16241b;
-  font-size: 32px;
-  font-weight: 800;
-}
-
-.home-preview__refresh-btn {
-  min-height: 64px;
-  margin: 0;
-  padding: 0 24px;
-  border-radius: 16px;
-  background: #e7f1ea;
-  color: #183f2a;
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 64px;
-}
-
-.home-preview__match-card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  background: #ffffff;
-  border: 2px solid #dfe6dc;
-  border-radius: 24px;
-  box-shadow: 0 6px 24px rgba(20, 44, 29, 0.04);
-}
-
-.home-preview__match-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 14px;
-  border-bottom: 2px solid #f0f3ee;
-}
-
-.home-preview__match-meta {
-  color: #68766b;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.home-preview__match-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-}
-
-.home-preview__team {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.home-preview__team--away {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.home-preview__team-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #16241b;
-  font-size: 29px;
-  font-weight: 800;
-}
-
-.home-preview__score {
-  color: #183f2a;
-  font-size: 38px;
-  font-weight: 900;
+  justify-content: center;
+  gap: 14rpx;
+  padding: 18rpx 24rpx 6rpx;
+  box-sizing: border-box;
   text-align: center;
 }
 
-.home-preview__venue {
-  color: #7b887d;
-  font-size: 23px;
+.home-refresh-banner__spinner {
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(226, 109, 45, 0.22);
+  border-top-color: #e26d2d;
+  animation: home-spin 0.72s linear infinite;
+  flex-shrink: 0;
+}
+
+.home-refresh-banner__text {
+  font-size: 23rpx;
+  font-weight: 700;
+  color: #a84f1f;
+}
+
+@keyframes home-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+/* 2. 顶部赛季标语与轮播图 */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.home-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 0 4rpx;
+}
+
+.home-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.home-hero__eyebrow {
+  font-size: 21rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: #1f6b45;
+  text-transform: uppercase;
+}
+
+.home-hero__current-tour {
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(31, 107, 69, 0.1);
+  color: #165134;
+  font-size: 21rpx;
+  font-weight: 700;
+}
+
+.home-hero__headline {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+}
+
+.home-hero__title {
+  font-size: 46rpx;
+  line-height: 1.15;
+  font-weight: 800;
+  color: #162119;
+}
+
+.home-hero__title--warm {
+  color: #c85c24;
+}
+
+/* 赛事切换药丸条 */
+.home-tour-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.home-tour-switcher__pill {
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.88);
+  border: 2rpx solid rgba(24, 36, 27, 0.08);
+  color: #4f5e53;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.home-tour-switcher__pill--active {
+  background: #1a281e;
+  border-color: #1a281e;
+  color: #ffffff;
+}
+
+/* 轮播卡片 */
+.home-hero__carousel {
+  position: relative;
+  height: 332rpx;
+  border-radius: 28rpx;
+  overflow: hidden;
+  background: #dfe7dd;
+  border: 2rpx solid rgba(24, 36, 27, 0.08);
+  box-shadow: 0 16rpx 36rpx rgba(22, 34, 25, 0.08);
+}
+
+.home-hero__swiper,
+.home-hero__slide,
+.home-hero__photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.home-hero__slide {
+  position: relative;
+}
+
+.home-hero__caption {
+  position: absolute;
+  left: 20rpx;
+  right: 20rpx;
+  bottom: 18rpx;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 18rpx;
+  border-radius: 18rpx;
+  background: linear-gradient(135deg, rgba(24, 18, 14, 0.78), rgba(45, 27, 15, 0.68));
+  color: #ffffff;
+}
+
+.home-hero__caption--with-controls {
+  right: 196rpx;
+}
+
+.home-hero__caption-badge {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #f08a49, #d96426);
+  color: #ffffff;
+  font-size: 19rpx;
+  font-weight: 800;
+}
+
+.home-hero__caption-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.home-hero__controls {
+  position: absolute;
+  right: 18rpx;
+  bottom: 18rpx;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(18, 25, 19, 0.56);
+}
+
+.home-hero__dots {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.home-hero__dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.home-hero__dot--active {
+  width: 26rpx;
+  background: #f59c61;
+}
+
+.home-hero__pause {
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+/* 3. 搜索栏 */
+.home-search {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 12rpx 14rpx 12rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2rpx solid rgba(24, 36, 27, 0.08);
+  box-shadow: 0 10rpx 24rpx rgba(21, 32, 23, 0.04);
+}
+
+.home-search__icon {
+  position: relative;
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 3rpx solid #708074;
+  box-sizing: border-box;
+}
+
+.home-search__icon::after {
+  content: '';
+  position: absolute;
+  right: -7rpx;
+  bottom: -5rpx;
+  width: 11rpx;
+  height: 3rpx;
+  border-radius: 999rpx;
+  background: #708074;
+  transform: rotate(45deg);
+}
+
+.home-search__back {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: #f2f5f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.home-search__back-icon {
+  width: 14rpx;
+  height: 14rpx;
+  border-left: 3.5rpx solid #18241b;
+  border-bottom: 3.5rpx solid #18241b;
+  transform: rotate(45deg);
+  margin-left: 4rpx;
+}
+
+.home-search__input {
+  flex: 1;
+  min-width: 0;
+  height: 56rpx;
+  font-size: 26rpx;
+  color: #18241b;
+}
+
+.home-search__submit {
+  padding: 12rpx 26rpx;
+  border-radius: 999rpx;
+  background: #1a281e;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* 4. 暖橙色边缘渐变官方公告条 */
+.home-notice-bar {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 22rpx;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(255, 160, 94, 0.25), transparent 55%),
+    linear-gradient(135deg, #fffaf5 0%, #fdeddf 100%);
+  border: 2rpx solid rgba(224, 118, 52, 0.24);
+  box-shadow: 0 10rpx 24rpx rgba(185, 86, 30, 0.07);
+}
+
+.home-notice-bar__badge {
+  flex-shrink: 0;
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #e87735, #c95619);
+  color: #ffffff;
+  font-size: 21rpx;
+  font-weight: 800;
+}
+
+.home-notice-bar__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: #3a1f10;
+}
+
+.home-notice-bar__more {
+  flex-shrink: 0;
+  font-size: 23rpx;
+  font-weight: 700;
+  color: #b4531e;
+}
+
+/* 5. 通用区块标题与焦点比赛双列网格 */
+.home-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.home-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.home-section__title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #162119;
+}
+
+.home-section__sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #657468;
+}
+
+.home-section__action {
+  flex-shrink: 0;
+  padding: 10rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(31, 107, 69, 0.1);
+  color: #1b5e3c;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.home-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+/* 6. 发帖快捷入口条 */
+.home-compose-entry {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2rpx solid rgba(24, 36, 27, 0.08);
+  box-shadow: 0 10rpx 24rpx rgba(20, 31, 22, 0.04);
+}
+
+.home-compose-entry__copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-compose-entry__title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #18241b;
+}
+
+.home-compose-entry__sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #6b7a6e;
+}
+
+.home-compose-entry__icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
+}
+
+/* 7. 最短列优先双列瀑布流与底部分页按钮 */
+.home-feed-masonry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+  align-items: start;
+}
+
+.home-feed-masonry__col {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  min-width: 0;
+}
+
+.home-feed-footer {
+  margin-top: 6rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.home-feed-footer__more-btn {
+  width: 100%;
+  padding: 20rpx 28rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2rpx solid rgba(31, 107, 69, 0.2);
+  color: #1b5e3c;
+  font-size: 25rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.home-feed-footer__end {
+  padding: 16rpx 28rpx;
+  color: #708074;
+  font-size: 23rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 8. 搜索面板与结果卡片 */
+.home-search-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.home-search-cats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10rpx;
+}
+
+.home-search-cats__item {
+  padding: 12rpx 0;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2rpx solid rgba(24, 36, 27, 0.08);
+  color: #5c6b5f;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.home-search-cats__item--active {
+  background: #1a281e;
+  border-color: #1a281e;
+  color: #ffffff;
+}
+
+.home-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.home-search-results__count {
+  font-size: 23rpx;
+  font-weight: 700;
+  color: #657468;
+}
+
+.home-search-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2rpx solid rgba(24, 36, 27, 0.08);
+}
+
+.home-search-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-search-row__title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #18241b;
+}
+
+.home-search-row__sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 23rpx;
+  color: #6b7a6e;
+}
+
+.home-search-row__arrow {
+  font-size: 34rpx;
+  color: #8b988e;
+}
+
+/* 9. 暖橙色公告弹窗内部列表与详情排版 */
+.home-notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.home-notice-list__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 2rpx solid rgba(215, 118, 56, 0.18);
+}
+
+.home-notice-list__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-notice-list__title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #2f1a0f;
+}
+
+.home-notice-list__preview {
+  display: -webkit-box;
+  margin-top: 8rpx;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #5e4131;
+}
+
+.home-notice-list__date {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #a85829;
+}
+
+.home-notice-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.home-notice-detail__meta {
+  font-size: 23rpx;
+  font-weight: 700;
+  color: #9e5327;
+}
+
+.home-notice-detail__body {
+  font-size: 27rpx;
+  line-height: 1.72;
+  color: #382215;
+  white-space: pre-wrap;
+}
+
+.home-notice-detail__image {
+  width: 100%;
+  border-radius: 22rpx;
+  overflow: hidden;
 }

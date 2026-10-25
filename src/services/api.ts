@@ -22,6 +22,7 @@ import type {
   PostTag,
   PostTagSuggestion,
   PublicPersonResponse,
+  PublishedTournamentItem,
   RegisterInput,
   ReportListResponse,
   ReportTargetType,
@@ -80,7 +81,7 @@ export async function loadCompetition(routeTournamentId = ''): Promise<Competiti
 
 export const productRepository = {
   getPublishedTournaments: (options?: { fresh?: boolean }) =>
-    requestProduct<{ items: Array<{ id: string; name?: string; seasonName?: string; status?: string }> }>(
+    requestProduct<{ items: PublishedTournamentItem[] }>(
       '/public/tournaments',
       options,
     ),

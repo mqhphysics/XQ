@@ -614,3 +614,9 @@ export interface MessageListResponse {
   }>
 }
 
+export interface PublishedTournamentItem {
+  id: string
+  name?: string
+  seasonName?: string
+  status?: string
+}

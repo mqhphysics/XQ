@@ -1,4 +1,4 @@
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Image, Text, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import { resolveMediaUrl, sizedMediaUrl } from '../../services/api'
 import { formatMatchStatus } from '../../services/format'
@@ -6,13 +6,14 @@ import type { MatchSummary } from '../../types'
 import './index.scss'
 
 const DEMO_TEAM_CODES = [
-  'DEMO-PHY-1',
-  'DEMO-PHY-2',
-  'DEMO-MATH',
   'DEMO-CS',
+  'DEMO-MATH',
+  'DEMO-PHYS',
   'DEMO-CHEM',
   'DEMO-BIO',
   'DEMO-GEO',
+  'DEMO-PSYCH',
+  'DEMO-PE',
   'DEMO-EDU',
   'DEMO-LIT',
   'DEMO-HIS',
@@ -32,20 +33,20 @@ export function demoCrestUrl(teamCode: string): string | null {
 }
 
 export function TeamCrest({
-  teamCode,
+  teamCode = '',
   name,
   color,
   crestUrl,
   size = 'medium',
 }: {
-  teamCode: string
+  teamCode?: string | null
   name: string
   color?: string
   crestUrl?: string | null
   size?: 'small' | 'medium' | 'large'
 }) {
   const [imageFailed, setImageFailed] = useState(false)
-  const rawCrest = crestUrl || demoCrestUrl(teamCode)
+  const rawCrest = crestUrl || (teamCode ? demoCrestUrl(teamCode) : null)
   const pixelWidth = size === 'large' ? 192 : size === 'medium' ? 128 : 96
   const resolvedCrest = sizedMediaUrl(rawCrest, { width: pixelWidth, quality: 82 })
 
@@ -71,7 +72,7 @@ export function TeamCrest({
       style={{ background: color || '#1b4a2f' }}
       aria-label={`${name}占位队徽`}
     >
-      <Text className="team-crest__initial">{name.slice(0, 1)}</Text>
+      <Text className="team-crest__initial">{(name || '队').slice(0, 1)}</Text>
     </View>
   )
 }
@@ -119,23 +120,35 @@ export function UserAvatar({
 }
 
 export function MatchStatusBadge({ status }: { status: MatchSummary['status'] }) {
+  const normalized = String(status || 'SCHEDULED').toLowerCase()
+  const cssKey =
+    normalized === 'live'
+      ? 'live'
+      : normalized === 'finished' || normalized === 'confirmed'
+        ? 'finished'
+        : normalized === 'postponed' || normalized === 'cancelled' || normalized === 'abandoned'
+          ? 'postponed'
+          : 'scheduled'
+
   return (
-    <View className={`match-status match-status--${status}`}>
-      {status === 'live' && <View className="match-status__dot" />}
+    <View className={`match-status match-status--${cssKey}`}>
+      {cssKey === 'live' ? <View className="match-status__dot" /> : null}
       <Text>{formatMatchStatus(status)}</Text>
     </View>
   )
 }
 
 export function DataState({
-  kind,
+  kind = 'loading',
   title,
   description,
+  actionLabel = '重新加载',
   onRetry,
 }: {
-  kind: 'loading' | 'error' | 'empty'
+  kind?: 'loading' | 'error' | 'empty'
   title: string
   description?: string
+  actionLabel?: string
   onRetry?: () => void
 }) {
   return (
@@ -144,9 +157,9 @@ export function DataState({
       <Text className="data-state__title">{title}</Text>
       {description ? <Text className="data-state__copy">{description}</Text> : null}
       {onRetry ? (
-        <Button className="data-state__button" onClick={onRetry}>
-          重新加载
-        </Button>
+        <View className="data-state__button" onClick={onRetry}>
+          <Text>{actionLabel}</Text>
+        </View>
       ) : null}
     </View>
   )
