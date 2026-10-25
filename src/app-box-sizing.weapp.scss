@@ -1,0 +1,936 @@
+@use './styles/weapp-ui';
+
+// The WXSS compiler rejects the universal selector used by the H5 reset.
+page,
+view,
+text,
+button,
+input,
+textarea,
+image,
+scroll-view,
+rich-text,
+form,
+cover-view,
+cover-image,
+view::before,
+view::after,
+button::before,
+button::after {
+  box-sizing: border-box;
+}
+
+page {
+  --bg-canvas: #f7f8f4;
+  --bg-surface: #fcfdf9;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #eff3ec;
+  --ink-strong: #16241b;
+  --ink-body: #2d3d33;
+  --ink-muted: #5b6c60;
+  --ink-soft: #7b8c80;
+  --brand-green: #183f2a;
+  --brand-green-hover: #245b39;
+  --brand-green-soft: #e7f1ea;
+  --focus-border: #489968;
+  --focus-ring: 0 0 0 6px rgba(72, 153, 104, 0.16);
+  --border-subtle: #dfe6dc;
+  --border-strong: #c6d3c3;
+  color: #16241b;
+  background: #f7f8f4;
+}
+
+/* ==========================================================================
+   * 1. 全局设计令牌、表单浅绿焦点态 (#489968) 与系统默认控件重置 (Mobile <= 1440px)
+   * ========================================================================== */
+page .public-app.public-app,
+page .auth-page.auth-page,
+page .quick-report-page.quick-report-page {
+  --bg-canvas: #f7f8f4;
+  --bg-surface: #fcfdf9;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #eff3ec;
+  --ink-strong: #16241b;
+  --ink-body: #2d3d33;
+  --ink-muted: #5b6c60;
+  --ink-soft: #7b8c80;
+  --brand-green: #183f2a;
+  --brand-green-hover: #245b39;
+  --brand-green-soft: #e7f1ea;
+  --focus-border: #489968;
+  --focus-ring: 0 0 0 6px rgba(72, 153, 104, 0.16);
+  --border-subtle: #dfe6dc;
+  --border-strong: #c6d3c3;
+  --radius-sm: 20px;
+  --radius-md: 28px;
+  --radius-lg: 36px;
+  --shadow-card: 0 8px 32px rgba(20, 44, 29, 0.05);
+  color: #16241b;
+  background: #f7f8f4;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button::after,
+taro-button-core::after {
+  border: 0;
+  display: none;
+}
+
+page button,
+page taro-button-core,
+page input,
+page taro-input-core,
+page textarea,
+page taro-textarea-core,
+page picker {
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+page input .weui-input.weui-input,
+page taro-input-core .weui-input.weui-input,
+page textarea .taro-textarea.taro-textarea,
+page taro-textarea-core .taro-textarea.taro-textarea,
+page .weui-input.weui-input,
+page .taro-textarea.taro-textarea {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+/* 统一浅绿焦点边框 (#489968) 与柔和绿光晕，彻底消除系统默认黑框 */
+page input:focus,
+page input:focus-within,
+page input:focus-visible,
+page taro-input-core:focus,
+page taro-input-core:focus-within,
+page taro-input-core:focus-visible,
+page textarea:focus,
+page textarea:focus-within,
+page textarea:focus-visible,
+page taro-textarea-core:focus,
+page taro-textarea-core:focus-within,
+page taro-textarea-core:focus-visible,
+page .auth-input.auth-input:focus,
+page .auth-input.auth-input:focus-within,
+page .auth-field input:focus,
+page .auth-field taro-input-core:focus-within,
+page .home-search-entry.home-search-entry:focus-within,
+page .search-experience__bar.search-experience__bar:focus-within,
+page .search-experience__input.search-experience__input:focus,
+page .search-experience__input.search-experience__input:focus-within,
+page .composer-dialog__input.composer-dialog__input:focus,
+page .composer-dialog__input.composer-dialog__input:focus-within,
+page .composer-dialog__textarea.composer-dialog__textarea:focus,
+page .composer-dialog__textarea.composer-dialog__textarea:focus-within,
+page .message-compose input:focus,
+page .message-compose taro-input-core:focus-within,
+page .report-modal__input.report-modal__input:focus,
+page .report-modal__input.report-modal__input:focus-within,
+page .report-modal__textarea.report-modal__textarea:focus,
+page .report-modal__textarea.report-modal__textarea:focus-within,
+page .settings-dialog input:focus,
+page .settings-dialog taro-input-core:focus-within,
+page .team-search__input.team-search__input:focus,
+page .team-search__input.team-search__input:focus-within,
+page .team-selector__search.team-selector__search:focus-within,
+page .team-selector__search-input.team-selector__search-input:focus,
+page .team-join-action input:focus,
+page .team-join-action taro-input-core:focus-within,
+page .profile-editor input:focus,
+page .profile-editor textarea:focus,
+page .admin-report-card__input.admin-report-card__input:focus,
+page .comment-composer__input.comment-composer__input:focus,
+page .comment-composer__input.comment-composer__input:focus-within,
+page .rating-form__textarea.rating-form__textarea:focus,
+page .rating-form__textarea.rating-form__textarea:focus-within,
+page .score-input.score-input:focus,
+page .score-input.score-input:focus-within,
+page .text-input.text-input:focus,
+page .text-input.text-input:focus-within,
+page .notes-input.notes-input:focus,
+page .notes-input.notes-input:focus-within,
+page .mr-score-input.mr-score-input:focus-within,
+page .mr-input.mr-input:focus,
+page .mr-picker.mr-picker:focus-within,
+page .mr-textarea.mr-textarea:focus,
+page .lineup-input.lineup-input:focus,
+page .lineup-select.lineup-select:focus-visible {
+  border-color: #489968;
+  box-shadow: 0 0 0 6px rgba(72, 153, 104, 0.16);
+  outline: none;
+}
+
+page button:focus-visible,
+page taro-button-core:focus-visible {
+  outline: 4px solid #489968;
+  outline-offset: 4px;
+}
+
+page .public-content.public-content {
+  width: calc(100% - 56px);
+  padding: 28px 0 48px;
+}
+
+page .page-intro.page-intro {
+  display: block;
+  margin-bottom: 32px;
+}
+
+page .page-intro__eyebrow.page-intro__eyebrow {
+  font-size: 24px;
+  letter-spacing: 0.05em;
+}
+
+page .page-intro__title.page-intro__title {
+  margin-top: 12px;
+  font-size: 48px;
+  line-height: 1.22;
+}
+
+page .page-intro__copy.page-intro__copy {
+  margin-top: 16px;
+  font-size: 27px;
+  line-height: 1.55;
+}
+
+page .content-section.content-section {
+  margin-top: 44px;
+}
+
+page .surface.surface {
+  background: #ffffff;
+  border: 2px solid #dfe6dc;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(20, 44, 29, 0.05);
+}
+
+page .button.button {
+  min-height: 84px;
+  padding: 0 32px;
+  border-radius: 20px;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 84px;
+}
+
+page .button--primary.button--primary {
+  color: #ffffff;
+  background: #183f2a;
+  box-shadow: 0 8px 24px rgba(24, 63, 42, 0.16);
+}
+
+page .button--secondary.button--secondary {
+  color: #183f2a;
+  background: #e7f1ea;
+  border: 2px solid #c6d3c3;
+}
+
+page .status-tag.status-tag {
+  min-height: 52px;
+  padding: 6px 20px;
+  border-radius: 999px;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   * 2. 顶部导航栏、账号胶囊与底部安全区浮动导航 (public-shell)
+   * ========================================================================== */
+page .public-app.public-app {
+  padding-bottom: calc(184px + env(safe-area-inset-bottom));
+}
+
+page .public-topbar.public-topbar {
+  border-bottom: 2px solid rgba(216, 224, 217, 0.85);
+  background: rgba(250, 249, 245, 0.94);
+  box-shadow: 0 4px 24px rgba(20, 44, 29, 0.04);
+  backdrop-filter: blur(28px);
+}
+
+page .public-topbar__inner.public-topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 120px;
+  padding: 16px 32px;
+}
+
+page .public-brand-area.public-brand-area {
+  gap: 20px;
+  min-width: 0;
+}
+
+page .public-back.public-back {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid #d5ded7;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(20, 48, 32, 0.06);
+  font-size: 36px;
+}
+
+page .public-brand.public-brand {
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+page .public-brand__mark.public-brand__mark {
+  width: 76px;
+  height: 76px;
+}
+
+page .public-brand__name.public-brand__name {
+  color: #153423;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+page .public-brand__caption.public-brand__caption,
+page .public-nav.public-nav,
+page .public-header-search.public-header-search,
+page .public-footer.public-footer {
+  display: none;
+}
+
+page .public-account-wrap.public-account-wrap {
+  margin-left: auto;
+}
+
+page .public-account.public-account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: auto;
+  min-height: 80px;
+  padding: 8px 24px 8px 10px;
+  background: #ffffff;
+  border: 2px solid #dce4dd;
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(20, 48, 32, 0.05);
+}
+
+page .public-account__avatar.public-account__avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+
+page .public-account__avatar .user-avatar.user-avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+
+page .native-user-avatar.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+page .public-account__avatar .native-user-avatar.user-avatar {
+  display: flex;
+  font-size: 36px;
+}
+
+page .native-user-avatar > .native-user-avatar__initial {
+  display: block;
+  flex: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1;
+  text-align: center;
+}
+
+page .native-user-avatar > .native-user-avatar__image {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+page .public-account__copy.public-account__copy {
+  display: flex;
+  min-width: 0;
+}
+
+page .public-account__name.public-account__name {
+  max-width: 224px;
+  padding-right: 8px;
+  overflow: hidden;
+  color: #1c3626;
+  font-size: 25px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+page .public-account-menu.public-account-menu {
+  top: calc(100% + 16px);
+  right: 0;
+  width: min(472px, calc(100vw - 56px));
+  border-radius: 28px;
+  box-shadow: 0 32px 76px rgba(16, 36, 24, 0.16);
+}
+
+page .public-account-menu__identity text:last-child,
+page .public-account-menu__version.public-account-menu__version {
+  font-size: 24px;
+}
+
+page .public-app--home .public-content.public-content {
+  width: calc(100% - 56px);
+  padding: 24px 0 56px;
+}
+
+page .mobile-tabbar.mobile-tabbar {
+  position: fixed;
+  z-index: 40;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  min-height: calc(136px + env(safe-area-inset-bottom));
+  padding: 12px 20px max(16px, env(safe-area-inset-bottom));
+  background: rgba(252, 251, 248, 0.96);
+  border-top: 2px solid rgba(214, 222, 215, 0.9);
+  box-shadow: 0 -16px 56px rgba(18, 40, 27, 0.08);
+  backdrop-filter: blur(32px);
+}
+
+page .mobile-tabbar__item.mobile-tabbar__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 104px;
+  margin: 0;
+  padding: 10px 4px;
+  color: #6b7b70;
+  background: transparent;
+  border-radius: 24px;
+  line-height: 1;
+}
+
+page .mobile-tabbar__icon.mobile-tabbar__icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  background: url('./assets/home-visual/nav-icons.svg') 0 0 / 176px 44px no-repeat;
+  opacity: 0.52;
+}
+
+page .mobile-tabbar__icon--schedule.mobile-tabbar__icon--schedule {
+  background-position: -44px 0;
+}
+
+page .mobile-tabbar__icon--data.mobile-tabbar__icon--data {
+  background-position: -88px 0;
+}
+
+page .mobile-tabbar__icon--me.mobile-tabbar__icon--me {
+  background-position: -132px 0;
+}
+
+page .mobile-tabbar__mark.mobile-tabbar__mark {
+  display: none;
+}
+
+page .mobile-tabbar__label.mobile-tabbar__label {
+  display: block;
+  margin-top: 0;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+page .mobile-tabbar__item--active.mobile-tabbar__item--active {
+  color: #163d28;
+  background: rgba(24, 63, 42, 0.07);
+}
+
+page .mobile-tabbar__item--active .mobile-tabbar__icon.mobile-tabbar__icon {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.06);
+}
+
+page .mobile-team-tab.mobile-team-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  margin: -36px auto 0;
+  padding: 8px;
+  background: #ffffff;
+  border: 4px solid #d5b656;
+  border-radius: 50%;
+  box-shadow: 0 12px 36px rgba(18, 44, 29, 0.18);
+}
+
+page .mobile-team-tab > .team-crest.team-crest {
+  width: 96px;
+  height: 96px;
+}
+
+page .mobile-team-tab__crest.mobile-team-tab__crest {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  font-size: 26px;
+}
+
+page .mobile-team-tab--active.mobile-team-tab--active {
+  border-color: #183f2a;
+  box-shadow:
+    0 0 0 6px #dce8df,
+    0 12px 36px rgba(18, 44, 29, 0.22);
+}
+
+/* ==========================================================================
+   * 3. 通用组件、卡片、抽屉与弹窗 (product-ui / public-ui / modals)
+   * ========================================================================== */
+page .product-section-heading.product-section-heading {
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+page .product-section-heading__title.product-section-heading__title {
+  font-size: 38px;
+  line-height: 1.25;
+}
+
+page .product-card.product-card,
+page .public-card.public-card,
+page .data-state.data-state {
+  border-radius: 28px;
+  border-color: #dfe6dc;
+  box-shadow: 0 8px 32px rgba(20, 44, 29, 0.05);
+}
+
+page .team-crest--small.team-crest--small,
+page .match-status.match-status,
+page .product-match-card__meta.product-match-card__meta,
+page .product-match-card__venue.product-match-card__venue,
+page .post-card__verified.post-card__verified,
+page .post-card__time.post-card__time,
+page .post-card__action.post-card__action,
+page .post-card__open.post-card__open {
+  font-size: 24px;
+}
+
+page .post-card.post-card {
+  padding: 28px 28px 24px;
+  border-radius: 28px;
+}
+
+page .message-drawer__kicker.message-drawer__kicker,
+page .message-contact view text:last-child,
+page .message-contact__badge.message-contact__badge,
+page .message-bubble__report.message-bubble__report,
+page .report-modal__kicker.report-modal__kicker {
+  font-size: 24px;
+}
+
+page .message-compose input,
+page .report-modal__input.report-modal__input,
+page .report-modal__textarea.report-modal__textarea,
+page .settings-dialog input {
+  border: 3px solid #d5dfd7;
+  border-radius: 20px;
+  background: #fcfdf9;
+  font-size: 28px;
+}
+
+/* ==========================================================================
+   * 4. 登录页 (pages/login)
+   * ========================================================================== */
+page .auth-page.auth-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 32px 28px calc(56px + env(safe-area-inset-bottom));
+}
+
+page .auth-visual.auth-visual {
+  padding: 32px 12px 36px;
+}
+
+page .auth-visual__title.auth-visual__title {
+  font-size: 48px;
+  line-height: 1.22;
+}
+
+page .auth-visual__body.auth-visual__body {
+  margin-top: 12px;
+  font-size: 27px;
+  line-height: 1.5;
+}
+
+page .auth-panel.auth-panel {
+  width: 100%;
+  padding: 36px 32px;
+  background: #ffffff;
+  border: 2px solid #dfe6dc;
+  border-radius: 32px;
+  box-shadow: 0 20px 56px rgba(20, 44, 29, 0.09);
+}
+
+page .auth-tabs.auth-tabs,
+page .login-methods.login-methods {
+  gap: 16px;
+  padding: 8px;
+  background: #eff3ec;
+  border-radius: 24px;
+}
+
+page .auth-tab.auth-tab,
+page .login-methods button,
+page .login-methods taro-button-core {
+  min-height: 76px;
+  border-radius: 18px;
+  font-size: 27px;
+  font-weight: 800;
+}
+
+page .auth-input.auth-input,
+page .auth-field input,
+page .auth-field taro-input-core {
+  min-height: 88px;
+  padding: 0 28px;
+  background: #fcfdf9;
+  border: 3px solid #d5dfd7;
+  border-radius: 20px;
+  font-size: 28px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+page .auth-submit.auth-submit {
+  min-height: 92px;
+  border-radius: 24px;
+  background: #183f2a;
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 800;
+  box-shadow: 0 12px 32px rgba(24, 63, 42, 0.2);
+}
+
+/* ==========================================================================
+   * 5. 首页与赛程页 (pages/index & pages/readonly-schedule)
+   * ========================================================================== */
+page .experience-hero.experience-hero {
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+page .experience-hero__eyebrow.experience-hero__eyebrow,
+page .notice-rail__label.notice-rail__label,
+page .notice-rail__body.notice-rail__body,
+page .compact-match__meta.compact-match__meta,
+page .composer-entry__action.composer-entry__action,
+page .composer-dialog__eyebrow.composer-dialog__eyebrow,
+page .composer-dialog__footer.composer-dialog__footer {
+  font-size: 24px;
+}
+
+page .experience-hero__title.experience-hero__title {
+  font-size: 44px;
+  line-height: 1.22;
+}
+
+page .experience-hero__summary.experience-hero__summary {
+  font-size: 27px;
+  line-height: 1.5;
+}
+
+page .home-search-entry.home-search-entry {
+  min-height: 88px;
+  padding: 8px 12px 8px 24px;
+  background: #ffffff;
+  border: 3px solid #d8e2da;
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgba(20, 44, 29, 0.05);
+}
+
+page .home-search-entry__input.home-search-entry__input,
+page .home-search-entry__input input {
+  font-size: 27px;
+}
+
+page .home-search-entry__action.home-search-entry__action {
+  min-height: 68px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: #183f2a;
+  color: #ffffff;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+page .compact-match.compact-match {
+  padding: 24px 28px;
+  border-radius: 28px;
+  border: 2px solid #dfe6dc;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(20, 44, 29, 0.04);
+}
+
+page .compact-match__score.compact-match__score {
+  min-width: 112px;
+  font-size: 40px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+page .compact-match__stage.compact-match__stage {
+  font-size: 24px;
+  line-height: 1.4;
+}
+
+page .schedule-controls.schedule-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 28px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 2px solid #dfe6dc;
+}
+
+page .schedule-controls__context text:last-child,
+page .schedule-day__date text:last-child,
+page .schedule-match__center text:last-child,
+page .schedule-match__reason.schedule-match__reason {
+  font-size: 24px;
+}
+
+page .schedule-filter-button.schedule-filter-button,
+page .schedule-order button,
+page .schedule-order taro-button-core {
+  min-height: 68px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+page .schedule-match.schedule-match {
+  border-radius: 28px;
+  border: 2px solid #dfe6dc;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(20, 44, 29, 0.05);
+  overflow: hidden;
+}
+
+page .schedule-match__head.schedule-match__head,
+page .schedule-match__foot.schedule-match__foot {
+  padding: 16px 24px;
+  font-size: 24px;
+}
+
+page .schedule-match__main.schedule-match__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 144px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+page .schedule-match__team.schedule-match__team {
+  min-width: 0;
+  gap: 16px;
+  font-size: 27px;
+}
+
+page .schedule-match__team > text {
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.28;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+page .schedule-match__score.schedule-match__score,
+page .schedule-match__kickoff.schedule-match__kickoff {
+  color: #163d28;
+  font-size: 42px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+page .schedule-match__kickoff.schedule-match__kickoff {
+  font-size: 32px;
+}
+
+/* ==========================================================================
+   * 6. 数据中心与我的球队 (pages/data-center & pages/my-team)
+   * ========================================================================== */
+page .data-hero__eyebrow.data-hero__eyebrow,
+page .season-switcher__label.season-switcher__label,
+page .season-button.season-button,
+page .data-view-tab.data-view-tab,
+page .data-context-note.data-context-note,
+page .data-kpi__label.data-kpi__label,
+page .overview-leader__copy > text:last-child,
+page .data-more-button.data-more-button {
+  font-size: 24px;
+}
+
+page .team-guest-header__eyebrow.team-guest-header__eyebrow,
+page .team-follow-bar__label text:first-child,
+page .team-follow-bar__label text:last-child,
+page .followed-team-chip__copy text:first-child,
+page .followed-team-chip__copy text:last-child,
+page .followed-team-chip__remove.followed-team-chip__remove,
+page .team-selector__clear.team-selector__clear,
+page .team-guest-card__college.team-guest-card__college,
+page .lineup-eyebrow.lineup-eyebrow,
+page .lineup-slot__position.lineup-slot__position,
+page .lineup-bench__hint.lineup-bench__hint {
+  font-size: 24px;
+}
+
+page .standings-card.standings-card,
+page .leaderboard-card.leaderboard-card,
+page .team-panel.team-panel,
+page .roster-card.roster-card {
+  border-radius: 28px;
+  border: 2px solid #dfe6dc;
+  background: #ffffff;
+  box-shadow: 0 8px 32px rgba(20, 44, 29, 0.05);
+}
+
+page .standings-table th,
+page .standings-table td {
+  padding: 18px 12px;
+  font-size: 25px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   * 7. 个人中心、详情页与速报页 (me / details / quick-report)
+   * ========================================================================== */
+page .profile-header__eyebrow.profile-header__eyebrow,
+page .profile-header__logout.profile-header__logout,
+page .profile-avatar-action__label.profile-avatar-action__label,
+page .profile-header__demo.profile-header__demo,
+page .profile-header__edit.profile-header__edit,
+page .profile-editor > view > text,
+page .notification-list__head.notification-list__head,
+page .notification-list__more.notification-list__more,
+page .player-hero__demo.player-hero__demo,
+page .player-hero__eyebrow.player-hero__eyebrow,
+page .player-team-link text:last-child,
+page .player-stat text:last-child,
+page .player-abilities__eyebrow.player-abilities__eyebrow,
+page .player-abilities__note.player-abilities__note,
+page .player-radar__label.player-radar__label,
+page .player-fact text:first-child,
+page .post-detail__author-label.post-detail__author-label,
+page .post-detail__author-row text:last-child,
+page .post-detail__time.post-detail__time,
+page .post-detail__type.post-detail__type,
+page .post-detail__actions.post-detail__actions,
+page .post-detail__actions button,
+page .post-detail__like.post-detail__like,
+page .comment-composer__login.comment-composer__login,
+page .comment-list__empty.comment-list__empty,
+page .experience-match-header__meta.experience-match-header__meta,
+page .experience-match-header__venue.experience-match-header__venue,
+page .experience-scoreboard__score text:last-child,
+page .match-summary__label.match-summary__label,
+page .match-summary__attendance.match-summary__attendance,
+page .match-detail-tab text:last-child,
+page .rating-overview__score text:last-child,
+page .match-review__heading text:last-child,
+page .public-team-hero__eyebrow.public-team-hero__eyebrow,
+page .public-team-hero__college.public-team-hero__college,
+page .public-team-hero__staff text:first-child,
+page .public-team-record__item text:last-child,
+page .public-team-about__label.public-team-about__label,
+page .public-team-about__founded.public-team-about__founded,
+page .public-roster-group__heading text:last-child,
+page .public-roster__head.public-roster__head,
+page .team-card__code.team-card__code {
+  font-size: 24px;
+}
+
+page .experience-scoreboard.experience-scoreboard {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 16px;
+}
+
+page .experience-scoreboard__team > text {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+page .experience-scoreboard__score text:first-child {
+  font-size: 52px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+page .quick-report-page.quick-report-page {
+  padding: 28px 28px calc(64px + env(safe-area-inset-bottom));
+}
+
+page .quick-report-card.quick-report-card {
+  padding: 28px;
+  border-radius: 28px;
+  border: 2px solid #dfe6dc;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(20, 44, 29, 0.05);
+}
+
+@media (max-width: 380px) {
+  page .public-topbar__inner.public-topbar__inner {
+    padding: 16px 24px;
+  }
+
+  page .public-account__name.public-account__name {
+    max-width: 184px;
+  }
+
+  page .schedule-match__main.schedule-match__main {
+    grid-template-columns: minmax(0, 1fr) 128px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px 20px 20px;
+  }
+
+  page .schedule-match__team > text {
+    font-size: 25px;
+  }
+
+  page .schedule-match__score.schedule-match__score {
+    font-size: 38px;
+  }
+}

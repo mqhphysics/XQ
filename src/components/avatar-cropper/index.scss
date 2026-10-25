@@ -1,0 +1,121 @@
+.avatar-cropper-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.avatar-cropper-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 20, 13, 0.62);
+  backdrop-filter: blur(5px);
+}
+.avatar-cropper-panel {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: min(760px, 92dvh);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 24px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+}
+.avatar-cropper-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.avatar-cropper-kicker {
+  display: block;
+  color: #1f6b45;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.avatar-cropper-title {
+  display: block;
+  margin-top: 5px;
+  color: #17231a;
+  font-size: 24px;
+  font-weight: 800;
+}
+.avatar-cropper-close {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: #eff3f0;
+  color: #26372c;
+  line-height: 40px;
+}
+.avatar-cropper-stage {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 22px auto 14px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #e9eeea;
+}
+.avatar-cropper-image {
+  position: absolute;
+  max-width: none;
+}
+.avatar-cropper-circle {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 999px rgba(6, 18, 11, 0.36);
+  pointer-events: none;
+}
+.avatar-cropper-placeholder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: #718077;
+}
+.avatar-cropper-choose {
+  margin: 0 auto 12px;
+}
+.avatar-cropper-controls {
+  display: grid;
+  gap: 4px;
+}
+.avatar-cropper-control {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  align-items: center;
+  color: #536159;
+  font-size: 13px;
+}
+.avatar-cropper-note {
+  display: block;
+  margin: 12px 0 18px;
+  color: #718077;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.avatar-cropper-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+@media (max-width: 520px) {
+  .avatar-cropper-modal {
+    align-items: end;
+    padding: 0;
+  }
+  .avatar-cropper-panel {
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    padding: 20px;
+  }
+}

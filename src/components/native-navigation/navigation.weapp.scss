@@ -1,0 +1,131 @@
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.native-detail-host {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  overflow: hidden;
+}
+.native-detail-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 230ms cubic-bezier(0.333333, 1, 0.666667, 1);
+  will-change: transform;
+}
+.native-detail-layer {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: #f7f8f4;
+  box-shadow: -8px 0 28px rgba(25, 50, 30, 0.08);
+}
+.native-detail-viewport {
+  width: 100%;
+  height: 100%;
+}
+.native-detail-reveal {
+  animation: native-detail-reveal 160ms ease-out both;
+}
+@keyframes native-detail-reveal {
+  from {
+    opacity: 0.55;
+    transform: scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.public-app.native-page--detail .public-content {
+  width: calc(100% - 48px);
+  min-height: 0;
+  padding: 16px 0 calc(40px + env(safe-area-inset-bottom));
+}
+.public-app.native-page--detail .public-footer {
+  display: none;
+}
+.mobile-tabbar--fluid .native-tabbar-track {
+  position: absolute;
+  top: 12px;
+  left: 20px;
+  right: 20px;
+  height: 104px;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 39%,
+    transparent 40%,
+    transparent 60%,
+    #000 61%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 39%,
+    transparent 40%,
+    transparent 60%,
+    #000 61%,
+    #000 100%
+  );
+}
+.mobile-tabbar--fluid .native-tabbar-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20%;
+  height: 100%;
+  background: #e7ece5;
+  border-radius: 24px;
+  pointer-events: none;
+  transition: transform 240ms cubic-bezier(0.333333, 1, 0.666667, 1);
+}
+page .mobile-tabbar--fluid .mobile-tabbar__item--active {
+  background: transparent;
+}
+page .mobile-tabbar--fluid .mobile-tabbar__item {
+  z-index: 1;
+}
+.native-detail-tabs {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  margin: 24px 0 18px;
+  padding: 6px;
+  border: 2px solid #e0e7dd;
+  border-radius: 18px;
+  background: #edf1ea;
+}
+.native-detail-tabs > button {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 18px 4px;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 27px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #71806f;
+}
+.native-detail-tabs > button.is-active {
+  background: #fff;
+  color: #234d33;
+  box-shadow:
+    0 3px 10px rgba(24, 63, 42, 0.06),
+    inset 0 -4px #d2a66b;
+}
+.native-detail-panel {
+  animation: native-detail-reveal 140ms ease-out;
+}
+.native-identity-trigger {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}

@@ -1,0 +1,258 @@
+.native-login {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #f7f8f4;
+}
+
+.native-login__scroll {
+  height: 100%;
+}
+
+page .native-login .auth-page.auth-page {
+  display: flex;
+  flex-direction: column;
+  height: var(--native-login-content-height);
+  min-height: 0;
+  padding: 0 28px;
+  background: transparent;
+}
+
+.native-auth-scene {
+  display: flex;
+  flex: 0 0 auto;
+  height: clamp(280px, 34vh, 520px);
+  min-height: 160px;
+  flex-direction: column;
+  padding: 0 0 12px;
+}
+
+.native-auth-scene__brand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  color: #183f2a;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.native-auth-scene__mark {
+  display: block;
+  width: 60px;
+  height: 54px;
+}
+.native-auth-scene__art {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: -72px;
+  margin-right: -28px;
+  margin-left: -28px;
+}
+.native-auth-scene__canvas,
+.native-auth-scene__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.native-auth-scene__brand {
+  position: relative;
+  z-index: 1;
+}
+.native-auth-scene__image {
+  top: -6vw;
+  height: auto;
+}
+
+page .native-login .auth-panel.auth-panel {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 22px 24px;
+}
+
+page .native-login .guest-entry__hint,
+page .native-login .auth-version {
+  display: none;
+}
+
+page .native-login .auth-form__title {
+  display: block;
+  margin-top: 12px;
+  font-size: 40px;
+  line-height: 1.2;
+}
+page .native-login .auth-form__subtitle {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1.4;
+}
+page .native-login--login .auth-form .auth-label {
+  display: block;
+  margin: 18px 0 10px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+page .native-login .auth-tabs.auth-tabs {
+  margin-bottom: 12px;
+}
+page .native-login .login-methods.login-methods {
+  margin-top: 12px;
+}
+page .native-login .auth-form > .auth-input {
+  margin-top: 0;
+}
+page .native-login .auth-code-row {
+  margin-top: 12px;
+}
+page .native-login .auth-primary {
+  margin-top: 8px;
+}
+page .native-login .guest-entry {
+  margin-top: 12px;
+}
+page .native-login--login .auth-primary,
+page .native-login--login .guest-entry__button {
+  min-height: 80px;
+  height: 80px;
+  line-height: 80px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 30px;
+}
+@media (max-height: 720px) {
+  .native-login--login .native-auth-scene {
+    height: 27vh;
+  }
+  page .native-login--login .auth-form .auth-label {
+    margin-top: 10px;
+    margin-bottom: 6px;
+  }
+}
+page .native-login .auth-link {
+  margin-top: 0;
+}
+
+page .native-login--register .auth-page.auth-page {
+  height: auto;
+  min-height: 100%;
+}
+.native-login--register .native-auth-scene {
+  flex: 0 0 auto;
+  height: 520px;
+  min-height: 0;
+}
+page .native-login--register .auth-panel.auth-panel {
+  margin-bottom: 16px;
+}
+page .native-login--register .auth-label {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.native-login--keyboard .native-auth-scene {
+  display: none;
+}
+page .native-login--keyboard .auth-form__subtitle {
+  display: none;
+}
+page .native-login--keyboard .auth-page.auth-page {
+  justify-content: center;
+}
+page .native-login--keyboard .auth-panel.auth-panel {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.native-recovery {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(12, 30, 20, 0.42);
+}
+
+page .native-login .native-recovery__dialog.recovery-box {
+  width: 100%;
+  max-width: 680px;
+  max-height: 100%;
+  margin: 0;
+  padding: 32px;
+  border: 2px solid #dfe6dc;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 20px 64px rgba(20, 44, 29, 0.18);
+}
+page .native-login .native-recovery__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.native-recovery__body {
+  max-height: 64vh;
+}
+page .native-login .native-recovery .auth-label {
+  display: block;
+  margin: 20px 0 8px;
+}
+.native-recovery__error {
+  display: block;
+  margin-top: 16px;
+  color: #a63d34;
+  font-size: 25px;
+}
+page .native-login .native-register__input--valid.auth-input {
+  background: #edf5e8;
+  border-color: #aac69a;
+}
+.native-register__feedback {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 20px;
+}
+page .native-login .native-register__help {
+  font-size: 25px;
+  margin: 16px 0;
+}
+.native-register__error {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 1.5;
+  color: #b63a32;
+}
+page .native-login .native-register__input--invalid.auth-input {
+  border-color: #b63a32;
+  box-shadow: 0 0 0 2px rgba(182, 58, 50, 0.12);
+}
+
+@media (max-height: 650px) {
+  page .native-login .auth-panel.auth-panel {
+    padding: 12px 20px;
+  }
+  page .native-login .auth-tabs.auth-tabs {
+    margin-bottom: 8px;
+  }
+  page .native-login .auth-form > .auth-input {
+    margin-top: 8px;
+  }
+  .native-auth-scene {
+    min-height: 100px;
+  }
+}

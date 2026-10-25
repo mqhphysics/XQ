@@ -1,0 +1,49 @@
+.native-player-face {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #e3ece2;
+}
+.native-player-face > image {
+  width: 100%;
+  height: 100%;
+}
+.native-player-face--large {
+  flex-basis: 104px;
+  width: 104px;
+  height: 104px;
+}
+.native-player-face__default {
+  position: relative;
+  width: 76%;
+  height: 85%;
+  overflow: hidden;
+}
+.native-player-face__default > view:first-child {
+  position: absolute;
+  width: 36%;
+  height: 36%;
+  left: 32%;
+  top: 8%;
+  border-radius: 50%;
+  background: #8da48b;
+}
+.native-player-face__default > view:last-child {
+  position: absolute;
+  width: 86%;
+  height: 70%;
+  left: 7%;
+  top: 50%;
+  border-radius: 50% 50% 15% 15%;
+  background: #8da48b;
+}
+.native-profile-roster > button > .native-player-face {
+  flex: 0 0 64px;
+  width: 64px;
+}

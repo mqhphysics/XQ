@@ -1,19 +1,24 @@
 declare module '*.png' {
-  const value: string
-  export default value
-}
-
-declare module '*.svg' {
-  const value: string
-  export default value
-}
-
-declare module '*.webp' {
-  const value: string
-  export default value
+  const source: string
+  export default source
 }
 
 declare module '*.jpg' {
-  const value: string
-  export default value
+  const source: string
+  export default source
+}
+
+declare module '*.webp' {
+  const source: string
+  export default source
+}
+
+declare module '*.svg' {
+  const source: string
+  export default source
+}
+
+declare module '*.gif' {
+  const source: string
+  export default source
 }

@@ -1,0 +1,283 @@
+.native-profile-cover {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 2px solid #e0e7dc;
+  min-height: 250px;
+  height: 250px;
+  background: #e8eee5;
+}
+.native-profile-cover__image,
+.native-profile-cover__shade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.native-profile-cover__shade {
+  background: linear-gradient(
+    90deg,
+    rgba(247, 248, 244, 0.88),
+    rgba(247, 248, 244, 0.5) 58%,
+    rgba(247, 248, 244, 0.14)
+  );
+}
+.native-profile-cover__identity {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 26px;
+  height: 100%;
+  box-sizing: border-box;
+}
+.native-profile-cover__identity > .team-crest,
+.native-profile-cover__identity > .native-identity-trigger > .team-crest {
+  flex: 0 0 auto;
+  width: 130px;
+  height: 130px;
+}
+.native-profile-cover__copy {
+  flex: 1;
+  min-width: 0;
+}
+.native-profile-cover__copy > text {
+  display: block;
+  margin: 8px 0;
+  color: #52654e;
+  font-size: 25px;
+  line-height: 1.5;
+}
+.native-profile-cover__copy > text:first-child {
+  color: #193f2b;
+  font-size: 38px;
+  font-weight: 800;
+}
+.native-profile-portrait {
+  flex: 0 0 auto;
+  width: 132px;
+  height: 160px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+.native-profile-portrait > image {
+  width: 100%;
+  height: 100%;
+}
+.native-profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+.native-profile-actions > button {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 18px 6px;
+  border-radius: 14px;
+  background: #e7efe5;
+  color: #345b3d;
+  font-size: 25px;
+  line-height: 1.3;
+}
+.native-team-cover .native-profile-cover__identity {
+  gap: 14px;
+  padding: 24px 20px;
+}
+.native-team-cover .native-profile-cover__identity > .team-crest,
+.native-team-cover .native-profile-cover__identity > .native-identity-trigger > .team-crest {
+  width: 90px;
+  height: 90px;
+}
+.native-team-cover .native-profile-cover__copy > text:first-child {
+  font-size: 34px;
+}
+.native-team-cover-actions.native-profile-actions {
+  flex: 0 0 134px;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+.native-team-cover-actions > button {
+  flex: none;
+  min-height: 58px;
+  padding: 12px 6px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 23px;
+}
+.native-team-cover-actions > button:first-child {
+  background: #fbf0dc;
+  color: #94632f;
+}
+.native-player-detail .native-profile-cover__identity {
+  gap: 22px;
+}
+.native-player-detail .native-profile-portrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 110px;
+  width: 110px;
+  height: 136px;
+}
+.native-player-detail .native-profile-portrait .user-avatar {
+  width: 100px;
+  height: 100px;
+  font-size: 40px;
+}
+.native-player-detail .native-profile-cover__copy > text:first-child {
+  font-size: 36px;
+  margin-top: 0;
+}
+.native-player-team.native-player-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-height: 52px;
+  margin: 2px 0 0;
+  padding: 0;
+  background: transparent;
+  color: #335b3d;
+  font-size: 25px;
+  line-height: 1.3;
+}
+.native-player-team.native-player-team .team-crest {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+}
+.native-player-team > text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.native-player-edit.native-button {
+  width: auto;
+  margin: 12px 0 0 auto;
+  min-height: 56px;
+  padding: 10px 18px;
+  font-size: 25px;
+}
+.native-profile-facts {
+  padding: 8px 24px;
+  border: 2px solid #e0e7dc;
+  border-radius: 18px;
+  background: #fff;
+}
+.native-profile-facts > view {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 2px solid #edf1e9;
+  color: #344e39;
+  font-size: 28px;
+  line-height: 1.5;
+}
+.native-profile-facts > view:last-child {
+  border: 0;
+}
+.native-profile-facts text:first-child {
+  flex: 0 0 auto;
+  color: #82907c;
+}
+.native-profile-facts text:last-child {
+  text-align: right;
+}
+.native-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.native-profile-stats > view {
+  padding: 22px 8px;
+  text-align: center;
+  background: #edf3e8;
+  border-radius: 14px;
+}
+.native-profile-stats text {
+  display: block;
+  color: #7d8c76;
+  font-size: 24px;
+}
+.native-profile-stats text:first-child {
+  margin-bottom: 8px;
+  color: #264f34;
+  font-size: 36px;
+  font-weight: 800;
+}
+.native-profile-section-title {
+  display: block;
+  margin: 24px 0 18px;
+  color: #294e34;
+  font-size: 31px;
+  font-weight: 750;
+}
+.native-profile-copy {
+  display: block;
+  padding: 22px 24px;
+  border-radius: 16px;
+  background: #fff;
+  color: #5d7058;
+  font-size: 28px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.native-profile-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.native-profile-roster > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 22px;
+  margin: 0;
+  border: 2px solid #e0e7dc;
+  border-radius: 16px;
+  background: #fff;
+  color: #34543b;
+  text-align: left;
+}
+.native-profile-roster > button > view {
+  flex: 1;
+  min-width: 0;
+}
+.native-profile-roster text {
+  font-size: 28px;
+}
+.native-profile-roster button > view > text {
+  display: block;
+}
+.native-profile-roster button > view > text:last-child {
+  margin-top: 8px;
+  font-size: 23px;
+  color: #8b9685;
+}
+.native-ability {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 0;
+  font-size: 27px;
+  color: #496441;
+}
+.native-ability > view {
+  flex: 1;
+  height: 12px;
+  background: #e7eddf;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.native-ability > view > view {
+  height: 100%;
+  background: #679267;
+  border-radius: inherit;
+}

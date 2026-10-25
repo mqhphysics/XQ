@@ -1,0 +1,20 @@
+.native-refresh-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 128px;
+  width: 100%;
+}
+.native-refresh-indicator > image {
+  display: block;
+  width: 58px;
+  height: 58px;
+}
+.native-refresh-indicator.is-refreshing > image {
+  animation: native-refresh-turn 0.85s linear infinite;
+}
+@keyframes native-refresh-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}

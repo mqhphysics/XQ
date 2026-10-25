@@ -1,0 +1,47 @@
+/*
+ * Shared desktop viewport-fit primitive.
+ *
+ * A dashboard page opts in by putting `xq-viewport-page` on its root. The shell then
+ * becomes exactly one viewport tall (100vh is rewritten to the post-zoom height by the
+ * scale-C shim in index.html), the footer is hidden, and the page root receives the
+ * remaining height as a flex column. Modules inside should use `min-height: 0` and
+ * scroll internally. `--xq-vh-avail` = effective viewport height − header.
+ * When the effective height is short (<600px after zoom, html[data-xq-short]) pages
+ * fall back to normal document scroll.
+ */
+:root {
+  --xq-vh-avail: calc(var(--xq-vh, 1vh) * 100 - var(--xq-header-h, 72px));
+}
+
+@media (min-width: 1024px) {
+  html:not([data-xq-short]) .public-app--h5:has(.xq-viewport-page) {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+
+    > .public-topbar {
+      flex: 0 0 auto;
+    }
+    > .public-footer {
+      display: none;
+    }
+    > .public-content {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      padding-top: 14px;
+      padding-bottom: 16px;
+    }
+    > .public-content > .xq-viewport-page {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+    }
+  }
+}

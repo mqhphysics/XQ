@@ -1,0 +1,77 @@
+.native-main-root {
+  height: 100%;
+  overflow: hidden;
+}
+page .native-main-root .public-app .public-content.public-content {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+}
+.native-main-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(226, 176, 107, 0.13), transparent 60%),
+    linear-gradient(180deg, #faf8f1, #f4f7f1 75%);
+}
+.native-main-campus-art {
+  position: absolute;
+  top: 32px;
+  right: -130px;
+  width: 920px;
+  height: 580px;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.native-main-track {
+  position: relative;
+  display: flex;
+  width: 500%;
+  height: 100%;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.333333, 1, 0.666667, 1);
+  will-change: transform;
+}
+.native-main-panel {
+  flex: 0 0 20%;
+  width: 20%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.native-main-scroll {
+  height: 100%;
+  width: 100%;
+}
+.native-main-panel-body {
+  width: calc(100% - 56px);
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  box-sizing: border-box;
+}
+.native-main-panel-body--data,
+.native-main-panel-body--schedule {
+  height: 100%;
+  padding-bottom: 0;
+}
+.native-main-panel .native-profile-copy {
+  margin: 20px;
+}
+.native-main-guest {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 40px 28px;
+  padding: 40px 28px;
+  border-radius: 24px;
+  border: 2px solid #dfe7d9;
+  background: white;
+  color: #365940;
+  font-size: 28px;
+  line-height: 1.6;
+}
+.native-main-guest > text:first-child {
+  font-size: 38px;
+  font-weight: 800;
+}

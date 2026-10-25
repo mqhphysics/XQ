@@ -1,0 +1,228 @@
+.native-mail-main,
+.native-mail-directory {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+.native-mail-main > .native-social-scroll,
+.native-mail-directory > .native-social-scroll {
+  flex: 1;
+  height: 0;
+}
+.native-mail-categories {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  flex: none;
+  padding: 12px 20px 20px;
+  box-sizing: border-box;
+}
+.native-mail-categories > button.native-mail-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  position: relative;
+  padding: 16px 2px;
+  border-radius: 14px;
+  background: #eef2e8;
+  color: #748270;
+  font-size: 26px;
+  line-height: 1.45;
+}
+.native-mail-categories > button.native-mail-category.is-active {
+  background: #e5eddb;
+  color: #264b33;
+  font-weight: 750;
+}
+.native-mail-categories .native-mail-badge {
+  position: absolute;
+  top: -3px;
+  right: 0;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  font-size: 18px;
+}
+.native-mail-contact.native-mail-contact {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: calc(100% - 48px);
+  margin: 0 24px;
+  padding: 26px 4px;
+  border: 0;
+  border-bottom: 2px solid #e5eadf;
+  background: transparent;
+  text-align: left;
+  font-size: 28px;
+  line-height: 1.5;
+  color: #294b34;
+}
+.native-mail-contact > .user-avatar {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  font-size: 32px;
+}
+.native-mail-contact > view:not(.user-avatar) {
+  flex: 1;
+  min-width: 0;
+}
+.native-mail-contact > view > view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.native-mail-contact > view > view > text:first-child {
+  font-weight: 750;
+}
+.native-mail-contact > view > view > text:last-child {
+  color: #84907e;
+  font-size: 23px;
+  flex: none;
+}
+.native-mail-contact > view > text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 7px;
+  color: #7b8875;
+  font-size: 26px;
+}
+.native-mail-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: #bd7e53;
+  color: #fff;
+  font-size: 20px;
+}
+.native-mail-actions {
+  display: flex;
+  gap: 8px;
+}
+.native-mail-actions button {
+  margin: 0;
+  padding: 12px 18px;
+  min-height: 62px;
+  font-size: 25px;
+}
+.native-mail-empty {
+  display: block;
+  padding: 80px 24px;
+  text-align: center;
+  font-size: 28px;
+  color: #84907a;
+}
+.native-mail-directory > input {
+  width: calc(100% - 48px);
+  margin: 16px 24px;
+  flex: none;
+}
+.native-mail-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+  color: #70806b;
+  font-size: 25px;
+  margin-bottom: 24px;
+}
+.native-mail-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 22px 0;
+}
+.native-mail-bubble.is-mine {
+  align-items: flex-end;
+}
+.native-mail-time {
+  align-self: center;
+  color: #929b8d;
+  font-size: 22px;
+  margin-bottom: 14px;
+}
+.native-mail-bubble > view {
+  max-width: 86%;
+  padding: 22px 26px;
+  border: 2px solid #e0e7da;
+  border-radius: 22px 22px 22px 4px;
+  background: #fff;
+}
+.native-mail-bubble.is-mine > view {
+  border-color: #d6e4c8;
+  background: #e7efdb;
+  border-radius: 22px 22px 4px 22px;
+}
+.native-mail-bubble > view > text {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 29px;
+  line-height: 1.6;
+}
+.native-mail-read {
+  margin-top: 8px;
+  color: #8b9783;
+  font-size: 21px;
+}
+.native-mail-notice-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 32px;
+  font-size: 29px;
+  line-height: 1.8;
+}
+.native-mail-notice-title {
+  font-size: 35px;
+  font-weight: 750;
+}
+.native-mail-readonly {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  background: #edf1e8;
+  color: #7a8772;
+  font-size: 25px;
+}
+.native-mail-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.native-mail-error > button {
+  margin-right: 24px;
+  flex: none;
+  padding: 10px 16px;
+  font-size: 24px;
+}
+
+.native-mail-report.native-mail-report {
+  margin: 6px 0 0;
+  padding: 4px 0;
+  border: 0;
+  min-height: 36px;
+  color: #98a18f;
+  font-size: 21px;
+  line-height: 1.4;
+  background: transparent;
+}

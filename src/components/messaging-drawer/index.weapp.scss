@@ -1,0 +1,130 @@
+.native-mail-tabs {
+  margin-bottom: 18px;
+}
+.native-mail-row.native-mail-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  min-height: 140px;
+  margin: 0;
+  padding: 20px 2px;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 2px solid #eef1e8;
+  background: transparent;
+  text-align: left;
+  line-height: 1.5;
+}
+.native-mail-row > view:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.native-mail-row > view:last-child > view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.native-mail-row > view:last-child > view > text:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 29px;
+  font-weight: 700;
+  color: #31543b;
+}
+.native-mail-row > view:last-child > view > text:last-child {
+  flex: 0 0 auto;
+  color: #96a08d;
+  font-size: 23px;
+}
+.native-mail-row > view:last-child > text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: 8px;
+  color: #819079;
+  font-size: 26px;
+}
+.native-mail-system-icon {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #edf3e8 url('../../assets/profile-icons/bell.svg') center/34px no-repeat;
+}
+.native-mail-row.is-unread > view:last-child > view > text:first-child::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #bf7b54;
+}
+.native-mail-back.native-mail-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding-left: 0;
+}
+.native-mail-back > view {
+  width: 34px;
+  height: 34px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d6648' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m14 5-7 7 7 7M7 12h13'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+}
+.native-mail-empty {
+  display: block;
+  padding: 70px 20px;
+  text-align: center;
+}
+.native-mail-notice > text:first-child {
+  display: block;
+  font-size: 34px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+.native-mail-notice > text:nth-child(2) {
+  display: block;
+  margin-top: 12px;
+  font-size: 24px;
+  color: #8a9782;
+}
+.native-mail-notice > text:last-child {
+  display: block;
+  margin-top: 30px;
+  font-size: 30px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.native-mail-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+.native-mail-message > text {
+  margin-bottom: 10px;
+  color: #8a9782;
+  font-size: 23px;
+}
+.native-mail-message > view {
+  max-width: 92%;
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: #f0f4eb;
+  color: #36533c;
+  font-size: 29px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.native-mail-message.is-mine {
+  align-items: flex-end;
+}
+.native-mail-message.is-mine > view {
+  background: #dfead8;
+}
