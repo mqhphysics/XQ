@@ -1,6 +1,6 @@
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { NativePlayerPortrait } from '../../components/native-ui/match-lineups.weapp'
 import { readSession } from '../product/session'
@@ -134,9 +134,15 @@ export function NativeTechnicalBoard({
   }
   const geometry = recorderGeometry(available, mode),
     rows = recorderRows(mode),
-    totals = technicalTotals(workspace!.operations, team.id, playerId),
-    state = technicalState(workspace!.operations),
-    recent = recentRecords(state.active, workspace!.teams)
+    totals = useMemo(
+      () => technicalTotals(workspace!.operations, team.id, playerId),
+      [workspace!.operations, team.id, playerId],
+    ),
+    state = useMemo(() => technicalState(workspace!.operations), [workspace!.operations]),
+    recent = useMemo(
+      () => recentRecords(state.active, workspace!.teams),
+      [state.active, workspace!.teams],
+    )
   const count = (metric: TechnicalMetric, outcome: TechnicalOutcome) => {
     if (
       recorder.append({

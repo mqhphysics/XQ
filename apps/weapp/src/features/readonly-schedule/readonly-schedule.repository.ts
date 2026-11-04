@@ -11,7 +11,6 @@ import {
   readAccountPresence,
 } from '../product-config/policy-state'
 
-import { readonlyScheduleMockFixture } from './mock-fixture'
 import { sortMatchesByStartAt } from './readonly-schedule.logic'
 import type {
   MatchStatus,
@@ -142,10 +141,7 @@ class ReadonlyScheduleRepository {
   ): Promise<RepositoryResult<ReadonlyTournamentSummary[]>> {
     const apiContext = getApiContext()
     if (!apiContext) {
-      return {
-        data: readonlyScheduleMockFixture.tournaments.map(toTournamentSummary),
-        source: 'mock',
-      }
+      throw new Error('赛事服务尚未配置，请稍后重试')
     }
 
     const list = await requestApi<ApiTournamentList>(
@@ -170,9 +166,7 @@ class ReadonlyScheduleRepository {
   ): Promise<RepositoryResult<ReadonlyTournamentDetail | null>> {
     const apiContext = getApiContext()
     if (!apiContext) {
-      const tournament =
-        readonlyScheduleMockFixture.tournaments.find((item) => item.id === tournamentId) ?? null
-      return { data: tournament, source: 'mock' }
+      throw new Error('赛事服务尚未配置，请稍后重试')
     }
 
     try {
@@ -191,13 +185,7 @@ class ReadonlyScheduleRepository {
   async listMatches(tournamentId: string): Promise<RepositoryResult<ReadonlyMatch[]>> {
     const apiContext = getApiContext()
     if (!apiContext) {
-      const tournament = readonlyScheduleMockFixture.tournaments.find(
-        (item) => item.id === tournamentId,
-      )
-      return {
-        data: tournament?.recentMatches ?? [],
-        source: 'mock',
-      }
+      throw new Error('赛事服务尚未配置，请稍后重试')
     }
 
     const schedule = await requestApi<ApiTournamentSchedule>(
@@ -213,13 +201,7 @@ class ReadonlyScheduleRepository {
   async getMatch(matchId: string): Promise<RepositoryResult<ReadonlyMatch | null>> {
     const apiContext = getApiContext()
     if (!apiContext) {
-      const matches = readonlyScheduleMockFixture.tournaments.flatMap(
-        (tournament) => tournament.recentMatches,
-      )
-      return {
-        data: matches.find((match) => match.id === matchId) ?? null,
-        source: 'mock',
-      }
+      throw new Error('赛事服务尚未配置，请稍后重试')
     }
 
     try {
@@ -239,10 +221,7 @@ class ReadonlyScheduleRepository {
   async listTeams(tournamentId: string): Promise<RepositoryResult<ReadonlyTeamSummary[]>> {
     const apiContext = getApiContext()
     if (!apiContext) {
-      const tournament = readonlyScheduleMockFixture.tournaments.find(
-        (item) => item.id === tournamentId,
-      )
-      return { data: tournament?.teams ?? [], source: 'mock' }
+      throw new Error('赛事服务尚未配置，请稍后重试')
     }
 
     const response = await requestApi<ApiPublicTeamList>(
@@ -259,11 +238,7 @@ class ReadonlyScheduleRepository {
   ): Promise<RepositoryResult<ReadonlyTeam | null>> {
     const apiContext = getApiContext()
     if (!apiContext) {
-      const team =
-        readonlyScheduleMockFixture.teamDetails.find(
-          (item) => item.tournamentId === tournamentId && item.id === teamId,
-        ) ?? null
-      return { data: team, source: 'mock' }
+      throw new Error('赛事服务尚未配置，请稍后重试')
     }
 
     try {

@@ -1,3 +1,4 @@
+import { playerAvatar } from '../media/player-avatar'
 export interface ConfirmedLineupPlanSource {
   kind: string
   organizationId: string
@@ -18,7 +19,11 @@ export interface ConfirmedLineupPlanSource {
         playerProfileId: string
         displayName: string
         shirtNumber: string | null
-        playerProfile: { position: string | null; avatarUrl?: string | null }
+        playerProfile: {
+          position: string | null
+          avatarUrl?: string | null
+          portraitUrl?: string | null
+        }
       }>
     } | null
   } | null
@@ -111,7 +116,7 @@ export function confirmedMatchLineup(
       displayName: entry.displayName,
       shirtNumber: entry.shirtNumber,
       position: entry.playerProfile.position,
-      avatarUrl: entry.playerProfile.avatarUrl ?? null,
+      avatarUrl: playerAvatar(entry.playerProfile),
       minutesPlayed: null,
     }
   }

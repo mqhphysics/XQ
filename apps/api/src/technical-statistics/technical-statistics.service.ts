@@ -15,7 +15,7 @@ import type { Prisma } from '../generated/prisma/client'
 import { requireActiveReporter } from '../campus/reporter-quality.service'
 import { MatchReportService } from '../match-report/match-report.service'
 import { confirmedMatchLineup } from '../experience/confirmed-match-lineup'
-import { defaultAvatar } from '../media/default-media'
+import { playerAvatar } from '../media/player-avatar'
 import type {
   RecordTechnicalStatisticsDto,
   TechnicalOperationDto,
@@ -120,11 +120,7 @@ export class TechnicalStatisticsService {
           const profile = byId.get(player.id),
             slot = confirmed.get(player.id)
           extra.set(`${team.id}:${player.id}`, {
-            avatarUrl: profile
-              ? defaultAvatar('player', profile.id, profile.avatarUrl) ||
-                profile.portraitUrl ||
-                null
-              : null,
+            avatarUrl: profile ? playerAvatar(profile) : null,
             position: slot?.position ?? profile?.position ?? null,
             starter: lineup ? (slot?.starter ?? false) : null,
           })

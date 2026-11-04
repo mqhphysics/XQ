@@ -2,6 +2,7 @@ import { Image, Text, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import { productRepository, resolveMediaUrl } from '../../features/product/product.repository'
 import './player-face.weapp.scss'
+import { useStoredSessionUser } from '../../features/product/current-user.weapp'
 import {
   nativePlayerInitial,
   nativePlayerPhotos,
@@ -16,6 +17,7 @@ export function NativePlayerFace({
   loadPortrait = false,
   large = false,
   small = false,
+  fill = false,
 }: {
   playerId?: string
   tournamentId?: string
@@ -25,19 +27,23 @@ export function NativePlayerFace({
   loadPortrait?: boolean
   large?: boolean
   small?: boolean
+  fill?: boolean
 }) {
   const [media, setMedia] = useState<{
     avatarUrl: string | null
     portraitUrl: string | null
   } | null>(null)
   const [failed, setFailed] = useState(0)
-  const provided = nativePlayerPhotos(avatarUrl, portraitUrl),
+  const user = useStoredSessionUser()
+  const currentAvatar =
+    playerId && user?.linkedPlayer?.id === playerId ? user.linkedPlayer.avatarUrl : null
+  const provided = nativePlayerPhotos(currentAvatar, avatarUrl, portraitUrl),
     providedKey = provided.join('|'),
     exhausted = failed >= provided.length
   useEffect(() => {
     setFailed(0)
     setMedia(null)
-  }, [playerId, avatarUrl, portraitUrl])
+  }, [playerId, avatarUrl, portraitUrl, currentAvatar])
   useEffect(() => {
     let active = true
     if (loadPortrait && playerId && exhausted)
@@ -52,6 +58,7 @@ export function NativePlayerFace({
     }
   }, [playerId, tournamentId, providedKey, exhausted, loadPortrait])
   const sources = nativePlayerPhotos(
+    currentAvatar,
     avatarUrl,
     portraitUrl,
     media?.avatarUrl,
@@ -59,7 +66,7 @@ export function NativePlayerFace({
   ).map((source) => resolveMediaUrl(source)!)
   return (
     <View
-      className={`native-player-face${large ? ' native-player-face--large' : small ? ' native-player-face--small' : ''}`}
+      className={`native-player-face${large ? ' native-player-face--large' : small ? ' native-player-face--small' : ''}${fill ? ' native-player-face--fill' : ''}`}
       style="flex:none;"
       aria-label={`${name}的头像`}
     >

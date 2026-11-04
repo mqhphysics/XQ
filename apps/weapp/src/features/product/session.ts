@@ -6,6 +6,7 @@ const SESSION_KEY = 'xiaoqiu.session.v1'
 const GUEST_KEY = 'xiaoqiu.guest.v1'
 const LEGACY_SESSION_KEY = 'xiaoqiu.demo.session.v1'
 const sessionWriteListeners = new Set<() => void>()
+let legacyStorageChecked = false
 
 export function subscribeToSessionWrites(listener: () => void): () => void {
   sessionWriteListeners.add(listener)
@@ -16,7 +17,10 @@ export function subscribeToSessionWrites(listener: () => void): () => void {
 
 export function readSession(): AuthSession | null {
   try {
-    Taro.removeStorageSync(LEGACY_SESSION_KEY)
+    if (!legacyStorageChecked) {
+      Taro.removeStorageSync(LEGACY_SESSION_KEY)
+      legacyStorageChecked = true
+    }
     const value = Taro.getStorageSync<AuthSession | undefined>(SESSION_KEY)
     const expiresAt = value ? Date.parse(value.expiresAt) : NaN
     if (

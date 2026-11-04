@@ -34,7 +34,7 @@ function errorResponse(value: unknown, status: number): AdminApiError {
 }
 
 // The deadline includes reading the body, not just receiving response headers.
-export async function readAdminResponse(
+async function readAdminResponseUnshared(
   url: string,
   init: RequestInit,
   timeoutMs = ADMIN_REQUEST_TIMEOUT_MS,
@@ -72,6 +72,40 @@ export async function readAdminResponse(
     clearTimeout(timer)
     signal?.removeEventListener('abort', cancel)
   }
+}
+
+const pendingReads = new Map<string, Promise<{ response: Response; payload: unknown }>>()
+let readEpoch = 0
+export function readAdminResponse(
+  url: string,
+  init: RequestInit,
+  timeoutMs = ADMIN_REQUEST_TIMEOUT_MS,
+) {
+  if ((init.method || 'GET').toUpperCase() !== 'GET') {
+    readEpoch++
+    return readAdminResponseUnshared(url, init, timeoutMs)
+  }
+  if (init.signal || init.body !== undefined) return readAdminResponseUnshared(url, init, timeoutMs)
+  const headers: Array<[string, string]> = []
+  new Headers(init.headers).forEach((value, name) => headers.push([name, value]))
+  const key = JSON.stringify([
+    readEpoch,
+    url,
+    headers.sort(([a], [b]) => a.localeCompare(b)),
+    timeoutMs,
+    init.cache,
+    init.credentials,
+    init.mode,
+  ])
+  let pending = pendingReads.get(key)
+  if (!pending) {
+    const request = readAdminResponseUnshared(url, init, timeoutMs).finally(() => {
+      if (pendingReads.get(key) === request) pendingReads.delete(key)
+    })
+    pending = request
+    pendingReads.set(key, request)
+  }
+  return pending.then(({ response, payload }) => ({ response, payload: structuredClone(payload) }))
 }
 
 export async function loginAdmin(

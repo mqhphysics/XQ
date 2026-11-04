@@ -4,6 +4,12 @@ export interface DragRowRect {
   bottom: number
   height: number
 }
+export function dragEdgeStep(y: number, bounds: { top: number; bottom: number }) {
+  const zone = 36
+  if (y < bounds.top + zone) return -Math.min(12, Math.max(2, (bounds.top + zone - y) / 3))
+  if (y > bounds.bottom - zone) return Math.min(12, Math.max(2, (y - bounds.bottom + zone) / 3))
+  return 0
+}
 
 /** Index the dragged row would land on, given its current visual center (inclusive so clamped edges reach the end slots). */
 export function dragTargetIndex(rects: readonly DragRowRect[], from: number, centerY: number) {
@@ -102,5 +108,10 @@ export function dragFrame(rects: readonly DragRowRect[], from: number, raw: numb
   const self = rects[from]
   if (!self) return { offset: raw, over: from }
   const offset = clampDragOffset(rects, from, raw)
-  return { offset, over: dragTargetIndex(rects, from, self.top + self.height / 2 + offset) }
+  let over = dragTargetIndex(rects, from, self.top + self.height / 2 + raw)
+  // Unequal row heights and fractional layout coordinates must still reach both end slots.
+  if (raw < 0 && offset <= rects[0]!.top - self.top + 0.5) over = 0
+  if (raw > 0 && offset >= rects[rects.length - 1]!.bottom - self.bottom - 0.5)
+    over = rects.length - 1
+  return { offset, over }
 }

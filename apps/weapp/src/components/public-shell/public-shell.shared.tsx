@@ -63,6 +63,7 @@ export interface PublicShellProps extends PropsWithChildren {
   showBack?: boolean
   nativeMain?: boolean
   nativeWorkbench?: boolean
+  nativeBackTitle?: string
 }
 
 const navItems: Array<{ key: PublicSection; label: string; shortLabel: string }> = [
@@ -92,6 +93,7 @@ export function PublicShell({
   showBack = false,
   nativeMain = false,
   nativeWorkbench = false,
+  nativeBackTitle,
   children,
 }: PublicShellProps) {
   const session = readSession()
@@ -609,17 +611,22 @@ export function PublicShell({
         }
       >
         {nativeHeader && showBack && !nativeWorkbench && (
-          <Button
-            {...(nativeHeader
-              ? { hoverClass: 'native-press', hoverStartTime: 0, hoverStayTime: 60 }
-              : {})}
-            className="native-page-back"
-            style="display:flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;width:44px;height:44px;min-height:44px;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;background:transparent;line-height:1;"
-            onClick={() => void nativeBack()}
-            aria-label="返回上一页"
-          >
-            <View className="native-page-back__icon" style="width:24px;height:24px;flex:none;" />
-          </Button>
+          <View className={nativeBackTitle ? 'native-page-toolbar' : ''}>
+            <Button
+              {...(nativeHeader
+                ? { hoverClass: 'native-press', hoverStartTime: 0, hoverStayTime: 60 }
+                : {})}
+              className="native-page-back"
+              style="display:flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;width:44px;height:44px;min-height:44px;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;background:transparent;line-height:1;"
+              onClick={() => void nativeBack()}
+              aria-label="返回上一页"
+            >
+              <View className="native-page-back__icon" style="width:24px;height:24px;flex:none;" />
+            </Button>
+            {nativeBackTitle && (
+              <Text className="native-page-toolbar__title">{nativeBackTitle}</Text>
+            )}
+          </View>
         )}
         <CampusContext active={active}>{children}</CampusContext>
       </View>

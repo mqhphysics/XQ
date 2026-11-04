@@ -2,6 +2,8 @@ import { Button, RootPortal, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { NativeDialogProps } from './index'
+import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
+import { registerDialogScroll } from '../../features/native-navigation/dialog-scroll.weapp'
 import {
   confirmNativeDiscard,
   useNativeBackLayer,
@@ -17,6 +19,9 @@ export function NativeDialog({
   busy = false,
   unsavedChanges = false,
   focusId,
+  className = '',
+  bodyHeight,
+  fullScreen = false,
 }: NativeDialogProps) {
   const requestClose = async () => {
     const allowed = await confirmNativeDiscard(unsavedChanges, busy)
@@ -36,24 +41,25 @@ export function NativeDialog({
   const [contentHeight, setContentHeight] = useState<number | null>(null)
   const viewport = keyboard ? Math.min(windowHeight, baseline.current - keyboard) : windowHeight
   const maximum = Math.max(100, Math.min(460, viewport - 160))
-  const height = compact
-    ? Math.min(contentHeight ?? 240, maximum)
-    : Math.min(maximum, viewport * 0.57)
+  const height =
+    bodyHeight !== undefined
+      ? Math.min(bodyHeight, maximum)
+      : compact
+        ? Math.min(contentHeight ?? 240, maximum)
+        : Math.min(maximum, viewport * 0.57)
   useEffect(() => {
-    const measure = () =>
-      Taro.createSelectorQuery()
-        .select('.mobile-tabbar')
-        .boundingClientRect((rect) => {
-          const bottom = (rect as { bottom?: number })?.bottom
-          if (bottom && bottom > 100) {
-            baseline.current = bottom
-            setWindowHeight(bottom)
-          }
-        })
-        .exec()
+    let keyboardHeight = 0
+    const measure = () => {
+      const next = Taro.getWindowInfo().windowHeight
+      if (!keyboardHeight) baseline.current = next
+      setWindowHeight(next)
+    }
     const timer = setTimeout(measure, 60)
     Taro.onWindowResize(measure)
-    const changed = (event: { height: number }) => setKeyboard(event.height)
+    const changed = (event: { height: number }) => {
+      keyboardHeight = event.height
+      setKeyboard(event.height)
+    }
     Taro.onKeyboardHeightChange(changed)
     return () => {
       clearTimeout(timer)
@@ -63,27 +69,82 @@ export function NativeDialog({
     }
   }, [])
   useEffect(() => {
-    if (!compact) return
+    if (!compact || bodyHeight !== undefined || fullScreen) return
     let active = true
     const timer = setTimeout(
       () =>
         Taro.createSelectorQuery()
           .select(`#${contentId}`)
-          .boundingClientRect((rect) => {
-            const measured = (rect as { height?: number })?.height
+          .boundingClientRect()
+          .select(`.native-dialog >>> #${contentId}`)
+          .boundingClientRect()
+          .exec((results: Array<{ height?: number } | null>) => {
+            const measured = results.find((rect) => rect?.height)?.height
             if (active && measured) setContentHeight(measured)
-          })
-          .exec(),
+          }),
       60,
     )
     return () => {
       active = false
       clearTimeout(timer)
     }
-  }, [compact, contentId, children])
+  }, [compact, contentId, children, bodyHeight, fullScreen])
   /* scroll-into-view cannot reach ids inside nested custom components (the RootPortal and Taro's
      comp boundary), so the focused block is measured and scrolled to with scrollTop instead. */
   const [focusTop, setFocusTop] = useState<number | null>(null)
+  const scrollPosition = useRef(0),
+    scrollLimit = useRef(0)
+  const scrollBounds = useRef<{ top: number; bottom: number } | null>(null)
+  const dragScrollingRef = useRef(false)
+  const [dragScrolling, setDragScrolling] = useState(false)
+  const scrollId = contentId + '-scroll'
+  useEffect(
+    () =>
+      registerDialogScroll(contentId, {
+        bounds: () => scrollBounds.current,
+        active: (value) => {
+          dragScrollingRef.current = value
+          setDragScrolling(value)
+        },
+        moveBy: (delta) => {
+          const next = Math.max(0, Math.min(scrollLimit.current, scrollPosition.current + delta))
+          const moved = next - scrollPosition.current
+          if (moved) {
+            scrollPosition.current = next
+            setFocusTop(next)
+          }
+          return moved
+        },
+      }),
+    [contentId],
+  )
+  useEffect(() => {
+    if (fullScreen) return
+    let alive = true
+    const timer = setTimeout(() => {
+      const query = Taro.createSelectorQuery()
+      for (const selector of [
+        '#' + scrollId,
+        '.native-dialog >>> #' + scrollId,
+        '#' + contentId,
+        '.native-dialog >>> #' + contentId,
+      ])
+        query.select(selector).boundingClientRect()
+      query.exec((rects: Array<{ top: number; bottom: number; height: number } | null>) => {
+        if (!alive) return
+        const box = rects.slice(0, 2).find((r) => r?.height),
+          content = rects.slice(2).find((r) => r?.height)
+        if (box && content) {
+          scrollBounds.current = box
+          scrollLimit.current = Math.max(0, content.height - box.height)
+        }
+      })
+    }, 40)
+    return () => {
+      alive = false
+      clearTimeout(timer)
+    }
+  }, [contentId, scrollId, height, fullScreen, children])
   useEffect(() => {
     if (!focusId) {
       setFocusTop(null)
@@ -114,16 +175,11 @@ export function NativeDialog({
       clearTimeout(timer)
     }
   }, [focusId])
-  useEffect(() => {
-    Taro.eventCenter.trigger('xiaoqiu:native-overlay', true)
-    return () => {
-      Taro.eventCenter.trigger('xiaoqiu:native-overlay', false)
-    }
-  }, [])
+  useEffect(holdNativeOverlay, [])
   return (
     <RootPortal>
       <View
-        className="native-dialog-mask"
+        className={`native-dialog-mask${fullScreen ? ' native-dialog-mask--fullscreen' : ''}`}
         style={`height:${Math.max(1, viewport)}px;`}
         catchMove
         onClick={() => {
@@ -131,7 +187,8 @@ export function NativeDialog({
         }}
       >
         <View
-          className="native-dialog"
+          className={`native-dialog ${className}${fullScreen ? ' native-dialog--fullscreen' : ''}`}
+          style={fullScreen ? `padding-top:${info.statusBarHeight || 0}px;` : ''}
           role="dialog"
           aria-label={title}
           onClick={(event) => event.stopPropagation()}
@@ -147,18 +204,26 @@ export function NativeDialog({
               ×
             </Button>
           </View>
-          <ScrollView
-            className="native-dialog__body native-dialog__scroll"
-            scrollY
-            showScrollbar={false}
-            {...(focusTop !== null ? { scrollTop: focusTop } : {})}
-            scrollWithAnimation
-            style={`height:${height}px;`}
-          >
-            <View id={contentId} className="native-dialog__content">
-              {children}
-            </View>
-          </ScrollView>
+          {fullScreen ? (
+            <View className="native-dialog__fullscreen-body">{children}</View>
+          ) : (
+            <ScrollView
+              id={scrollId}
+              className="native-dialog__body native-dialog__scroll"
+              scrollY
+              showScrollbar={false}
+              {...(focusTop !== null ? { scrollTop: focusTop } : {})}
+              scrollWithAnimation={!dragScrolling}
+              onScroll={(event) => {
+                if (!dragScrollingRef.current) scrollPosition.current = event.detail.scrollTop
+              }}
+              style={`height:${height}px;`}
+            >
+              <View id={contentId} className="native-dialog__content">
+                {children}
+              </View>
+            </ScrollView>
+          )}
           {footer && <View className="native-dialog__footer">{footer}</View>}
         </View>
       </View>

@@ -7,6 +7,7 @@ import { EditProfile } from '../../pages/me/desktop-profile.weapp'
 import { productRepository } from '../../features/product/product.repository'
 import { readSession } from '../../features/product/session'
 import { refreshNativeCurrentUser } from '../../features/product/current-user.weapp'
+import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
 import {
   personalBackgroundUrl,
   playerBackgroundUrl,
@@ -100,10 +101,7 @@ export function DesktopAccount({
   }, [open, current?.id, current?.linkedPlayer?.id])
   useEffect(() => {
     if (!open) return
-    Taro.eventCenter.trigger('xiaoqiu:native-overlay', true)
-    return () => {
-      Taro.eventCenter.trigger('xiaoqiu:native-overlay', false)
-    }
+    return holdNativeOverlay()
   }, [open])
   const select = (action: () => void) => {
     afterClose.current = action

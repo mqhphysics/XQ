@@ -19,6 +19,7 @@ import { MediaStorage } from './media-storage'
 import { goalMediaEnabled, mediaPermissions } from './media-policy'
 import { DEFAULT_COVERS, defaultAvatar, defaultCover } from '../media/default-media'
 import { AiModerationService } from '../ai-moderation/ai-moderation.service'
+import { syncLinkedPlayerAvatar } from '../media/linked-player-avatar'
 
 interface MediaRow {
   id: string
@@ -586,15 +587,25 @@ export class ManagedMediaService {
         where: { id: row.target_id },
         select: { avatarUrl: true, coverUrl: true },
       })
-      if (nextUrl || user?.[field]?.startsWith('/api/media-assets/'))
+      if (nextUrl || user?.[field]?.startsWith('/api/media-assets/')) {
+        const replacement =
+          nextUrl ??
+          (field === 'coverUrl' ? DEFAULT_COVERS.user : defaultAvatar('user', row.target_id))
         await tx.user.update({
           where: { id: row.target_id },
           data: {
-            [field]:
-              nextUrl ??
-              (field === 'coverUrl' ? DEFAULT_COVERS.user : defaultAvatar('user', row.target_id)),
+            [field]: replacement,
           },
         })
+        if (field === 'avatarUrl')
+          await syncLinkedPlayerAvatar(
+            tx,
+            row.organization_id,
+            row.target_id,
+            user?.avatarUrl ?? null,
+            replacement,
+          )
+      }
     } else {
       const field =
         row.purpose === 'PLAYER_AVATAR'

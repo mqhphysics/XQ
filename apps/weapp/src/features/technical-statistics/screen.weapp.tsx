@@ -1,6 +1,6 @@
 import { Button, Picker, Text, View } from '@tarojs/components'
 import { nativeBack } from '../native-navigation/index.weapp'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { DataState } from '../../components/public-ui'
 import { useNativePreferences } from '../../components/native-ui/preferences.weapp'
 import { useNativeRefreshTask } from '../product/native-refresh.weapp'
@@ -31,6 +31,14 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
     kind: 'primary' | 'secondary' | 'special' | 'undo'
   } | null>(null)
   useNativeRefreshTask(recorder.refresh)
+  const derived = useMemo(() => {
+    if (!workspace || mode === 'board') return null
+    const team = workspace.teams[side] || workspace.teams[0]!
+    return {
+      state: technicalState(workspace.operations),
+      rows: technicalSummary(workspace.operations, team.id, playerId),
+    }
+  }, [workspace?.operations, workspace?.teams, side, playerId, mode])
   if (!workspace)
     return (
       <>
@@ -47,10 +55,8 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
     )
   if (mode === 'board') return <NativeTechnicalBoard recorder={recorder} onMode={setMode} />
   const team = workspace.teams[side] || workspace.teams[0]!,
-    state = technicalState(workspace.operations),
-    row = technicalSummary(workspace.operations, team.id, playerId).find(
-      (x) => x.metric === metric,
-    )!
+    state = derived!.state,
+    row = derived!.rows.find((x) => x.metric === metric)!
   const player = team.players.find((p) => p.id === playerId),
     names = [
       '全队（不指定球员）',

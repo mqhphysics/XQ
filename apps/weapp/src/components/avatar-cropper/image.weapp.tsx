@@ -4,6 +4,7 @@ import { useId, useRef, useState } from 'react'
 import { NativeDialog } from '../native-ui/index.weapp'
 import { imageCrop, type CropPosition } from './crop.logic'
 import './image.weapp.scss'
+import { exportNativeCrop } from './export.weapp'
 
 export function NativeImageCropper({
   title,
@@ -23,6 +24,7 @@ export function NativeImageCropper({
   const [position, setPosition] = useState<CropPosition>({ zoom: 1, x: 0.5, y: 0.5 })
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('')
+  const [progress, setProgress] = useState('')
   const lock = useRef(false)
   const gesture = useRef<{ x: number; y: number; position: CropPosition; frame: number } | null>(
     null,
@@ -33,6 +35,7 @@ export function NativeImageCropper({
     lock.current = true
     setBusy(true)
     setError('')
+    setProgress('正在准备图片…')
     try {
       const choice = await Taro.chooseImage({
         count: 1,
@@ -57,43 +60,17 @@ export function NativeImageCropper({
     lock.current = true
     setBusy(true)
     setError('')
+    setProgress('正在处理图片…')
     try {
-      const context = Taro.createCanvasContext(canvasId)
-      context.drawImage(
-        image.path,
-        crop.x,
-        crop.y,
-        crop.width,
-        crop.height,
-        0,
-        0,
-        output.width,
-        output.height,
-      )
-      await new Promise<void>((resolve) => context.draw(false, resolve))
-      const file = await Taro.canvasToTempFilePath({
-        canvasId,
-        width: output.width,
-        height: output.height,
-        destWidth: output.width,
-        destHeight: output.height,
-        fileType: 'jpg',
-        quality: 0.88,
-      })
-      const dataUrl = await new Promise<string>((resolve, reject) =>
-        Taro.getFileSystemManager().readFile({
-          filePath: file.tempFilePath,
-          encoding: 'base64',
-          success: (value) => resolve(`data:image/jpeg;base64,${String(value.data)}`),
-          fail: reject,
-        }),
-      )
+      const dataUrl = await exportNativeCrop(canvasId, image.path, crop, output)
+      setProgress('正在上传并保存…')
       await onConfirm(dataUrl)
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : '图片保存失败，请重试')
     } finally {
       lock.current = false
       setBusy(false)
+      setProgress('')
     }
   }
   return (
@@ -207,9 +184,12 @@ export function NativeImageCropper({
         <Text className="native-note">先选一张照片，预览并调整后再保存。</Text>
       )}
       {error && <Text className="native-error">{error}</Text>}
+      {busy && progress && <Text className="native-note">{progress}</Text>}
       <Canvas
+        id={canvasId}
+        type="2d"
         canvasId={canvasId}
-        style={`position:fixed;left:-5000px;top:0;width:${output.width}px;height:${output.height}px;`}
+        style="position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;"
       />
     </NativeDialog>
   )

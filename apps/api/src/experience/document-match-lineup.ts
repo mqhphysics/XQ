@@ -1,4 +1,5 @@
 import type { PublicRosterEntry } from './default-match-lineup'
+import { playerAvatar } from '../media/player-avatar'
 
 const role: Record<string, string> = {
   GK: 'GOALKEEPER',
@@ -37,8 +38,7 @@ export function documentMatchLineup(
   if (
     ['GK', 'DF', 'MF', 'FW'].some(
       (label, i) =>
-        slots.filter((s: unknown) => record(s) && s.label === label).length !==
-        [1, ...rows][i],
+        slots.filter((s: unknown) => record(s) && s.label === label).length !== [1, ...rows][i],
     )
   )
     return null
@@ -77,7 +77,7 @@ export function documentMatchLineup(
       displayName: entry?.displayName ?? `${slot.shirtNumber}号`,
       shirtNumber: entry?.shirtNumber ?? String(slot.shirtNumber),
       position: role[slot.label]!,
-      avatarUrl: entry?.playerProfile.avatarUrl ?? null,
+      avatarUrl: entry ? playerAvatar(entry.playerProfile) : null,
       starter: true,
       minutesPlayed: null,
       pitchPosition: { x: slot.x, y: 100 - slot.y },
@@ -104,7 +104,7 @@ export function documentMatchLineup(
           displayName: e.displayName,
           shirtNumber: e.shirtNumber,
           position: e.playerProfile.position,
-          avatarUrl: e.playerProfile.avatarUrl,
+          avatarUrl: playerAvatar(e.playerProfile),
           starter: false,
           minutesPlayed: null,
           pitchPosition: null,

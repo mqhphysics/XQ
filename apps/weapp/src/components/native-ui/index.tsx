@@ -8,6 +8,9 @@ export interface NativeDialogProps extends PropsWithChildren {
   unsavedChanges?: boolean
   /** Element id inside the body to scroll into view. */
   focusId?: string | undefined
+  className?: string
+  bodyHeight?: number
+  fullScreen?: boolean
 }
 export function NativeDialog(_props: NativeDialogProps) {
   return null

@@ -251,6 +251,80 @@ page .public-app.public-app .home-search-entry__action {
   padding: 20px 28px;
   border-top: 2px solid #edf0e8;
 }
+.native-dialog-mask--fullscreen {
+  padding: 0;
+  background: #101711;
+}
+.native-dialog.native-dialog--fullscreen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  border-radius: 0;
+  background: #101711;
+  color: #fff;
+}
+.native-dialog--fullscreen .native-dialog__head,
+.native-dialog--fullscreen .native-dialog__footer {
+  flex: none;
+  border-color: #3e4a40;
+}
+.native-dialog--fullscreen .native-dialog__close {
+  color: #fff;
+}
+.native-dialog__fullscreen-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.native-dialog--team-join .native-dialog__footer {
+  justify-content: center;
+}
+.native-team-join-form {
+  width: 100%;
+  padding: 8px 0;
+}
+.native-team-join-position.native-select {
+  position: relative;
+  justify-content: center;
+}
+.native-team-join-position .native-select__chevron {
+  position: absolute;
+  right: 22px;
+}
+.native-team-join-message.native-field {
+  width: 100%;
+  height: 150px;
+  min-height: 150px;
+  margin-top: 28px;
+  padding: 22px;
+  text-align: center;
+  border-bottom-color: #9ab095;
+}
+.native-team-join-submit.native-button {
+  width: 100%;
+  margin: 0;
+}
+.native-page-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 88px;
+  margin-bottom: 16px;
+}
+.native-page-toolbar__title {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  text-align: center;
+  font-size: 36px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
 .native-button.native-button {
   display: flex;
   align-items: center;

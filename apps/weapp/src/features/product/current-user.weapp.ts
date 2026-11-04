@@ -21,12 +21,18 @@ export function refreshNativeCurrentUser(): Promise<void> {
   return task
 }
 
-export function useNativeCurrentUser() {
+export function useStoredSessionUser() {
   const [user, setUser] = useState(() => readSession()?.user || null)
   useEffect(() => {
     const unsubscribe = subscribeToSessionWrites(() => setUser(readSession()?.user || null))
-    void refreshNativeCurrentUser().catch(() => {})
     return unsubscribe
+  }, [])
+  return user
+}
+export function useNativeCurrentUser() {
+  const user = useStoredSessionUser()
+  useEffect(() => {
+    void refreshNativeCurrentUser().catch(() => {})
   }, [])
   return user
 }

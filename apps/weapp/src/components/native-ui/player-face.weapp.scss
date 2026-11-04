@@ -36,6 +36,16 @@
   line-height: 1;
   text-align: center;
 }
+.native-player-face--fill {
+  width: 100%;
+  height: 100%;
+  flex-basis: auto;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
 .native-profile-roster > button > .native-player-face {
   flex: 0 0 64px;
   width: 64px;

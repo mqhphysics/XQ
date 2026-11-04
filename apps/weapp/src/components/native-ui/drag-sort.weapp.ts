@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
 import {
   dragFrame,
+  dragEdgeStep,
   dragShift,
   estimateRowRects,
   moveIndex,
@@ -12,6 +13,10 @@ import {
   type DragRowRect,
 } from './drag-sort.logic'
 import './drag-sort.weapp.scss'
+import {
+  currentDialogScroll,
+  type DialogScrollHandle,
+} from '../../features/native-navigation/dialog-scroll.weapp'
 
 /**
  * Handle-only vertical drag-to-reorder for mini-program lists.
@@ -77,8 +82,17 @@ export function useNativeDragSort<T>({
     lastY: number
     offset: number
     rects: DragRowRect[]
+    scrollDelta: number
   } | null>(null)
   const measured = useRef<DragRowRect[]>([])
+  const scroller = useRef<DialogScrollHandle | null>(null)
+  const autoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const stopAuto = () => {
+    if (autoTimer.current) clearTimeout(autoTimer.current)
+    autoTimer.current = undefined
+    scroller.current?.active(false)
+    scroller.current = null
+  }
   const nodes = useRef(new Map<number, DragRowNode>())
   const latest = useRef({ items, onReorder })
   latest.current = { items, onReorder }
@@ -95,6 +109,7 @@ export function useNativeDragSort<T>({
     () => () => {
       timers.current.forEach(clearTimeout)
       live.current = null
+      stopAuto()
     },
     [],
   )
@@ -102,7 +117,11 @@ export function useNativeDragSort<T>({
   const track = (force = false) => {
     const session = live.current
     if (!session || !session.rects.length) return
-    const frame = dragFrame(session.rects, session.from, session.lastY - session.startY)
+    const frame = dragFrame(
+      session.rects,
+      session.from,
+      session.lastY - session.startY + session.scrollDelta,
+    )
     if (frame.offset !== session.offset) {
       session.offset = frame.offset
       const node = nodes.current.get(session.from)
@@ -121,11 +140,26 @@ export function useNativeDragSort<T>({
         settling: false,
       })
   }
+  const autoScroll = () => {
+    const session = live.current,
+      handle = scroller.current,
+      bounds = handle?.bounds()
+    if (!session || !handle) return
+    if (bounds && session.rects.length) {
+      const moved = handle.moveBy(dragEdgeStep(session.lastY, bounds))
+      if (moved) {
+        session.scrollDelta += moved
+        track()
+      }
+    }
+    autoTimer.current = setTimeout(autoScroll, 24)
+  }
   const measure = (index: number, y: number) => {
     let done = false
+    const expected = live.current
     const apply = (rects: DragRowRect[]) => {
       const session = live.current
-      if (done || !session || session.from !== index) return
+      if (done || !session || session !== expected) return
       done = true
       session.rects = rects
       measured.current = rects
@@ -165,12 +199,23 @@ export function useNativeDragSort<T>({
     event.stopPropagation()
     const y = touchY(event)
     if (disabled || live.current || drag || y === undefined || items.length < 2) return
-    live.current = { from: index, over: index, startY: y, lastY: y, offset: 0, rects: [] }
+    live.current = {
+      from: index,
+      over: index,
+      startY: y,
+      lastY: y,
+      offset: 0,
+      rects: [],
+      scrollDelta: 0,
+    }
     measured.current = []
     setInstant(false)
     setDrag({ from: index, over: index, offset: 0, settling: false })
     vibrate('medium')
     measure(index, y)
+    scroller.current = currentDialogScroll()
+    scroller.current?.active(true)
+    autoScroll()
   }
   const move = (event: CommonEvent) => {
     event.stopPropagation()
@@ -185,6 +230,9 @@ export function useNativeDragSort<T>({
     event.stopPropagation()
     const session = live.current
     if (!session) return
+    stopAuto()
+    const releaseY = touchY(event)
+    if (releaseY !== undefined) session.lastY = releaseY
     if (!session.rects.length)
       session.rects = estimateRowRects(
         latest.current.items.length,
@@ -205,6 +253,12 @@ export function useNativeDragSort<T>({
       later(() => setInstant(false), 60)
     }, settleMs)
   }
+  const cancel = (event: CommonEvent) => {
+    event.stopPropagation()
+    stopAuto()
+    live.current = null
+    setDrag(null)
+  }
   const rowClassName = (index: number) =>
     [
       drag ? 'native-drag-row is-drag-active' : 'native-drag-row',
@@ -216,6 +270,7 @@ export function useNativeDragSort<T>({
       .join(' ')
   const rowStyle = (index: number) => {
     if (!drag) return ''
+    if (drag.from === index) if (!measured.current.length) return ''
     if (drag.from === index)
       return drag.settling
         ? `transform:translate3d(0,${drag.offset}px,0) scale(1);`
@@ -238,12 +293,13 @@ export function useNativeDragSort<T>({
       onTouchStart: (event: CommonEvent) => start(index, event),
       onTouchMove: move,
       onTouchEnd: end,
-      onTouchCancel: end,
+      onTouchCancel: cancel,
     }),
   }
 }
 
 /** View's touch handlers are typed as CommonEvent; the payload is a touch event. */
 function touchY(event: CommonEvent): number | undefined {
-  return (event as unknown as ITouchEvent).touches?.[0]?.clientY
+  const touch = event as unknown as ITouchEvent
+  return touch.touches?.[0]?.clientY ?? touch.changedTouches?.[0]?.clientY
 }

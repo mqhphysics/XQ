@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro'
 import { initializeCloudApi } from './request.weapp'
+import { loopGifForever } from '../managed-media/gif-loop'
 
 // Private images use the WeChat channel as bytes, preserving backend authorization.
 // Keep these preview files bounded rather than accumulating persistent downloads.
@@ -15,7 +16,11 @@ fs.readdir({
   },
 })
 
-export async function downloadCloudApiMedia(url: string, header: Record<string, string>, extension: 'image' | 'gif' = 'image') {
+export async function downloadCloudApiMedia(
+  url: string,
+  header: Record<string, string>,
+  extension: 'image' | 'gif' = 'image',
+) {
   const env = process.env.TARO_APP_API_PROXY_ENV?.trim()
   if (!env) return Taro.downloadFile({ url, header })
   const mediaOrigin = process.env.TARO_APP_API_PROXY_MEDIA_ORIGIN?.replace(/\/+$/, '')
@@ -46,7 +51,7 @@ export async function downloadCloudApiMedia(url: string, header: Record<string, 
   await new Promise<void>((resolve, reject) =>
     fs.writeFile({
       filePath: tempFilePath,
-      data: bytes,
+      data: loopGifForever(bytes),
       success: () => resolve(),
       fail: reject,
     }),

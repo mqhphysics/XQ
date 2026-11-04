@@ -8,6 +8,8 @@ import { dirname, resolve } from 'node:path'
 // Nest validation and OpenAPI require the same decorator metadata as production.
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 process.env.POST_MEDIA_DIRECTORY ??= resolve(appRoot, '../../../XQ-data/media/posts')
+process.env.AVATAR_MEDIA_DIRECTORY ??= resolve(appRoot, '../../../XQ-data/media/avatars')
+process.env.MEDIA_ASSETS_DIRECTORY ??= resolve(appRoot, '../../../XQ-data/media/managed')
 const require = createRequire(resolve(appRoot, 'package.json'))
 let server
 let stopping = false

@@ -14,11 +14,14 @@ import { assertMediaReadable } from './media-access-policy'
 import { readDefaultMedia, defaultAvatar } from './default-media'
 import { ManagedMediaService } from '../managed-media/managed-media.service'
 import { AiModerationService } from '../ai-moderation/ai-moderation.service'
+import { syncLinkedPlayerAvatar } from './linked-player-avatar'
+import type { Prisma } from '../generated/prisma/client'
+import type { MediaPurpose } from '../managed-media/managed-media.dto'
 
 const MAX_AVATAR_BYTES = 72 * 1024
 const MIN_AVATAR_EDGE = 64
-const MAX_AVATAR_EDGE = 512
-const AVATAR_DIRECTORY = resolve(__dirname, '../../../../private-data/media/avatars')
+const avatarDirectory = () =>
+  process.env.AVATAR_MEDIA_DIRECTORY || resolve(__dirname, '../../../../private-data/media/avatars')
 const DEMO_DIRECTORY = resolve(__dirname, '../../demo-media')
 const MAX_POST_IMAGE_BYTES = 4 * 1024 * 1024
 const MAX_POST_OUTPUT_BYTES = 768 * 1024
@@ -85,9 +88,9 @@ export class MediaService {
   ) {}
 
   async submitManagedProfile(
-    tx: import('../generated/prisma/client').Prisma.TransactionClient,
+    tx: Prisma.TransactionClient,
     session: Awaited<ReturnType<AuthService['requireSession']>>,
-    purpose: import('../managed-media/managed-media.dto').MediaPurpose,
+    purpose: MediaPurpose,
     targetId: string,
     dataUrl: string,
     requestId: string,
@@ -305,6 +308,14 @@ export class MediaService {
           where: { id: session.userId },
           data: { avatarUrl: stored.avatarUrl },
         })
+        if (session.user.linkedPlayer)
+          await syncLinkedPlayerAvatar(
+            tx,
+            session.organizationId,
+            session.userId,
+            previousUrl,
+            stored.avatarUrl,
+          )
         await tx.auditLog.create({
           data: {
             organizationId: session.organizationId,
@@ -435,7 +446,7 @@ export class MediaService {
     if (!(await assertMediaReadable(this.prisma, `/api/media/avatars/${fileName}`)))
       throw notFound('头像已下架')
     try {
-      const body = await readFile(resolve(AVATAR_DIRECTORY, fileName))
+      const body = await readFile(resolve(avatarDirectory(), fileName))
       const extension = fileName.slice(fileName.lastIndexOf('.') + 1)
       return {
         body,
@@ -474,9 +485,9 @@ export class MediaService {
     if (!wide) return this.storeAvatar(dataUrl)
     const image = await normalizePostImage(dataUrl)
     const fileName = `${createHash('sha256').update(image.body).digest('hex')}.webp`
-    await mkdir(AVATAR_DIRECTORY, { recursive: true })
+    await mkdir(avatarDirectory(), { recursive: true })
     try {
-      await writeFile(resolve(AVATAR_DIRECTORY, fileName), image.body, { flag: 'wx' })
+      await writeFile(resolve(avatarDirectory(), fileName), image.body, { flag: 'wx' })
     } catch (error) {
       if (!isAlreadyExists(error)) throw error
     }
@@ -501,9 +512,9 @@ export class MediaService {
     const hash = createHash('sha256').update(normalized.body).digest('hex')
     const extension = normalized.subtype
     const fileName = `${hash}.${extension}`
-    await mkdir(AVATAR_DIRECTORY, { recursive: true })
+    await mkdir(avatarDirectory(), { recursive: true })
     try {
-      await writeFile(resolve(AVATAR_DIRECTORY, fileName), normalized.body, { flag: 'wx' })
+      await writeFile(resolve(avatarDirectory(), fileName), normalized.body, { flag: 'wx' })
     } catch (error) {
       if (!isAlreadyExists(error)) throw error
     }
@@ -522,14 +533,18 @@ export class MediaService {
     const [userReferences, playerReferences, auditReferences] = await Promise.all([
       this.prisma.user.count({ where: { avatarUrl } }),
       this.prisma.playerProfile.count({ where: { avatarUrl } }),
-      this.prisma.auditLog.count({ where: { OR: [
-        { afterSummary: { path: ['avatarUrl'], equals: avatarUrl } },
-        { beforeSummary: { path: ['avatarUrl'], equals: avatarUrl } },
-      ] } }),
+      this.prisma.auditLog.count({
+        where: {
+          OR: [
+            { afterSummary: { path: ['avatarUrl'], equals: avatarUrl } },
+            { beforeSummary: { path: ['avatarUrl'], equals: avatarUrl } },
+          ],
+        },
+      }),
     ])
     if (userReferences + playerReferences + auditReferences > 0) return
     try {
-      await unlink(resolve(AVATAR_DIRECTORY, fileName))
+      await unlink(resolve(avatarDirectory(), fileName))
     } catch {
       // Missing or concurrently cleaned content-addressed files need no further action.
     }

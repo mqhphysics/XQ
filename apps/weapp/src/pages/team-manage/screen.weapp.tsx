@@ -119,11 +119,8 @@ export default function NativeTeamManage({
           : [],
       ) || []
   return (
-    <PublicShell active="me" showBack tournamentId={tournamentId}>
+    <PublicShell active="me" showBack nativeBackTitle="管理球队" tournamentId={tournamentId}>
       <View className="native-team-manage">
-        <View className="native-page-top">
-          <Text className="native-page-title">管理球队</Text>
-        </View>
         {error ? (
           <DataState
             kind="error"

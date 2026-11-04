@@ -128,7 +128,7 @@ export function NativeManageLineup({
           const changed = !!backup.planId && (!source || source.version !== backup.baseVersion)
           setPlan(source ? { ...source, version: backup.baseVersion } : null)
           setDraft(compactNativeFormation(recovered))
-          setName(backup.name)
+          setName(nativeLineupName(backup.name))
           setDirty(true)
           setConflict(changed)
           if (changed)
@@ -219,7 +219,6 @@ export function NativeManageLineup({
   }
   return (
     <View className="native-manage-card">
-      <Text className="native-manage-title">球队阵容</Text>
       {loading && <Text className="native-note">正在读取阵容</Text>}
       {error && (
         <>
@@ -252,64 +251,70 @@ export function NativeManageLineup({
           另存为新阵容
         </Button>
       )}
-      {dirty && !error && (
-        <Text className="native-note">修改已保留在本机，切到其他应用后可继续编辑</Text>
-      )}
-      <Picker
-        range={['新建阵容', ...plans.map((p) => nativeLineupName(p.name))]}
-        value={plan ? plans.findIndex((p) => p.id === plan.id) + 1 : 0}
-        disabled={busy || loading}
-        onChange={async (e) => {
-          if (!(await confirmNativeDiscard(dirty, busy))) return
-          clearBackup()
-          setConflict(false)
-          const next = plans[Number(e.detail.value) - 1]
-          if (next) restore(next)
-          else {
-            setPlan(null)
-            setDraft(compactNativeFormation(createFormation('3-2-2')))
-            setName('默认阵容')
-            setDirty(false)
-          }
-        }}
-      >
-        <View className="native-select">
-          {plan ? nativeLineupName(plan.name) : '新建阵容'}
-          <View className="native-select__chevron" />
+      <View className="native-lineup-choice-row">
+        <Text className="native-manage-title">球队阵容</Text>
+        <Picker
+          range={['新建阵容', ...plans.map((p) => nativeLineupName(p.name))]}
+          value={plan ? plans.findIndex((p) => p.id === plan.id) + 1 : 0}
+          disabled={busy || loading}
+          onChange={async (e) => {
+            if (!(await confirmNativeDiscard(dirty, busy))) return
+            clearBackup()
+            setConflict(false)
+            const next = plans[Number(e.detail.value) - 1]
+            if (next) restore(next)
+            else {
+              setPlan(null)
+              setDraft(compactNativeFormation(createFormation('3-2-2')))
+              setName('默认阵容')
+              setDirty(false)
+            }
+          }}
+        >
+          <View className="native-select native-lineup-choice">
+            <Text>{plan ? nativeLineupName(plan.name) : '新建阵容'}</Text>
+            <View className="native-select__chevron" />
+          </View>
+        </Picker>
+      </View>
+      <View className="native-lineup-edit-row">
+        <View className="native-lineup-name-field">
+          <Text className="native-label">阵容名称</Text>
+          <Input
+            className="native-field"
+            disabled={busy || loading}
+            value={name}
+            maxlength={60}
+            onInput={(e) => {
+              setName(e.detail.value)
+              setDirty(true)
+            }}
+          />
         </View>
-      </Picker>
-      <Text className="native-label">阵容名称</Text>
-      <Input
-        className="native-field"
-        disabled={busy || loading}
-        value={name}
-        maxlength={60}
-        onInput={(e) => {
-          setName(e.detail.value)
-          setDirty(true)
-        }}
-      />
-      <Picker
-        range={FORMATIONS.map((f) => f.name)}
-        disabled={busy || loading}
-        value={Math.max(
-          0,
-          FORMATIONS.findIndex((f) => f.name === draft.formation),
-        )}
-        onChange={(e) =>
-          change(
-            compactNativeFormation(
-              createFormation(FORMATIONS[Number(e.detail.value)]!.name, draft),
-            ),
-          )
-        }
-      >
-        <View className="native-select">
-          阵型 {draft.formation}
-          <View className="native-select__chevron" />
+        <View className="native-lineup-formation-field">
+          <Text className="native-label">阵型</Text>
+          <Picker
+            range={FORMATIONS.map((f) => f.name)}
+            disabled={busy || loading}
+            value={Math.max(
+              0,
+              FORMATIONS.findIndex((f) => f.name === draft.formation),
+            )}
+            onChange={(e) =>
+              change(
+                compactNativeFormation(
+                  createFormation(FORMATIONS[Number(e.detail.value)]!.name, draft),
+                ),
+              )
+            }
+          >
+            <View className="native-select">
+              <Text>{draft.formation}</Text>
+              <View className="native-select__chevron" />
+            </View>
+          </Picker>
         </View>
-      </Picker>
-      <Text className="native-note">点击球场上的位置选择球员 · {players.length} 名可用球员</Text>
+      </View>
       <View className="native-manage-lineup-pitch" style="margin-top:20rpx;">
         <View className="native-pitch-border" />
         <View className="native-pitch-midline" />
@@ -341,6 +346,11 @@ export function NativeManageLineup({
           )
         })}
       </View>
+      {dirty && !error && (
+        <Text className="native-note native-lineup-save-note">
+          修改已保留在本机，切到其他应用后可继续编辑
+        </Text>
+      )}
       <View className="native-manage-toolbar">
         <Button
           className="native-button"

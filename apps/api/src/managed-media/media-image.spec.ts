@@ -9,10 +9,25 @@ test('GIF fully decodes every frame, normalizes animation, and has a static WebP
   const result = await validateMedia(dataUrl(source, 'gif'), 'GOAL_GIF')
   assert.equal(result.frames, 3)
   assert.equal(result.durationMs, 300)
+  assert.equal((await sharp(result.body, { animated: true }).metadata()).loop, 0)
   const decoded = await sharp(result.body, { animated: true })
     .raw()
     .toBuffer({ resolveWithObject: true })
   assert.equal(decoded.info.height, 96)
+  assert.deepEqual(
+    await sharp(result.body, { animated: true }).ensureAlpha().raw().toBuffer(),
+    await sharp(source, { animated: true }).ensureAlpha().raw().toBuffer(),
+  )
+  const tagged = Buffer.concat([
+    source.subarray(0, source.length - 1),
+    Buffer.from([0x21, 0xfe, 6]),
+    Buffer.from('SECRET'),
+    Buffer.from([0, 0x3b]),
+    Buffer.from('TRAILING_PAYLOAD'),
+  ])
+  const cleaned = await validateMedia(dataUrl(tagged, 'gif'), 'GOAL_GIF')
+  assert.equal(cleaned.body.includes(Buffer.from('SECRET')), false)
+  assert.equal(cleaned.body.includes(Buffer.from('TRAILING_PAYLOAD')), false)
   const poster = await sharp(result.poster).metadata()
   assert.equal(poster.format, 'webp')
   assert.equal(poster.pages ?? 1, 1)

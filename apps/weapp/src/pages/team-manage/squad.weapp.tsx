@@ -187,7 +187,13 @@ export function NativeManageSquad({
           const selected = !!p.playerId && Object.hasOwn(entries, p.playerId)
           const identity = (
             <>
-              <NativePlayerFace avatarUrl={p.avatarUrl} name={p.displayName} />
+              <NativePlayerFace
+                playerId={p.playerId || ''}
+                tournamentId={tournamentId}
+                avatarUrl={p.avatarUrl}
+                name={p.displayName}
+                loadPortrait
+              />
               <View className="native-manage-person__copy">
                 <Text>{p.displayName}</Text>
                 <Text className="native-note">

@@ -211,10 +211,12 @@
   min-width: 0;
 }
 .native-hub-manage-row .team-crest,
-.native-hub-manage-row .user-avatar {
+.native-hub-manage-row .user-avatar,
+.native-hub-manage-row .native-player-face {
   flex: 0 0 56px;
   width: 56px;
   height: 56px;
+  font-size: 28px;
 }
 .native-hub-manage-row > .native-button {
   flex: none;

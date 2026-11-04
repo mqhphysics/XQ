@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { NativePlayerFace } from '../../components/native-ui/player-face.weapp'
 import type { LineupPlayer } from '../../features/captain-roster/lineup.logic'
 import { useNativeBackLayer } from '../../features/native-navigation/leave-guard.weapp'
+import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
 
 export function NativePlayerPicker({
   players,
@@ -25,10 +26,7 @@ export function NativePlayerPicker({
   })
   useEffect(() => {
     void Taro.hideKeyboard().catch(() => {})
-    Taro.eventCenter.trigger('xiaoqiu:native-overlay', true)
-    return () => {
-      Taro.eventCenter.trigger('xiaoqiu:native-overlay', false)
-    }
+    return holdNativeOverlay()
   }, [])
   return (
     <RootPortal>
@@ -55,9 +53,10 @@ export function NativePlayerPicker({
                 <View className="native-player-wheel-row" key={player.id}>
                   <View className="native-player-wheel-row__inner">
                     <NativePlayerFace
+                      playerId={player.id}
                       avatarUrl={player.avatarUrl}
                       name={player.displayName}
-                      small
+                      loadPortrait
                     />
                     <Text>{player.displayName}</Text>
                     <Text className="native-player-wheel-number">

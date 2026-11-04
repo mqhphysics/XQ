@@ -1,5 +1,5 @@
 import { NativeContentPager } from '../../components/native-navigation/content-pager.weapp'
-import { Button, Input, Picker, Text, View } from '@tarojs/components'
+import { Button, Picker, Text, Textarea, View } from '@tarojs/components'
 import Taro, { getCurrentInstance } from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNativeRefreshTask } from '../../features/product/native-refresh.weapp'
@@ -359,11 +359,13 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
       {join && (
         <NativeDialog
           title="申请加入球队"
+          className="native-dialog--team-join"
+          bodyHeight={230}
           busy={busy}
           onClose={() => setJoin(false)}
           footer={
             <Button
-              className="native-button native-button--primary"
+              className="native-button native-button--primary native-team-join-submit"
               loading={busy}
               onClick={() => void apply()}
             >
@@ -371,22 +373,26 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
             </Button>
           }
         >
-          <Picker
-            range={positions.map(positionLabel)}
-            value={position}
-            onChange={(event) => setPosition(Number(event.detail.value))}
-          >
-            <Text className="native-profile-copy">
-              位置 · {positionLabel(positions[position]!)}
-            </Text>
-          </Picker>
-          <Input
-            className="native-input"
-            value={message}
-            maxlength={500}
-            placeholder="给队长留言（选填）"
-            onInput={(event) => setMessage(event.detail.value)}
-          />
+          <View className="native-team-join-form">
+            <Text className="native-label">位置</Text>
+            <Picker
+              range={positions.map(positionLabel)}
+              value={position}
+              onChange={(event) => setPosition(Number(event.detail.value))}
+            >
+              <View className="native-select native-team-join-position">
+                <Text>{positionLabel(positions[position]!)}</Text>
+                <View className="native-select__chevron" />
+              </View>
+            </Picker>
+            <Textarea
+              className="native-field native-team-join-message"
+              value={message}
+              maxlength={500}
+              placeholder="给队长留言（选填）"
+              onInput={(event) => setMessage(event.detail.value)}
+            />
+          </View>
         </NativeDialog>
       )}
     </>

@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { centerError } from '../admin-center/admin-center.policy'
 import { CampusCommandService, type CampusTx } from './campus-command.service'
-import type { AuthenticatedSession } from '../auth/auth.service'
 import {
   REPORTER_RULES,
   completedReinstatement,
@@ -283,7 +282,14 @@ export class ReporterQualityService {
     return this.command.read(auth, false, async (tx, actor) => {
       const candidate = await ensureReporterProfile(tx, actor.organizationId, actor.userId)
       if (!candidate)
-        return { profile: null, rules: REPORTER_RULES, entries: [], cases: [], applications: [] }
+        return {
+          profile: null,
+          recordedMatchCount: 0,
+          rules: REPORTER_RULES,
+          entries: [],
+          cases: [],
+          applications: [],
+        }
       const profile = await refreshReporterState(tx, candidate)
       const [entries, cases, applications] = await Promise.all([
         tx.reporterScoreEntry.findMany({
@@ -302,7 +308,10 @@ export class ReporterQualityService {
           take: 10,
         }),
       ])
-      return { profile, rules: REPORTER_RULES, entries, cases, applications }
+      const recordedMatchCount = await tx.reporterContribution.count({
+        where: { organizationId: actor.organizationId, profileId: profile.id },
+      })
+      return { profile, recordedMatchCount, rules: REPORTER_RULES, entries, cases, applications }
     })
   }
 

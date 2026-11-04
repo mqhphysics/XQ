@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common'
+import { Inject, Injectable, type OnModuleInit, type OnModuleDestroy } from '@nestjs/common'
 import { createHash, randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -19,7 +19,13 @@ import {
   defaultMediaName,
 } from '../media/default-media'
 import { centerError } from '../admin-center/admin-center.policy'
-import { endpoint, humanReviewRequired, policies, chatCompatibility, type ReviewPurpose } from './ai-policy'
+import {
+  endpoint,
+  humanReviewRequired,
+  policies,
+  chatCompatibility,
+  type ReviewPurpose,
+} from './ai-policy'
 import { sealKey, openKey } from './ai-vault'
 import type { AiModerationConfigDto, AiProviderDto, AiRulesDto } from './ai-moderation.dto'
 type DB = Prisma.TransactionClient
@@ -494,7 +500,11 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
     const avatar = /^\/api\/media\/avatars\/([a-f0-9]{64}\.(?:webp|png|jpg))$/.exec(path)
     if (avatar)
       body = await readFile(
-        resolve(__dirname, '../../../../private-data/media/avatars', avatar[1]!),
+        resolve(
+          process.env.AVATAR_MEDIA_DIRECTORY ||
+            resolve(__dirname, '../../../../private-data/media/avatars'),
+          avatar[1]!,
+        ),
       )
     const defaultName = defaultMediaName(path)
     if (defaultName) body = (await readDefaultMedia(defaultName))?.body ?? null

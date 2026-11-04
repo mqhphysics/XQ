@@ -5,6 +5,7 @@ import sharp from 'sharp'
 import { ApiHttpException } from '../common/api-http.exception'
 import { normalizeAvatarImage } from '../media/media.service'
 import type { MediaPurpose } from './managed-media.dto'
+import { sanitizeLoopingGif } from './gif-animation'
 
 export interface ValidatedMedia {
   body: Buffer
@@ -52,17 +53,19 @@ export async function validateMedia(
     if (animated) {
       if (width < 16 || height < 16 || width > 960 || height > 960 || frames < 2 || frames > 120)
         throw invalidMedia('GIF 需为 16–960 像素、2–120 帧')
-      const durationMs = (metadata.delay ?? []).reduce((sum, delay) => sum + Math.max(20, delay), 0)
+      const durationMs = (metadata.delay ?? []).reduce((sum, delay) => sum + delay, 0)
       if (durationMs < 40 || durationMs > 15_000 || (metadata.delay?.length ?? 0) !== frames)
         throw invalidMedia('GIF 单次播放不能超过 15 秒')
-      // Decode EVERY frame and re-encode. Uploaded bytes/metadata/trailing payloads are never served.
-      const body = await sharp(source, {
+      // Decode every frame before retaining its palette/pixel blocks. Strip non-rendering payloads
+      // separately so an upload gains infinite looping without a second palette quantization.
+      await sharp(source, {
         animated: true,
         failOn: 'error',
         limitInputPixels: 32 * 1024 * 1024,
       })
-        .gif({ effort: 3, loop: 1, delay: metadata.delay!.map((delay) => Math.max(20, delay)) })
+        .raw()
         .toBuffer()
+      const body = sanitizeLoopingGif(source)
       if (body.length > limit) throw invalidMedia('处理后的 GIF 超过 6 MiB')
       const poster = await sharp(body, { page: 0, pages: 1, failOn: 'error' })
         .resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true })

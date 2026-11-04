@@ -22,11 +22,11 @@ export function useTechnicalRecorder(matchId: string) {
   const key = `xiaoqiu:technical:v1:${owner.current?.user.organizationId}:${owner.current?.user.id}:${matchId}`
   const sameOwner = () =>
     !!owner.current && owner.current.accessToken === readSession()?.accessToken
-  const publish = () => {
+  const publish = (validated?: TechnicalOperation[]) => {
     if (!alive.current || !sameOwner() || !server.current) return
-    const operations = [...server.current.operations, ...pending.current]
+    const operations = validated ?? [...server.current.operations, ...pending.current]
     try {
-      technicalState(operations)
+      if (!validated) technicalState(operations)
       setWorkspace({ ...server.current, operations })
     } catch {
       setError('本机操作与云端记录冲突；草稿仍保留，可重试或选择采用云端记录')
@@ -148,14 +148,15 @@ export function useTechnicalRecorder(matchId: string) {
       return
     }
     if (!server.current?.canRecord) return
+    const nextOperations = [...server.current.operations, ...pending.current, operation]
     try {
-      technicalState([...server.current.operations, ...pending.current, operation])
+      technicalState(nextOperations)
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : '统计操作冲突')
       return
     }
     pending.current = [...pending.current, operation]
-    publish()
+    publish(nextOperations)
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => void sync(), 900)
     void Taro.vibrateShort({ type: 'medium' }).catch(() => {})

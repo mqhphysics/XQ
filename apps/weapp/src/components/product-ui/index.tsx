@@ -1,6 +1,7 @@
 import { Button, Image, Text, View } from '@tarojs/components'
 import type { BaseEventOrig } from '@tarojs/components/types/common'
 import Taro from '@tarojs/taro'
+import { nativePlayerInitial } from '../../features/product/native-profile.logic.weapp'
 import { useRef, useState } from 'react'
 
 import {
@@ -153,7 +154,7 @@ export function UserAvatar({
             style={{ display: 'block', width: '100%', height: '100%', flex: 'none' }}
           />
         ) : (
-          <Text className="native-user-avatar__initial">{Array.from(name.trim())[0] || '球'}</Text>
+          <Text className="native-user-avatar__initial">{nativePlayerInitial(name)}</Text>
         )}
       </View>
     ) : source ? (

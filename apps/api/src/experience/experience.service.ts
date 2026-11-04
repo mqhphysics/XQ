@@ -1,4 +1,5 @@
 import { publicSearchPlan, rankPublicSearch } from './search-relevance'
+import { playerAvatar } from '../media/player-avatar'
 import { createHash } from 'node:crypto'
 import { defaultAvatar, defaultCover } from '../media/default-media'
 import { matchReportTagKey } from './match-report-tag'
@@ -87,67 +88,96 @@ export class ExperienceService {
       undefined,
       selection,
     )
-    const [matches, registrations, posts, directoryTeams, platformPosts] = await Promise.all([
-      this.prisma.match.findMany({
-        where: { organizationId, tournamentId: tournament.id, status: { not: 'DRAFT' } },
-        include: matchSummaryInclude,
-        orderBy: [{ scheduledStartAt: 'asc' }, { sortOrder: 'asc' }],
-      }),
-      this.prisma.teamRegistration.findMany({
-        where: { organizationId, tournamentId: tournament.id, status: 'APPROVED' },
-        include: { team: true, group: true },
-        orderBy: [{ group: { sortOrder: 'asc' } }, { team: { name: 'asc' } }],
-      }),
-      this.prisma.post.findMany({
-        where: {
-          organizationId,
-          status: PostStatus.PUBLISHED,
-          OR: [
-            { tournamentId: tournament.id },
-            { tournamentId: null, type: PostType.COMMUNITY },
-            {
-              tournamentId: null,
-              type: PostType.OFFICIAL,
-              tags: {
-                some: {
-                  key: competitionAnnouncementKey(
-                    tournament.tournamentCode,
-                    tournament.season.seasonCode,
-                  ),
+    const [matches, registrations, posts, directoryTeams, platformPosts, announcements] =
+      await Promise.all([
+        this.prisma.match.findMany({
+          where: { organizationId, tournamentId: tournament.id, status: { not: 'DRAFT' } },
+          include: matchSummaryInclude,
+          orderBy: [{ scheduledStartAt: 'asc' }, { sortOrder: 'asc' }],
+        }),
+        this.prisma.teamRegistration.findMany({
+          where: { organizationId, tournamentId: tournament.id, status: 'APPROVED' },
+          include: { team: true, group: true },
+          orderBy: [{ group: { sortOrder: 'asc' } }, { team: { name: 'asc' } }],
+        }),
+        this.prisma.post.findMany({
+          where: {
+            organizationId,
+            status: PostStatus.PUBLISHED,
+            OR: [
+              { tournamentId: tournament.id },
+              { tournamentId: null, type: PostType.COMMUNITY },
+              {
+                tournamentId: null,
+                type: PostType.OFFICIAL,
+                tags: {
+                  some: {
+                    key: competitionAnnouncementKey(
+                      tournament.tournamentCode,
+                      tournament.season.seasonCode,
+                    ),
+                  },
                 },
               },
-            },
-            {
-              type: PostType.OFFICIAL,
-              tournament: {
-                seasonId: tournament.seasonId,
-                tournamentCode: {
-                  startsWith:
-                    tournament.tournamentCode.split('-')[0]!.replace(/_(?:MEN|WOMEN)$/, '') + '_',
+              {
+                type: PostType.OFFICIAL,
+                tournament: {
+                  seasonId: tournament.seasonId,
+                  tournamentCode: {
+                    startsWith:
+                      tournament.tournamentCode.split('-')[0]!.replace(/_(?:MEN|WOMEN)$/, '') + '_',
+                  },
+                },
+                tags: { some: { key: { startsWith: 'match-report:' } } },
+              },
+            ],
+          },
+          include: postSummaryInclude(session?.userId),
+          orderBy: { publishedAt: 'desc' },
+          take: 20,
+        }),
+        this.prisma.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
+        this.prisma.post.findMany({
+          where: {
+            organizationId,
+            tournamentId: null,
+            type: PostType.OFFICIAL,
+            status: PostStatus.PUBLISHED,
+            tags: { none: { key: { startsWith: 'competition-announcement:' } } },
+          },
+          include: postSummaryInclude(session?.userId),
+          orderBy: { publishedAt: 'desc' },
+          take: 4,
+        }),
+        this.prisma.post.findMany({
+          where: {
+            organizationId,
+            status: PostStatus.PUBLISHED,
+            type: PostType.OFFICIAL,
+            tags: { none: { key: { startsWith: 'match-report:' } } },
+            OR: [
+              { tournamentId: tournament.id },
+              {
+                tournamentId: null,
+                tags: {
+                  some: {
+                    key: competitionAnnouncementKey(
+                      tournament.tournamentCode,
+                      tournament.season.seasonCode,
+                    ),
+                  },
                 },
               },
-              tags: { some: { key: { startsWith: 'match-report:' } } },
-            },
-          ],
-        },
-        include: postSummaryInclude(session?.userId),
-        orderBy: { publishedAt: 'desc' },
-        take: 20,
-      }),
-      this.prisma.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
-      this.prisma.post.findMany({
-        where: {
-          organizationId,
-          tournamentId: null,
-          type: PostType.OFFICIAL,
-          status: PostStatus.PUBLISHED,
-          tags: { none: { key: { startsWith: 'competition-announcement:' } } },
-        },
-        include: postSummaryInclude(session?.userId),
-        orderBy: { publishedAt: 'desc' },
-        take: 4,
-      }),
-    ])
+            ],
+          },
+          include: postSummaryInclude(session?.userId),
+          orderBy: { publishedAt: 'desc' },
+          take: 3,
+        }),
+      ])
+    const registrationByTeam = new Map(
+      registrations.map((registration) => [registration.teamId, registration]),
+    )
 
     return {
       tournament: {
@@ -158,23 +188,17 @@ export class ExperienceService {
         teamCount: registrations.length,
         matchCount: matches.length,
       },
-      announcements: homeContent(posts).announcements.map((post) => mapPost(post, session?.userId)),
+      announcements: homeContent(announcements).announcements.map((post) =>
+        mapPost(post, session?.userId),
+      ),
       platformAnnouncements: platformPosts.map((post) => mapPost(post, session?.userId)),
       focusMatches: featuredHomeMatches(matches).map(mapMatch),
       teams: directoryTeams.map((team) => ({
         ...mapTeam(
-          withSeasonTeamProfile(
-            team,
-            registrations.find((registration) => registration.teamId === team.id)
-              ?.teamProfileSnapshot,
-          ),
+          withSeasonTeamProfile(team, registrationByTeam.get(team.id)?.teamProfileSnapshot),
         ),
-        groupName:
-          registrations.find((registration) => registration.teamId === team.id)?.group?.name ??
-          null,
-        registeredInTournament: registrations.some(
-          (registration) => registration.teamId === team.id,
-        ),
+        groupName: registrationByTeam.get(team.id)?.group?.name ?? null,
+        registeredInTournament: registrationByTeam.has(team.id),
       })),
       posts: homeContent(posts).feed.map((post) => mapPost(post, session?.userId)),
       viewer: session?.user ?? null,
@@ -397,7 +421,7 @@ export class ExperienceService {
         position: player.position,
         academicYear: player.academicYear,
         profileColor: player.profileColor,
-        avatarUrl: defaultAvatar('player', player.id, player.avatarUrl) || player.portraitUrl,
+        avatarUrl: playerAvatar(player),
         team: player.snapshotEntries[0]?.rosterSnapshot.team
           ? mapTeam(player.snapshotEntries[0].rosterSnapshot.team)
           : player.teamMemberships[0]
@@ -626,7 +650,15 @@ export class ExperienceService {
           .sort((a, b) => b.assists - a.assists || b.goals - a.goals)
           .slice(0, 10),
       },
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(
+        Math.max(
+          tournament.updatedAt.getTime(),
+          ...matches.map((match) => match.updatedAt.getTime()),
+          ...registrations.map((registration) =>
+            Math.max(registration.updatedAt.getTime(), registration.team.updatedAt.getTime()),
+          ),
+        ),
+      ).toISOString(),
     }
   }
 
@@ -829,7 +861,7 @@ export class ExperienceService {
           academicYear: player.academicYear,
           heightCm: player.heightCm,
           profileColor: player.profileColor,
-          avatarUrl: defaultAvatar('player', player.id, player.avatarUrl) || player.portraitUrl,
+          avatarUrl: playerAvatar(player),
           appearances: stat?.appearances ?? 0,
           goals: stat?.goals ?? 0,
           assists: stat?.assists ?? 0,
@@ -1148,7 +1180,9 @@ export class ExperienceService {
                     playerProfileId: true,
                     displayName: true,
                     shirtNumber: true,
-                    playerProfile: { select: { position: true, avatarUrl: true } },
+                    playerProfile: {
+                      select: { position: true, avatarUrl: true, portraitUrl: true },
+                    },
                   },
                 },
               },
@@ -1179,7 +1213,7 @@ export class ExperienceService {
               playerProfileId: true,
               displayName: true,
               shirtNumber: true,
-              playerProfile: { select: { position: true, avatarUrl: true } },
+              playerProfile: { select: { position: true, avatarUrl: true, portraitUrl: true } },
             },
           },
         },
@@ -1352,7 +1386,7 @@ export class ExperienceService {
                 starter: appearance.starter,
                 minutesPlayed: appearance.minutesPlayed,
                 pitchPosition: null,
-                avatarUrl: appearance.player.portraitUrl ?? appearance.player.avatarUrl,
+                avatarUrl: playerAvatar(appearance.player),
                 profileColor: appearance.player.profileColor,
               })),
             }

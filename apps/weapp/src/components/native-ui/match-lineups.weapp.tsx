@@ -1,8 +1,8 @@
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Button, Text, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import { TeamCrest } from '../product-ui'
 import { NativeDialog } from './index.weapp'
-import { resolveMediaUrl, request } from '../../features/product/product.repository'
+import { request } from '../../features/product/product.repository'
 import { openPlayer } from '../../features/product/player-navigation'
 import { positionLabel } from '../../features/product/product.format.weapp'
 import type { MatchExperienceResponse } from '../../features/product/product.types'
@@ -11,15 +11,12 @@ import {
   lineupGroups,
   playerEventDetails,
 } from '../../features/readonly-match/lineup.logic'
-import type {PlayerMatchEvents} from '../../features/readonly-match/lineup.logic'
+import type { PlayerMatchEvents } from '../../features/readonly-match/lineup.logic'
 import { createLineupDisplay } from '../../features/readonly-match/lineup-display.h5'
 import { NativeMatchIcon } from '../../features/readonly-match/match-icons.weapp'
+import { NativePlayerFace } from './player-face.weapp'
 import { lineupBadges } from '../../features/readonly-match/lineup-badges.weapp'
 import { openPerson } from '../../features/product/person-navigation'
-import {
-  nativePlayerAvatarUrl,
-  nativePlayerInitial,
-} from '../../features/product/native-profile.logic.weapp'
 
 type Player = MatchExperienceResponse['lineups'][number]['players'][number]
 export function NativePlayerPortrait({
@@ -28,29 +25,30 @@ export function NativePlayerPortrait({
   keeper = false,
   empty = false,
 }: {
-  player: { avatarUrl?: string | null; shirtNumber: string | null; displayName?: string }
+  player: {
+    id?: string
+    avatarUrl?: string | null
+    shirtNumber: string | null
+    displayName?: string
+  }
   color: string
   keeper?: boolean
   empty?: boolean
 }) {
-  const [failed, setFailed] = useState(false)
-  const avatar = !failed && resolveMediaUrl(nativePlayerAvatarUrl(player.avatarUrl))
   return (
     <View className="native-pitch-portrait">
       <View
         className={`native-pitch-shirt${keeper ? ' native-pitch-shirt--keeper' : ''}`}
         style={`background-color:${color};`}
       >
-        {avatar ? (
-          <Image src={avatar} mode="aspectFill" onError={() => setFailed(true)} />
-        ) : (
-          <Text>
-            {empty
-              ? ''
-              : player.displayName
-                ? nativePlayerInitial(player.displayName)
-                : player.shirtNumber || '·'}
-          </Text>
+        {!empty && (
+          <NativePlayerFace
+            playerId={player.id || ''}
+            avatarUrl={player.avatarUrl ?? null}
+            name={player.displayName || player.shirtNumber || '球'}
+            loadPortrait
+            fill
+          />
         )}
       </View>
       {!empty && <Text className="native-pitch-player__number">{player.shirtNumber || '·'}</Text>}
@@ -229,11 +227,7 @@ export function NativeLineups({ match }: { match: MatchExperienceResponse }) {
     </View>
   )
 }
-function PlayerBadges({
-  events,
-}: {
-  events: PlayerMatchEvents | undefined
-}) {
+function PlayerBadges({ events }: { events: PlayerMatchEvents | undefined }) {
   const { scores, discipline } = lineupBadges(events),
     kind = {
       goals: 'GOAL',

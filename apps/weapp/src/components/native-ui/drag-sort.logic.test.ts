@@ -79,3 +79,14 @@ test('estimated slots still let a drop land when nothing can be measured', () =>
   assert.equal(dragFrame(estimated, 1, -60).over, 0)
   assert.equal(dragFrame(estimated, 1, 10).over, 1)
 })
+
+test('unequal heights and subpixel bounds let a middle row exchange with both end rows', () => {
+  const rows = [
+    { top: 0.1, bottom: 40.1, height: 40 },
+    { top: 40.1, bottom: 120.1, height: 80 },
+    { top: 120.1, bottom: 160.1, height: 40 },
+  ]
+  assert.equal(dragFrame(rows, 1, -40).over, 0)
+  assert.equal(dragFrame(rows, 1, 40).over, 2)
+  assert.deepEqual(moveIndex(['a', 'b', 'c'], 1, dragFrame(rows, 1, -200).over), ['b', 'a', 'c'])
+})

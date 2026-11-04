@@ -22,6 +22,9 @@ export function NativeContentPager({
   const [displayed, setDisplayed] = useState(index)
   const [height, setHeight] = useState(160)
   const [edgeGesture, setEdgeGesture] = useState(false)
+  const visited = useRef(new Set<number>())
+  for (const target of [index - 1, index, index + 1])
+    if (target >= 0 && target < pages.length) visited.current.add(target)
   const heights = useRef<number[]>([]),
     current = useRef(index),
     selection = useRef(0)
@@ -48,12 +51,13 @@ export function NativeContentPager({
           Taro.nextTick(() => {
             if (!alive) return
             const query = Taro.createSelectorQuery()
-            pages.forEach((_, i) =>
+            pages.forEach((_, i) => {
+              if (Math.abs(i - current.current) > 1) return
               query.select(`#${id}-${i}`).boundingClientRect((rect) => {
                 const value = (rect as { height?: number })?.height
                 if (value && value > 0) heights.current[i] = Math.ceil(value)
-              }),
-            )
+              })
+            })
             query.exec(() => {
               if (alive) alignHeight(current.current)
             })
@@ -115,12 +119,14 @@ export function NativeContentPager({
         onChange={(event) => {
           if (event.detail.source === 'touch') void select(event.detail.current)
         }}
-        onAnimationFinish={(event) => alignHeight(event.detail.current)}
+        onAnimationFinish={(event) => {
+          if (event.detail.current === current.current) alignHeight(event.detail.current)
+        }}
       >
         {pages.map((page, i) => (
           <SwiperItem key={i}>
             <View id={`${id}-${i}`} className="native-content-slide">
-              {page}
+              {visited.current.has(i) ? page : null}
             </View>
           </SwiperItem>
         ))}

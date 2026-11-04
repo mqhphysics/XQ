@@ -8,6 +8,7 @@ import { ApiHttpException } from '../common/api-http.exception'
 import { PrismaService } from '../database/prisma.service'
 import { Prisma, type RosterSubmissionStatus } from '../generated/prisma/client'
 import type { RosterWorkflowCommandDto } from './roster-workflow.dto'
+import { playerAvatar } from '../media/player-avatar'
 import {
   nextRosterStatus,
   parseRosterPolicy,
@@ -606,7 +607,7 @@ export class RosterWorkflowService {
               id: entry.playerProfileId,
               displayName: entry.displayName,
               shirtNumber: entry.shirtNumber,
-              avatarUrl: entry.playerProfile.avatarUrl,
+              avatarUrl: playerAvatar(entry.playerProfile),
               position: entry.playerProfile.position,
             })),
           }
@@ -623,7 +624,7 @@ export class RosterWorkflowService {
               {
                 playerId: member.playerProfile.id,
                 displayName: member.playerProfile.displayName,
-                avatarUrl: member.playerProfile.avatarUrl,
+                avatarUrl: playerAvatar(member.playerProfile),
                 position: member.position ?? member.playerProfile.position,
                 eligible: policy?.eligiblePlayerIds.includes(member.playerProfile.id) ?? false,
               },

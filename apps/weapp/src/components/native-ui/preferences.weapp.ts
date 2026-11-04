@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'
 import { readSession } from '../../features/product/session'
 import type { NativePreferences } from './preferences'
+import { normalizeNativePreferences } from './preferences.logic'
 import './preferences.weapp.scss'
 
 export const defaultNativePreferences: NativePreferences = {
@@ -15,15 +16,10 @@ function key() {
   return `xiaoqiu:weapp:preferences:v1:${user?.organizationId || 'public'}:${user?.id || 'visitor'}`
 }
 export function readNativePreferences(): NativePreferences {
-  const value = Taro.getStorageSync(key()) as Partial<NativePreferences> | undefined
-  return {
-    reduceMotion: value?.reduceMotion === true,
-    largeText: value?.largeText === true,
-    autoplayGif: value?.autoplayGif !== false,
-  }
+  return normalizeNativePreferences(Taro.getStorageSync(key()))
 }
 export function saveNativePreferences(value: NativePreferences) {
-  Taro.setStorageSync(key(), value)
+  Taro.setStorageSync(key(), { ...value, playbackVersion: 2 })
   Taro.eventCenter.trigger(event)
 }
 export function useNativePreferences(): NativePreferences {

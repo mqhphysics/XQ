@@ -1,8 +1,9 @@
+import { playerAvatar } from '../media/player-avatar'
 export interface PublicRosterEntry {
   playerProfileId: string
   displayName: string
   shirtNumber: string | null
-  playerProfile: { position: string | null; avatarUrl: string | null }
+  playerProfile: { position: string | null; avatarUrl: string | null; portraitUrl?: string | null }
 }
 
 const positions: Record<string, string> = {
@@ -103,7 +104,7 @@ export function defaultMatchLineup(entries: PublicRosterEntry[], publishedPayloa
         position: slot
           ? (positions[slot.label] ?? entry.playerProfile.position)
           : entry.playerProfile.position,
-        avatarUrl: entry.playerProfile.avatarUrl,
+        avatarUrl: playerAvatar(entry.playerProfile),
         starter: !!slot,
         minutesPlayed: null,
         pitchPosition: slot ? { x: slot.x, y: slot.y } : null,

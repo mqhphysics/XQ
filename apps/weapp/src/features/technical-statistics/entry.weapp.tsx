@@ -84,6 +84,7 @@ export function NativeReporterMatches({
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [expanded, setExpanded] = useState(false)
   useEffect(() => {
     let alive = true
     setLoading(true)
@@ -125,6 +126,7 @@ export function NativeReporterMatches({
     setLoading(true)
     setError('')
     setMatches([])
+    setExpanded(false)
     void request<{ matches: EntryMatch[] }>(
       `/public/tournaments/${encodeURIComponent(selected)}/schedule`,
     )
@@ -153,22 +155,24 @@ export function NativeReporterMatches({
   }, [selected, caps, attempt])
   return (
     <View className="native-reporter-matches">
-      <Text className="native-section-title">选择比赛</Text>
-      {catalog.length > 0 && (
-        <Picker
-          range={catalog.map((t) => t.name)}
-          value={Math.max(
-            0,
-            catalog.findIndex((t) => t.id === selected),
-          )}
-          onChange={(e) => setSelected(catalog[Number(e.detail.value)]!.id)}
-        >
-          <View className="native-select">
-            <Text>{catalog.find((t) => t.id === selected)?.name}</Text>
-            <View className="native-select__chevron" />
-          </View>
-        </Picker>
-      )}
+      <View className="native-reporter-title-row">
+        <Text className="native-section-title">录入比赛信息</Text>
+        {catalog.length > 0 && (
+          <Picker
+            range={catalog.map((t) => t.name)}
+            value={Math.max(
+              0,
+              catalog.findIndex((t) => t.id === selected),
+            )}
+            onChange={(e) => setSelected(catalog[Number(e.detail.value)]!.id)}
+          >
+            <View className="native-select">
+              <Text>{catalog.find((t) => t.id === selected)?.name}</Text>
+              <View className="native-select__chevron" />
+            </View>
+          </Picker>
+        )}
+      </View>
       {loading && <Text className="native-note">正在读取授权比赛…</Text>}
       {error && (
         <>
@@ -179,7 +183,7 @@ export function NativeReporterMatches({
       {!loading && !error && !matches.length && (
         <Text className="native-note">暂无可记录的比赛</Text>
       )}
-      {matches.map((match) => (
+      {(expanded ? matches : matches.slice(0, 2)).map((match) => (
         <Button
           key={match.id}
           className={`native-reporter-match is-${reporterMatchKind(match)}`}
@@ -188,20 +192,27 @@ export function NativeReporterMatches({
             void openMatch(match.id)
           }}
         >
-          <Text>
-            {match.homeTeam?.shortName || match.homeTeam?.name || '待定'} vs{' '}
-            {match.awayTeam?.shortName || match.awayTeam?.name || '待定'}
-          </Text>
-          <Text>
-            {match.scheduledStartAt
-              ? `${formatDate(match.scheduledStartAt)} ${formatTime(match.scheduledStartAt)}`
-              : '时间待定'}{' '}
-            <Text className={`native-reporter-match__state is-${reporterMatchKind(match)}`}>
-              {reporterMatchLabel(match)}
+          <View className="native-reporter-match__copy">
+            <Text>
+              {match.homeTeam?.shortName || match.homeTeam?.name || '待定'} vs{' '}
+              {match.awayTeam?.shortName || match.awayTeam?.name || '待定'}
             </Text>
+            <Text>
+              {match.scheduledStartAt
+                ? `${formatDate(match.scheduledStartAt)} ${formatTime(match.scheduledStartAt)}`
+                : '时间待定'}{' '}
+            </Text>
+          </View>
+          <Text className={`native-reporter-match__state is-${reporterMatchKind(match)}`}>
+            {reporterMatchLabel(match)}
           </Text>
         </Button>
       ))}
+      {matches.length > 2 && (
+        <Button className="native-reporter-expand" onClick={() => setExpanded((value) => !value)}>
+          {expanded ? '收起' : `展开全部（${matches.length} 场）`}
+        </Button>
+      )}
     </View>
   )
 }

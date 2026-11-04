@@ -11,6 +11,7 @@ import {
 test('automatic lineup labels are concise while custom names remain intact', () => {
   assert.equal(nativeLineupName('默认阵容（可调整）'), '默认阵容')
   assert.equal(nativeLineupName('默认阵容'), '默认阵容')
+  assert.equal(nativeLineupName('四官表初始首发（站位暂定）'), '默认阵容')
   assert.equal(nativeLineupName('决赛首发'), '决赛首发')
 })
 

@@ -18,8 +18,9 @@ import { NativeReporterMatches } from '../../features/technical-statistics/entry
 import type { AuthUser, PlayerDetailResponse } from '../../features/product/product.types'
 import { nativeIdentityKinds, type NativeIdentityKind } from './identity-panels.logic.weapp'
 import { openPlayer } from '../../features/product/player-navigation'
-import { gettingStartedEvent } from '../../features/getting-started/repository.weapp'
 import './profile.weapp.scss'
+import { NativePlayerFace } from '../../components/native-ui/player-face.weapp'
+import { positionLabel } from '../../features/product/product.format.weapp'
 
 export function NativeMyIdentities({
   user,
@@ -55,7 +56,7 @@ export function NativeMyIdentities({
   return (
     <NativeDialog
       title={kinds.length === 1 ? (kinds[0] === 'player' ? '球员身份' : '信息管理员') : '我的身份'}
-      compact={false}
+      compact={selected === 'player'}
       onClose={onClose}
     >
       {kinds.length > 1 && (
@@ -72,35 +73,38 @@ export function NativeMyIdentities({
         </View>
       )}
       {error && <Text className="native-note">{error}</Text>}
-      {!kinds.length && (
-        <Text className="native-note">
-          学生身份已经可以正常使用。若你在球队名单中，可自助关联球员身份。
-        </Text>
-      )}
-      {!user.linkedPlayer && (
-        <Button
-          className="native-button native-button--primary"
-          onClick={() => {
-            onClose()
-            Taro.eventCenter.trigger(gettingStartedEvent, 'match')
-          }}
-        >
-          自助关联球员
-        </Button>
-      )}
+      {!kinds.length && <Text className="native-note">暂无已启用身份</Text>}
       {selected === 'player' &&
         (user.linkedPlayer ? (
-          <Button
-            className="native-button native-button--primary"
-            onClick={() => {
-              onClose()
-              void openPlayer(user.linkedPlayer!.id, tournamentId)
-            }}
-          >
-            查看我的球员主页
-          </Button>
+          <>
+            <View className="native-identity-player-summary">
+              <NativePlayerFace
+                playerId={user.linkedPlayer.id}
+                tournamentId={tournamentId}
+                avatarUrl={user.linkedPlayer.avatarUrl || user.avatarUrl}
+                name={user.linkedPlayer.displayName}
+                loadPortrait
+                large
+              />
+              <View>
+                <Text className="native-identity-player-summary__name">
+                  {user.linkedPlayer.displayName}
+                </Text>
+                <Text>{positionLabel(user.linkedPlayer.position)}</Text>
+              </View>
+            </View>
+            <Button
+              className="native-button native-button--primary"
+              onClick={() => {
+                onClose()
+                void openPlayer(user.linkedPlayer!.id, tournamentId)
+              }}
+            >
+              查看我的球员主页
+            </Button>
+          </>
         ) : (
-          <Text className="native-note">尚未关联你的球员档案，请先在“身份管理”中关联。</Text>
+          <Text className="native-note">暂无关联球员档案</Text>
         ))}
       {selected === 'reporter' && (
         <>
@@ -458,37 +462,53 @@ function NativeReporterQuality() {
       {data && !data.profile && <Text className="native-note">当前没有信息管理员质量记录。</Text>}
       {data?.profile && (
         <>
-          <Text className="native-note">记录质量分</Text>
-          <View className="native-reporter-score">
-            <Text>{data.profile.score}</Text>
-            <Text>/ 100</Text>
+          <View className="native-reporter-scoreboard">
+            <View>
+              <Text>我的质量分</Text>
+              <Text className="native-reporter-score-value">
+                {data.profile.score}
+                <Text> / 100</Text>
+              </Text>
+            </View>
+            <View>
+              <Text>已录入</Text>
+              <Text className="native-reporter-match-count">
+                {data.recordedMatchCount ?? '—'} 场
+              </Text>
+            </View>
           </View>
-          <Text className="native-reporter-status">
-            {labels[data.profile.status] || data.profile.status}
-          </Text>
-          <Text className="native-note">
-            本轮合格记录 {data.profile.consecutiveQualified} /{' '}
-            {data.rules.qualifiedMatchesForReward} 场
-          </Text>
+          {data.profile.status !== 'ACTIVE' && (
+            <Text className="native-reporter-status">
+              {labels[data.profile.status] || data.profile.status}
+            </Text>
+          )}
           <Button className="native-button" onClick={() => setRules(!rules)}>
             评分说明
           </Button>
           {rules && (
-            <Text className="native-note">
-              初始 {data.rules.initialScore} 分；确认差错扣 {data.rules.initialPenalty} 分。连续{' '}
-              {data.rules.qualifiedMatchesForReward} 场合格记录加 {data.rules.reward} 分，低于{' '}
-              {data.rules.freezeBelow} 分冻结身份。申请及复核结果以系统通知为准。
-            </Text>
+            <NativeDialog title="评分说明" onClose={() => setRules(false)}>
+              <View className="native-quality-rule is-gain">
+                <Text>连续 {data.rules.qualifiedMatchesForReward} 场合格</Text>
+                <Text>+{data.rules.reward} 分</Text>
+              </View>
+              <View className="native-quality-rule is-loss">
+                <Text>经确认的记录差错</Text>
+                <Text>−{data.rules.initialPenalty} 分</Text>
+              </View>
+              <View className="native-quality-rule is-loss">
+                <Text>复训考察期内差错</Text>
+                <Text>−{data.rules.reinstatedPenalty} 分</Text>
+              </View>
+              <View className="native-quality-rule">
+                <Text>初始分／最高分</Text>
+                <Text>{data.rules.initialScore} 分</Text>
+              </View>
+              <View className="native-quality-rule">
+                <Text>身份冻结线</Text>
+                <Text>低于 {data.rules.freezeBelow} 分</Text>
+              </View>
+            </NativeDialog>
           )}
-          {data.entries.slice(0, 3).map((entry) => (
-            <View className="native-quality-entry" key={entry.id}>
-              <Text>{entry.reason}</Text>
-              <Text>
-                {entry.delta > 0 ? '+' : ''}
-                {entry.delta}
-              </Text>
-            </View>
-          ))}
         </>
       )}
     </View>

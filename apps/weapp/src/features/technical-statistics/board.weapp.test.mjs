@@ -71,6 +71,7 @@ test('row board: seven players on top, full/精简 rows, recent strip, persisted
         ]
       },
       useRef: (current) => ({ current }),
+      useMemo: (factory) => factory(),
       useEffect() {},
       useContext: () => null,
     },
@@ -111,7 +112,7 @@ test('row board: seven players on top, full/精简 rows, recent strip, persisted
         unsynced: 0,
         append: (op) => {
           writes.push(op)
-          workspace.operations.push(op)
+          workspace.operations = [...workspace.operations, op]
           return true
         },
       },

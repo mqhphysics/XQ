@@ -39,6 +39,7 @@ export interface CampusProfile {
   playerCandidate: { id: string; name: string; portraitUrl: string | null } | null
 }
 export interface ReporterQuality {
+  recordedMatchCount?: number
   profile: {
     id: string
     score: number

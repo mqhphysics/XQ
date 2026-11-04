@@ -1,7 +1,11 @@
 import type { LineupDraft } from './lineup.logic'
 
 export function nativeLineupName(name: string): string {
-  return /^默认阵容(?:[（(]可调整[）)])?$/.test(name.trim()) ? '默认阵容' : name
+  return /^(?:默认阵容(?:[（(]可调整[）)])?|四官表初始首发(?:[（(]站位暂定[）)])?)$/.test(
+    name.trim(),
+  )
+    ? '默认阵容'
+    : name
 }
 
 // Only migrate the old automatic layout; retain deliberately positioned tactics.

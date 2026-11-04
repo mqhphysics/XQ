@@ -11,7 +11,7 @@ import { DataState } from '../../components/public-ui'
 import { MatchStatus, TeamCrest } from '../../components/product-ui'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { NativeGoalClip } from '../../features/managed-media/goal-clip.weapp'
-import { preloadMatchGif } from '../../features/managed-media/match-gif.weapp'
+import { matchGifUrl } from '../../features/managed-media/match-gif.weapp'
 import {
   productRepository,
   resolveMediaUrl,
@@ -108,7 +108,13 @@ export default function NativeMatchScreen({
           onRetry={() => void load()}
         />
       )}
-      {state.phase === 'ready' && <NativeMatchContent key={state.match.id} match={state.match} onUpdated={(match) => setState({ phase: 'ready', match })} />}
+      {state.phase === 'ready' && (
+        <NativeMatchContent
+          key={state.match.id}
+          match={state.match}
+          onUpdated={(match) => setState({ phase: 'ready', match })}
+        />
+      )}
     </PublicShell>
   )
 }
@@ -230,12 +236,14 @@ function NativeEvents({ match, active }: { match: MatchExperienceResponse; activ
   useEffect(() => {
     measureNativeContent()
   }, [media, error])
-  const play = async (event: NativeMatchEvent, asset: MediaAsset) => {
+  const play = async (event: NativeMatchEvent, asset: MediaAsset, cachedSource?: string) => {
     try {
       const source =
         asset.status === 'PENDING'
           ? await ownMediaImage(asset.contentUrl)
-          : asset.mimeType === 'video/mp4' ? resolveMediaUrl(asset.contentUrl)! : await preloadMatchGif(asset)
+          : asset.mimeType === 'video/mp4'
+            ? resolveMediaUrl(asset.contentUrl)!
+            : cachedSource || matchGifUrl(asset)
       setPlaying({
         source,
         title: `${minuteLabel(event)} ${eventLabel(event.type)}`,
@@ -311,7 +319,12 @@ function NativeEvents({ match, active }: { match: MatchExperienceResponse; activ
                     </View>
                   ))}
                   {asset && (
-                    <NativeGoalClip asset={asset} active={active} onPlay={() => void play(first, asset)} />
+                    <NativeGoalClip
+                      key={`${asset.id}:${asset.version || 0}`}
+                      asset={asset}
+                      active={active}
+                      onPlay={(source) => void play(first, asset, source)}
+                    />
                   )}
                 </View>
               </View>
@@ -319,7 +332,13 @@ function NativeEvents({ match, active }: { match: MatchExperienceResponse; activ
           })}
         </View>
       )}
-      {playing && <NativeMatchPlayback playing={playing} onClose={() => setPlaying(null)} />}
+      {playing && (
+        <NativeMatchPlayback
+          key={playing.source}
+          playing={playing}
+          onClose={() => setPlaying(null)}
+        />
+      )}
     </View>
   )
 }
@@ -332,16 +351,44 @@ function NativeMatchPlayback({
 }) {
   const [phase, setPhase] = useState<'loading' | 'ready' | 'failed'>('loading')
   const [attempt, setAttempt] = useState(0)
+  const [fullScreen, setFullScreen] = useState(false)
   return (
-    <NativeDialog title={playing.title} onClose={onClose}>
+    <NativeDialog
+      title={playing.title}
+      onClose={onClose}
+      fullScreen={fullScreen}
+      className="native-dialog--match-playback"
+      footer={
+        !playing.video && (
+          <Button
+            className="native-button native-match-fullscreen"
+            onClick={() => setFullScreen((value) => !value)}
+          >
+            {fullScreen ? '退出全屏' : '全屏播放'}
+          </Button>
+        )
+      }
+    >
       {playing.video ? (
-        <Video className="native-match-media-player" src={playing.source} controls autoplay />
+        <Video
+          className="native-match-media-player"
+          src={playing.source}
+          controls
+          autoplay
+          loop
+          showFullscreenBtn
+          objectFit="contain"
+        />
       ) : (
         <View className="native-match-media-frame">
           <Image
             key={attempt}
             className="native-match-media-player"
-            src={playing.source}
+            src={
+              attempt
+                ? `${playing.source}${playing.source.includes('?') ? '&' : '?'}retry=${attempt}`
+                : playing.source
+            }
             mode="aspectFit"
             onLoad={() => setPhase('ready')}
             onError={() => setPhase('failed')}
@@ -393,21 +440,47 @@ function EventPerson({
   )
 }
 
-function NativeRatings({ match, onUpdated }: { match: MatchExperienceResponse; onUpdated: (match: MatchExperienceResponse) => void }) {
-  const [rating, setRating] = useState(0), [busy, setBusy] = useState(false), [error, setError] = useState('')
+function NativeRatings({
+  match,
+  onUpdated,
+}: {
+  match: MatchExperienceResponse
+  onUpdated: (match: MatchExperienceResponse) => void
+}) {
+  const [rating, setRating] = useState(0),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState('')
   const lock = useRef(false)
   const saved = match.reviews.viewerReview?.rating || 0
   const finished = ['FINISHED', 'CONFIRMED'].includes(match.status)
   const submit = async () => {
     if (!rating || lock.current || saved || !finished) return
-    if (!readSession()) { void Taro.showToast({ title: '登录后可以评分', icon: 'none' }); return }
-    lock.current = true; setBusy(true); setError('')
-    try { onUpdated(await productRepository.reviewMatch(match.id, rating)) }
-    catch (issue) { setError(issue instanceof Error ? issue.message : '评分保存失败') }
-    finally { lock.current = false; setBusy(false) }
+    if (!readSession()) {
+      void Taro.showToast({ title: '登录后可以评分', icon: 'none' })
+      return
+    }
+    lock.current = true
+    setBusy(true)
+    setError('')
+    try {
+      onUpdated(await productRepository.reviewMatch(match.id, rating))
+    } catch (issue) {
+      setError(issue instanceof Error ? issue.message : '评分保存失败')
+    } finally {
+      lock.current = false
+      setBusy(false)
+    }
   }
-  return <View className="native-match-ratings">
-    {!!match.flashReports?.length && <View className="native-review-card"><Text className="native-match-section-title">比赛快报</Text>{match.flashReports!.map((post) => <FlashPreview key={post.id} post={post} />)}</View>}
+  return (
+    <View className="native-match-ratings">
+      {!!match.flashReports?.length && (
+        <View className="native-review-card">
+          <Text className="native-match-section-title">比赛快报</Text>
+          {match.flashReports!.map((post) => (
+            <FlashPreview key={post.id} post={post} />
+          ))}
+        </View>
+      )}
       <View className="native-review-card">
         <View className="native-match-rating-summary">
           <Text>
@@ -462,8 +535,9 @@ function NativeRatings({ match, onUpdated }: { match: MatchExperienceResponse; o
         )}
       </View>
 
-    <NativeMatchCheckin matchId={match.id} />
-  </View>
+      <NativeMatchCheckin matchId={match.id} />
+    </View>
+  )
 }
 
 function FlashPreview({ post }: { post: PostSummary }) {

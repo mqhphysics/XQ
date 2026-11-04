@@ -479,9 +479,11 @@ function FollowManager({
                   <TeamCrest team={row.item} size="small" interactive={false} />
                 ) : (
                   <NativePlayerFace
+                    playerId={row.item.id}
+                    tournamentId={home.tournament.id}
                     avatarUrl={row.item.avatarUrl}
                     name={row.item.displayName}
-                    small
+                    loadPortrait
                   />
                 )}
                 <Text>{row.kind === 'team' ? row.item.name : row.item.displayName}</Text>
@@ -536,7 +538,13 @@ function FollowManager({
       })}
       {playerRows.map((player) => (
         <View className="native-hub-manage-row" key={player.id}>
-          <NativePlayerFace avatarUrl={player.avatarUrl} name={player.displayName} small />
+          <NativePlayerFace
+            playerId={player.id}
+            tournamentId={home.tournament.id}
+            avatarUrl={player.avatarUrl}
+            name={player.displayName}
+            loadPortrait
+          />
           <Text>{player.displayName}</Text>
           <Button
             className="native-button native-button--quiet"
