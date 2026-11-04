@@ -1,0 +1,367 @@
+/* Desktop dialog chrome. Phone layouts keep their own sheets. */
+@media (min-width: 721px) {
+  .desktop-settings.xq-dialog,
+  .identity-dialog.xq-dialog,
+  .th-picker.xq-dialog,
+  .match-dialog.xq-dialog,
+  .post-detail-modal.xq-dialog,
+  .profile-dialog.xq-dialog,
+  .player-dialog.xq-dialog,
+  .post-composer.xq-dialog,
+  .auth-recovery__dialog.xq-dialog,
+  .report-panel-h5.xq-dialog,
+  .test-role-dialog.xq-dialog,
+  .managed-media-dialog.xq-dialog,
+  .information-entry-dialog.xq-dialog,
+  .th-detail-modal.xq-dialog,
+  .cm-dialog.xq-dialog,
+  .cm-picker.xq-dialog,
+  .announcements-dialog.xq-dialog {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: min(920px, calc(100vw - 64px));
+    height: min(540px, calc(100dvh - 80px));
+    max-width: none;
+    max-height: min(540px, calc(100dvh - 80px));
+    overflow: hidden;
+    padding: 0;
+    border-radius: 16px;
+  }
+
+  .match-dialog.xq-dialog--wide,
+  .post-detail-modal.xq-dialog--wide,
+  .profile-dialog.xq-dialog--wide,
+  .player-dialog.xq-dialog--wide,
+  .th-detail-modal.xq-dialog--wide,
+  .cm-dialog.xq-dialog--wide {
+    width: min(1120px, calc(100vw - 48px));
+    height: min(640px, calc(100dvh - 72px));
+    max-height: min(640px, calc(100dvh - 72px));
+  }
+
+  .xq-dialog > .xq-dialog__header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e6ece4;
+    background: #fff;
+    position: relative;
+    z-index: 2;
+  }
+
+  .xq-dialog > .xq-dialog__header h1,
+  .xq-dialog > .xq-dialog__header h2 {
+    margin: 0;
+    color: #183f2a;
+    font-size: 20px;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+
+  .xq-dialog > .xq-dialog__header p,
+  .xq-dialog > .xq-dialog__header small {
+    display: block;
+    margin: 4px 0 0;
+    color: #79867b;
+    font-size: 12px;
+    font-weight: 450;
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+
+  .xq-dialog > .xq-dialog__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .xq-dialog > .xq-dialog__footer {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  .desktop-settings.xq-dialog {
+    background: #fff;
+    color: #263a2d;
+    box-shadow: 0 24px 80px rgba(20, 40, 25, 0.2);
+  }
+
+  .match-dialog.xq-dialog {
+    background: #f6f6ef;
+  }
+
+  .match-dialog.xq-dialog > .match-dialog__bar {
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 64px;
+    padding: 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e6ece4;
+  }
+
+  .match-dialog.xq-dialog > .match-dialog__bar h1 {
+    margin: 0;
+    color: #183f2a;
+    font-size: 20px;
+    font-weight: 750;
+  }
+
+  .post-detail-modal.xq-dialog {
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(17, 39, 24, 0.22);
+  }
+
+  .post-detail-modal.xq-dialog > .post-detail-modal__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 404px;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .post-detail-modal.post-detail-modal--text.xq-dialog > .post-detail-modal__stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .post-detail-modal.xq-dialog .post-detail-modal__close {
+    position: static;
+    top: auto;
+    right: auto;
+  }
+
+  .identity-dialog.xq-dialog,
+  .profile-dialog.xq-dialog,
+  .test-role-dialog.xq-dialog,
+  .managed-media-dialog.xq-dialog,
+  .report-panel-h5.xq-dialog,
+  .information-entry-dialog.xq-dialog {
+    background: #fff;
+  }
+
+  .identity-dialog.xq-dialog > .xq-dialog__body,
+  .test-role-dialog.xq-dialog > .xq-dialog__body,
+  .managed-media-dialog.xq-dialog > .xq-dialog__body {
+    padding: 8px 22px 22px;
+  }
+
+  .auth-recovery__dialog.xq-dialog {
+    background: #fcfdf9;
+    border: 1px solid #dce5dc;
+    box-shadow: 0 24px 80px #10352524;
+  }
+
+  .auth-recovery__dialog.xq-dialog > .xq-dialog__body {
+    padding: 8px 28px 24px;
+  }
+
+  .auth-recovery__dialog.xq-dialog .auth-recovery__methods {
+    margin-top: 8px;
+  }
+
+  .th-picker.xq-dialog,
+  .th-detail-modal.xq-dialog {
+    background: #fff;
+    box-shadow: 0 16px 80px rgba(20, 42, 26, 0.18);
+  }
+
+  .th-picker.th-hub-dialog.xq-dialog {
+    width: min(540px, calc(100vw - 48px));
+    max-width: 560px;
+    height: auto;
+    max-height: min(70vh, calc(100dvh - 80px));
+  }
+
+  .th-picker.th-hub-dialog.xq-dialog > .th-hub-dialog__body.xq-dialog__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .th-detail-modal.xq-dialog {
+    background: #f7f9f5;
+  }
+
+  .cm-dialog.xq-dialog,
+  .cm-picker.xq-dialog,
+  .announcements-dialog.xq-dialog {
+    background: #fff;
+    color: #20332a;
+    box-shadow: 0 28px 90px rgba(20, 40, 25, 0.28);
+  }
+
+  .cm-dialog.xq-dialog > .xq-dialog__body {
+    padding: 18px 24px 48px;
+    background: #f7faf6;
+    scroll-padding-bottom: 32px;
+  }
+
+  .cm-picker.xq-dialog {
+    width: min(440px, 92vw);
+    height: auto;
+    max-height: min(520px, 86dvh);
+  }
+
+  .th-picker.xq-dialog > .th-search,
+  .th-picker.xq-dialog > .th-hub-search {
+    flex: 0 0 auto;
+    margin: 16px 20px 0;
+  }
+
+  .th-picker.xq-dialog > .th-picker__summary,
+  .th-picker.xq-dialog > .th-inline-error {
+    flex: 0 0 auto;
+  }
+
+  .th-picker.xq-dialog > .th-picker__summary {
+    margin: 12px 20px 8px;
+  }
+
+  .th-follow-board.xq-dialog {
+    width: min(520px, calc(100vw - 64px));
+  }
+
+  .th-picker.xq-dialog > .th-picker__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding: 0 20px 12px;
+    overflow: auto;
+  }
+
+  .th-picker.xq-dialog > .th-picker__footer {
+    margin: 0;
+    padding: 14px 20px;
+  }
+
+  .th-detail-modal.xq-dialog > .th-detail-modal__content {
+    padding: 14px 20px 20px;
+  }
+
+  .player-dialog.xq-dialog {
+    background: #f4f7f5;
+  }
+
+  .player-dialog.xq-dialog .player-dialog__close {
+    position: static;
+    float: none;
+    top: auto;
+    margin: 0 !important;
+    box-shadow: none;
+  }
+
+  .post-composer.xq-dialog {
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(17, 39, 24, 0.2);
+  }
+
+  .report-panel-h5.xq-dialog > .xq-dialog__body {
+    padding: 8px 22px 4px;
+  }
+
+  /* Short forms (feedback / correction requests) get a compact frame instead of the 920×540 one. */
+  .report-panel-h5.xq-dialog {
+    width: min(560px, calc(100vw - 48px));
+    height: auto;
+    max-height: min(560px, calc(100dvh - 64px));
+  }
+  .report-panel-h5.xq-dialog > .xq-dialog__body .report-field-label {
+    display: block;
+    margin: 14px 0 7px;
+    color: #304739;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .report-panel-h5.xq-dialog [data-report-field] {
+    height: 42px;
+  }
+  .report-panel-h5.xq-dialog textarea[data-report-field],
+  .report-panel-h5.xq-dialog [data-report-field]#report-details-h5 {
+    height: 120px;
+    resize: vertical;
+  }
+
+  .report-panel-h5.xq-dialog > .xq-dialog__footer {
+    padding: 14px 22px 18px;
+  }
+
+  .information-entry-dialog.xq-dialog > .information-entry-header {
+    padding-bottom: 8px;
+    border-bottom: 0;
+  }
+
+  .information-entry-dialog.xq-dialog > .information-entry-toolbar,
+  .information-entry-dialog.xq-dialog > .information-entry-footer {
+    flex: 0 0 auto;
+  }
+
+  .information-entry-dialog.xq-dialog > .information-entry-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .profile-dialog.xq-dialog > .profile-dialog__body {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1000px) {
+  .post-detail-modal.xq-dialog > .post-detail-modal__stage {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .post-detail-modal.post-detail-modal--text.xq-dialog > .post-detail-modal__stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Shared custom radio for account/settings dialogs (Taro ignores bare input selectors). */
+[data-xq-radio] {
+  appearance: none;
+  display: inline-grid;
+  flex: none;
+  place-content: center;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid #b9c7bc;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+[data-xq-radio]::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2f6b45;
+  transform: scale(0);
+  transition: transform 140ms ease;
+}
+[data-xq-radio]:checked {
+  border-color: #2f6b45;
+}
+[data-xq-radio]:checked::before {
+  transform: scale(1);
+}
+[data-xq-radio]:focus-visible {
+  outline: 2px solid #2f6b45;
+  outline-offset: 2px;
+}
+[data-xq-radio]:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

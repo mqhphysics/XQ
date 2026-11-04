@@ -1,0 +1,43 @@
+.native-player-media {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 0 0 28px;
+}
+.native-player-media__item {
+  min-width: 0;
+  padding: 16px 12px;
+  border-radius: 18px;
+  background: #f1f5ed;
+  text-align: center;
+}
+.native-player-media__item > text {
+  font-size: 25px;
+  color: #5c735c;
+}
+.native-player-media__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  margin: 12px 0;
+}
+.native-player-media__cover-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 35.714%;
+}
+.native-player-media__cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+.native-player-media__item .native-button {
+  width: 100%;
+  min-height: 68px;
+  padding: 12px 8px;
+  font-size: 25px;
+  background: #fff;
+}

@@ -1,0 +1,124 @@
+name: ${COMPOSE_PROJECT_NAME:-xiaoqiu}
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17.4-bookworm}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-xiaoqiu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-xiaoqiu-local-only}
+      POSTGRES_DB: ${POSTGRES_DB:-xiaoqiu}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  migration:
+    profiles:
+      - app
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.migration
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+    restart: 'no'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://xiaoqiu:xiaoqiu-local-only@postgres:5432/xiaoqiu}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    profiles:
+      - app
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      APP_VERSION: ${APP_VERSION:-0.1.0-local}
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://xiaoqiu:xiaoqiu-local-only@postgres:5432/xiaoqiu}
+      SENTRY_DSN_API: ${SENTRY_DSN_API:-}
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/health/ready').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  worker:
+    profiles:
+      - app
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.worker
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      APP_VERSION: ${APP_VERSION:-0.1.0-local}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://xiaoqiu:xiaoqiu-local-only@postgres:5432/xiaoqiu}
+      SENTRY_DSN_WORKER: ${SENTRY_DSN_WORKER:-}
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+
+  admin-web:
+    profiles:
+      - app
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.admin-web
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.27.4-alpine}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api}
+    restart: unless-stopped
+    ports:
+      - '${ADMIN_PORT:-5173}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://127.0.0.1/healthz
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+volumes:
+  postgres_data:

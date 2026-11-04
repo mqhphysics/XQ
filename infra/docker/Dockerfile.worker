@@ -1,0 +1,33 @@
+ARG NODE_IMAGE=node:22.14.0-bookworm-slim
+
+FROM ${NODE_IMAGE} AS base
+ARG PNPM_VERSION=11.5.2
+ENV PNPM_HOME=/pnpm
+ENV PATH="${PNPM_HOME}:${PATH}"
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare "pnpm@${PNPM_VERSION}" --activate
+WORKDIR /workspace
+COPY . .
+
+FROM base AS production-dependencies
+RUN pnpm install --frozen-lockfile --prod --filter @xiaoqiu/worker...
+
+FROM base AS build
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @xiaoqiu/worker... build
+
+FROM ${NODE_IMAGE} AS runtime
+ENV NODE_ENV=production
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=production-dependencies /workspace/node_modules ./node_modules
+COPY --from=production-dependencies /workspace/apps/worker/node_modules ./apps/worker/node_modules
+COPY --from=build /workspace/apps/worker/package.json ./apps/worker/package.json
+COPY --from=build /workspace/apps/worker/dist ./apps/worker/dist
+COPY --from=build /workspace/packages ./packages
+WORKDIR /app/apps/worker
+CMD ["node", "dist/main.js"]

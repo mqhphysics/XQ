@@ -1,0 +1,92 @@
+@media (min-width: 721px) {
+  .profile-skeleton {
+    display: grid;
+    gap: 18px;
+    padding: 18px 0 32px;
+  }
+  .profile-skeleton__top {
+    display: grid;
+    grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
+    gap: 18px;
+  }
+  .profile-skeleton__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
+    gap: 18px;
+  }
+  .profile-skeleton__card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    min-height: 180px;
+    padding: 20px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 0 rgba(30, 60, 40, 0.06);
+  }
+  .profile-skeleton__person {
+    min-height: 300px;
+    padding-top: 0;
+  }
+  .profile-skeleton__hero {
+    min-height: 300px;
+    background: linear-gradient(120deg, #dfe9e0, #eef3ee);
+  }
+  .profile-skeleton i {
+    display: block;
+    border-radius: 8px;
+    background: #e9efe9;
+  }
+  .profile-skeleton__banner {
+    height: 150px;
+    margin: 0 -20px;
+    border-radius: 0 !important;
+    background: linear-gradient(120deg, #cfe0d4, #e3ece5) !important;
+  }
+  .profile-skeleton__avatar {
+    width: 72px;
+    height: 72px;
+    margin-top: -46px;
+    border: 4px solid #fff;
+    border-radius: 50% !important;
+  }
+  .profile-skeleton__line {
+    width: 70%;
+    height: 12px;
+  }
+  .profile-skeleton__line--title {
+    width: 34%;
+    height: 18px;
+  }
+  .profile-skeleton__line--short {
+    width: 45%;
+  }
+  .profile-skeleton__tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .profile-skeleton__tiles i {
+    height: 64px;
+  }
+  .profile-skeleton__card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: profile-skeleton-sweep 1.3s ease-in-out infinite;
+  }
+  @keyframes profile-skeleton-sweep {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .profile-skeleton__card::after {
+      animation: none;
+    }
+  }
+}

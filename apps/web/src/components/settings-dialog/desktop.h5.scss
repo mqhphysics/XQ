@@ -1,0 +1,182 @@
+.desktop-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 370;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 34, 23, 0.42);
+  backdrop-filter: blur(4px);
+}
+.desktop-settings {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: min(920px, calc(100vw - 64px));
+  height: min(540px, calc(100dvh - 80px));
+  max-height: min(540px, calc(100dvh - 80px));
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  color: #263a2d;
+  box-shadow: 0 24px 80px rgba(20, 40, 25, 0.2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.desktop-settings__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e6ece4;
+  background: #fff;
+}
+.desktop-settings__header h2 {
+  margin: 0;
+  font-size: 23px;
+}
+.desktop-settings p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #79867b;
+  line-height: 1.6;
+}
+.desktop-settings [data-settings-control] {
+  font: inherit;
+  border: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.desktop-settings__header [data-settings-control] {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f2f6ef;
+  color: #536659;
+  font-size: 23px;
+}
+.desktop-settings__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 28px 18px;
+}
+.desktop-settings__body h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.desktop-settings__body h3:not(:first-child) {
+  margin-top: 26px;
+}
+.desktop-settings__group {
+  border: 1px solid #e1e9de;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.desktop-settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px;
+}
+.desktop-settings__row > div {
+  min-width: 0;
+}
+.desktop-settings__row strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.desktop-settings__row + .desktop-settings__row {
+  border-top: 1px solid #edf1e9;
+}
+.desktop-settings__switch {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 20px;
+  background: #d8e0d6;
+}
+.desktop-settings__switch span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 120ms ease;
+}
+.desktop-settings__switch[aria-checked='true'] {
+  background: #315b3d;
+}
+.desktop-settings__switch[aria-checked='true'] span {
+  transform: translateX(16px);
+}
+.desktop-settings__action {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #edf4e9;
+  color: #365a3e;
+  font-size: 12px !important;
+  white-space: nowrap;
+}
+.desktop-settings__action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.desktop-settings__reset {
+  padding: 0;
+}
+.desktop-settings__notice {
+  margin-top: 20px !important;
+  font-size: 11px !important;
+}
+.desktop-settings__status {
+  min-height: 18px;
+  color: #3d6947 !important;
+}
+.desktop-settings__footer {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid #e6ece4;
+  background: #fff;
+  font-size: 11px;
+  color: #8a9588;
+}
+.desktop-settings :focus-visible {
+  outline: 2px solid #315b3d;
+  outline-offset: 3px;
+}
+@media (min-width: 721px) {
+  [data-xq-motion='reduce'] *,
+  [data-xq-motion='reduce'] *::before,
+  [data-xq-motion='reduce'] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-xq-decoration='hidden'] .profile-backdrop,
+  [data-xq-decoration='hidden'] .home-page__lineart {
+    display: none !important;
+  }
+  [data-xq-text='large'] .profile-post__text,
+  [data-xq-text='large'] .post-card__body,
+  [data-xq-text='large'] .th-post__text,
+  [data-xq-text='large'] .post-detail-modal__body > p,
+  [data-xq-text='large'] .post-detail__body {
+    font-size: 17px !important;
+    line-height: 1.85 !important;
+  }
+}

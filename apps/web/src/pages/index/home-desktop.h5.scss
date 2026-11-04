@@ -1,0 +1,456 @@
+/* Round 4 — 首页 on desktop H5.
+   1) 官方公告 is a single line: label · rotating title · 查看详情 (opens the announcements dialog).
+   2) The page scrolls as a document; see the Round 6 block below. */
+@media (min-width: 721px) {
+  .home-page > .notice-rail.notice-rail--line {
+    display: flex;
+    align-items: stretch;
+    height: 44px;
+    min-height: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 6px;
+    background: #f9ede7;
+  }
+  .notice-rail--line .notice-rail__label {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 0;
+    padding: 0 18px;
+    background: #c9653b;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .notice-rail--line .notice-rail__label-note {
+    margin: 0;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .notice-rail--line .notice-rail__headline,
+  .notice-rail--line .notice-rail__more {
+    display: flex;
+    align-items: center;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    margin: 0;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .notice-rail--line .notice-rail__headline::after,
+  .notice-rail--line .notice-rail__more::after {
+    display: none;
+  }
+  .notice-rail--line .notice-rail__pair {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    animation: notice-line-in 360ms ease-out;
+  }
+  .notice-rail--line .notice-rail__headline {
+    flex: 1 1 0;
+    gap: 10px;
+    min-width: 0;
+    transition: background-color 160ms ease;
+  }
+  .notice-rail--line .notice-rail__headline + .notice-rail__headline {
+    box-shadow: inset 1px 0 0 rgba(178, 85, 45, 0.18);
+  }
+  .notice-rail--line .notice-rail__headline:hover {
+    background: rgba(201, 101, 59, 0.07);
+  }
+  .notice-rail--line .notice-rail__dot {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #c9653b;
+  }
+  .notice-rail--line .notice-rail__title {
+    flex: 0 1 auto;
+    max-width: 46%;
+  }
+  .notice-rail--line .notice-rail__excerpt {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    color: #8a6a5a;
+    font-size: 13px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .notice-rail--line .notice-rail__title {
+    display: block;
+    overflow: hidden;
+    color: #3b2a22;
+    font-size: 14px;
+    font-weight: 650;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .notice-rail--line .notice-rail__count {
+    flex: none;
+    color: #a0745e;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .notice-rail--line .notice-rail__more {
+    position: static;
+    flex: 0 0 auto;
+    color: #b2552d;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .notice-rail--line .notice-rail__headline:hover .notice-rail__title,
+  .notice-rail--line .notice-rail__more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .notice-rail--line .notice-rail__headline:focus-visible,
+  .notice-rail--line .notice-rail__more:focus-visible {
+    outline: 2px solid #b2552d;
+    outline-offset: -3px;
+  }
+}
+@keyframes notice-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notice-rail--line .notice-rail__pair {
+    animation: none;
+  }
+}
+
+/* Round 6 — 首页 scrolls as a normal document (the only exempt page). Top row → 焦点赛事 →
+   官方公告 → 绿茵动态 heading, composer on its own row, then a balanced masonry feed. */
+@media (min-width: 721px) {
+  .home-page > .home-product-section,
+  .home-page > .notice-rail {
+    margin-top: 18px;
+  }
+  .home-page > .home-product-section {
+    width: auto;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  /* Masonry cards: cap tall portrait photos so one post never dominates a column. */
+  /* Masonry: single photos always span the card; the seed's alternating ratios give the
+     columns rhythm, but portrait shots are squared so one post never towers over a column. */
+  .home-page .community-feed--masonry .post-card__collage--1 {
+    display: block;
+  }
+  .home-page .community-feed--masonry .post-card--home .post-card__collage--1 .post-card__image {
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  .home-page
+    .community-feed--masonry
+    .post-card--home:nth-child(3n + 2)
+    .post-card__collage--1
+    .post-card__image {
+    aspect-ratio: 1 / 1;
+  }
+  .home-page
+    .community-feed--masonry
+    .post-card__collage--1
+    .post-card__image
+    .taro-img__mode-aspectfill {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+  }
+  .home-page > .community-column {
+    margin-top: 26px;
+    padding-bottom: 32px;
+  }
+  .home-page > .community-column > .product-section-heading {
+    margin: 0;
+  }
+  .home-page > .community-column > .composer-entry {
+    display: flex;
+    width: 100%;
+    height: 54px;
+    min-height: 0;
+    margin: 12px 0 0;
+  }
+  .home-page .community-feed.community-feed--masonry {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .community-feed__column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+  .community-feed--masonry .post-card--home {
+    min-height: 0;
+    margin: 0;
+  }
+  .community-feed--masonry .post-card--home .post-card__body {
+    -webkit-line-clamp: 4;
+  }
+}
+@media (min-width: 721px) and (max-width: 1150px) {
+  .home-page .community-feed.community-feed--masonry {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-height: 214px) {
+  .home-page .experience-hero .experience-hero__badge {
+    display: none;
+  }
+  .home-page .experience-hero .experience-hero__summary {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Mid-height desktops (1280×800, 1366×768): keep the full intro, tighten chrome instead. */
+@container (max-height: 240px) {
+  .home-page .experience-hero .experience-hero__badge {
+    display: none;
+  }
+  .home-page .experience-hero .experience-hero__title {
+    margin-top: 2px;
+    line-height: 1.15;
+  }
+  .home-page .experience-hero .experience-hero__summary {
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .home-page .experience-hero .experience-hero__action {
+    margin-top: 8px;
+  }
+}
+
+/* Round 6b — slanted hero kept; left copy is the season 总公告, right carousel carries an
+   overlaid one-line caption (no box). Mobile keeps the classic copy. */
+.experience-hero__copy.hero-season {
+  display: none;
+}
+@media (min-width: 721px) {
+  .experience-hero__copy.hero-classic {
+    display: none;
+  }
+  .home-page > .experience-hero {
+    height: 280px;
+    min-height: 0;
+  }
+  .home-page .experience-hero .experience-hero__media,
+  .home-page .experience-hero .hero-carousel {
+    grid-row: 1;
+    grid-column: 2;
+    min-height: 0;
+    height: 100%;
+  }
+  .home-page .experience-hero .experience-hero__copy.hero-season {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .experience-hero__copy.hero-season {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 0 40px 0 44px;
+  }
+  .hero-season__tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-season__seal {
+    padding: 3px 10px;
+    color: #8a5a12;
+    background: #f6e7bf;
+    border: 1px solid #e4c983;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+  .hero-season__season {
+    display: block;
+    color: #ad6244;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .hero-season__title {
+    display: block;
+    margin-top: 12px;
+    color: #173f29;
+    font-size: clamp(38px, 3.6vw, 50px);
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .hero-season__line {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-top: 18px;
+    white-space: nowrap;
+    color: #5b6b60;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .hero-season__link {
+    display: inline-flex;
+    align-items: center;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    color: #1f5a3a;
+    background: none;
+    border: 0;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+    &::after {
+      display: none;
+    }
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  /* Caption sits in the media cell, follows the same diagonal, never blocks clicks. */
+  .hero-caption {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    grid-row: 1;
+    grid-column: 2;
+    flex-direction: column;
+    align-self: end;
+    gap: 4px;
+    min-width: 0;
+    padding: 56px 150px 18px 13%;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 28, 18, 0) 0%,
+      rgba(10, 28, 18, 0.5) 45%,
+      rgba(10, 28, 18, 0.74) 100%
+    );
+    /* matches the media's 9% diagonal at this height (caption ≈ 46% of the hero) */
+    clip-path: polygon(4.2% 0, 100% 0, 100% 100%, 0 100%);
+  }
+  .hero-caption__title,
+  .hero-caption__summary {
+    display: block;
+    overflow: hidden;
+    color: #fff;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  }
+  .hero-caption__title {
+    font-size: 18px;
+    font-weight: 750;
+  }
+  .hero-caption__summary {
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 13px;
+  }
+}
+@media (min-width: 721px) {
+  .hero-season__hot {
+    display: block;
+    color: #c9653b;
+  }
+}
+
+/* Round 9 — one inner gutter for every section under the hero (焦点赛事, 官方公告, 绿茵动态),
+   and three equal 焦点赛事 cards. */
+@media (min-width: 721px) {
+  .home-page {
+    --xq-home-inset: clamp(16px, 2.2vw, 32px);
+  }
+  .home-page > .home-product-section,
+  .home-page > .notice-rail,
+  .home-page > .community-column {
+    width: auto;
+    max-width: none;
+    margin-left: var(--xq-home-inset);
+    margin-right: var(--xq-home-inset);
+  }
+  .home-page .focus-match-grid {
+    gap: 16px;
+  }
+  .home-page .compact-match--featured .compact-match__score {
+    font-size: 26px;
+  }
+  .home-page .community-feed.community-feed--masonry {
+    column-gap: 20px;
+  }
+  .home-page .community-feed--masonry .community-feed__column {
+    gap: 20px;
+  }
+}
+@media (min-width: 1051px) {
+  .home-page .focus-match-grid.focus-match-grid--count-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Round 12 — legibility audit (desktop 首页). */
+@media (min-width: 721px) {
+  .home-page .post-card .post-card__time {
+    font-size: 13px;
+  }
+  .home-page .post-card .post-card__actions .post-card__action,
+  .home-page .post-card .post-card__actions .post-card__action text,
+  .home-page .post-card .post-card__album-count {
+    font-size: 13px;
+  }
+  .home-page .compact-match .compact-match__time,
+  .home-page .compact-match .compact-match__round,
+  .home-page .compact-match .compact-match__stage {
+    font-size: 13px;
+  }
+  .home-page .compact-match .match-status,
+  .home-page .notice-rail__label-note {
+    font-size: 12px;
+  }
+}

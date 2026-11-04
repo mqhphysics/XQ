@@ -1,0 +1,35 @@
+.native-drag-row {
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Promote rows only while sorting so moving them is a compositor-only transform. */
+.native-drag-row.is-drag-active {
+  will-change: transform;
+}
+.native-drag-row.is-drag-lifted {
+  z-index: 5;
+  border-radius: 18px;
+  background: #ffffff;
+  /* Kept small and not animated: a big blurred shadow repainted every frame costs fps. */
+  box-shadow: 0 8px 20px rgba(31, 66, 41, 0.18);
+  transition: none;
+}
+.native-drag-row.is-drag-lifted.is-drag-settling {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.native-drag-row.is-drag-instant {
+  transition: none;
+}
+.native-drag-handle {
+  display: flex;
+  flex: 0 0 56px;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  color: #9aab8f;
+  font-size: 36px;
+  line-height: 1;
+}
+.is-drag-lifted .native-drag-handle {
+  color: #2c5637;
+}

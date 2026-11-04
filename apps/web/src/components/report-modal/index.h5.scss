@@ -1,0 +1,132 @@
+@media (min-width: 721px) {
+  .report-layer-h5 {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(20, 36, 27, 0.4);
+    font:
+      14px/1.6 -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Microsoft YaHei',
+      sans-serif;
+    color: #304739;
+  }
+  .report-panel-h5 {
+    width: min(500px, 100%);
+    max-height: calc(100dvh - 48px);
+    overflow: auto;
+    padding: 24px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 20px 65px rgba(25, 53, 34, 0.18);
+  }
+  .report-panel-h5 header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .report-panel-h5 header span {
+    font-size: 10px;
+    color: #607c68;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+  .report-panel-h5 h2 {
+    margin: 4px 0 0;
+    font-size: 22px;
+    line-height: 1.3;
+    color: #203d2a;
+  }
+  .report-panel-h5 [type] {
+    font: inherit;
+    border: 0;
+    cursor: pointer;
+  }
+  .report-panel-h5 header [type] {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    background: #f1f5f2;
+    flex-shrink: 0;
+  }
+  .report-panel-h5 .post-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+  .report-panel-h5 label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 16px 0 7px;
+  }
+  .report-panel-h5 [data-report-field] {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    border: 1px solid #dce6df;
+    border-radius: 7px;
+    padding: 10px 12px;
+    background: #f9fbf9;
+    font:
+      14px/1.5 -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Microsoft YaHei',
+      sans-serif;
+    color: #304739;
+    outline: 0;
+    box-shadow: none;
+  }
+  .report-panel-h5 [data-report-field]::placeholder {
+    font: inherit;
+    color: #8a998e;
+  }
+  .report-panel-h5 [data-report-field]:focus {
+    outline: 0;
+    box-shadow: none;
+  }
+  .report-panel-h5 [aria-label='问题概括'] {
+    height: 42px;
+  }
+  .report-panel-h5 [aria-label='补充说明'] {
+    height: 120px;
+    resize: none;
+  }
+  .report-panel-h5 footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 22px;
+  }
+  .report-panel-h5 footer [type] {
+    min-height: 38px;
+    min-width: 95px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    color: #526759;
+    background: #f0f4f1;
+  }
+  .report-panel-h5 footer [type='submit'] {
+    color: #fff;
+    background: #246744;
+  }
+  .report-panel-h5 [type]:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .report-panel-h5 [type='button']:focus-visible,
+  .report-panel-h5 [type='submit']:focus-visible {
+    outline: 2px solid #4e8062;
+    outline-offset: 3px;
+  }
+}

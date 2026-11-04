@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#183f2a" />
+    <title>晓球</title>
+    <script>
+      <%= htmlWebpackPlugin.options.script %>
+    </script>
+    <script>
+      // Desktop H5 default: scale C — whole-page uniform zoom from viewport WIDTH only.
+      // factor = 0.5 + 0.5 × (width/1440), applied for 1024–1920; below ~1024 keep phone
+      // root rem; above ~1920 stop growing. Optional debug: ?scale=C (default) or ?scale=off
+      // to disable zoom (remembers in localStorage "xq-scale").
+      ;(function (window) {
+        var document = window.document
+        var root = document.documentElement
+        function readOverride() {
+          var match = /[?&]scale=(off|c)\b/i.exec(window.location.search + '&' + window.location.hash)
+          try {
+            if (match) window.localStorage.setItem('xq-scale', match[1].toUpperCase())
+            var stored = window.localStorage.getItem('xq-scale')
+            if (stored === 'OFF') return 'OFF'
+          } catch (error) {}
+          return 'C'
+        }
+        var mode = readOverride()
+        root.setAttribute('data-xq-scale', mode)
+
+        var BASE = 1440
+        var MIN = 1024
+        var MAX = 1920
+        var zoom = 1
+        var rawInnerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth') ||
+          Object.getOwnPropertyDescriptor(Window.prototype, 'innerWidth')
+        var rawInnerHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight') ||
+          Object.getOwnPropertyDescriptor(Window.prototype, 'innerHeight')
+        function realWidth() { return rawInnerWidth.get.call(window) }
+        function realHeight() { return rawInnerHeight.get.call(window) }
+        function computeZoom(width) {
+          if (mode === 'OFF' || width < MIN) return 1
+          var ratio = Math.min(width, MAX) / BASE
+          return 0.5 + 0.5 * ratio
+        }
+
+        var mediaOriginals = new WeakMap()
+        var styleOriginals = new WeakMap()
+        var UNIT = /(-?\d*\.?\d+)(d|s|l)?v(h|w)\b/g
+        function scaleWidthQuery(text) {
+          if (zoom === 1) return text
+          return text.replace(/((?:min|max)-width\s*:\s*)(\d*\.?\d+)px/g, function (_, key, n) {
+            return key + (parseFloat(n) * zoom).toFixed(2) + 'px'
+          })
+        }
+        function translateStyle(rule) {
+          var originals = styleOriginals.get(rule)
+          if (!originals) {
+            originals = null
+            for (var i = 0; i < rule.style.length; i++) {
+              var name = rule.style[i]
+              var value = rule.style.getPropertyValue(name)
+              UNIT.lastIndex = 0
+              if (UNIT.test(value)) {
+                originals = originals || []
+                originals.push([name, value, rule.style.getPropertyPriority(name)])
+              }
+            }
+            styleOriginals.set(rule, originals || [])
+            originals = originals || []
+          }
+          for (var j = 0; j < originals.length; j++) {
+            var entry = originals[j]
+            var next = zoom === 1 ? entry[1] : entry[1].replace(UNIT, function (_, n, __, axis) {
+              return 'calc(' + n + ' * var(--xq-v' + axis + ', 1v' + axis + '))'
+            })
+            if (rule.style.getPropertyValue(entry[0]) !== next) rule.style.setProperty(entry[0], next, entry[2])
+          }
+        }
+        function walk(rules) {
+          for (var i = 0; i < rules.length; i++) {
+            var rule = rules[i]
+            if (rule.type === 1) {
+              translateStyle(rule)
+            } else if (rule.type === 4) {
+              var original = mediaOriginals.get(rule)
+              if (original === undefined) { original = rule.media.mediaText; mediaOriginals.set(rule, original) }
+              var text = scaleWidthQuery(original)
+              if (rule.media.mediaText !== text) rule.media.mediaText = text
+            }
+            if (rule.cssRules && rule.type !== 7) walk(rule.cssRules)
+          }
+        }
+        function translateSheets() {
+          var sheets = document.styleSheets
+          for (var i = 0; i < sheets.length; i++) {
+            var rules = null
+            try { rules = sheets[i].cssRules } catch (error) {}
+            if (rules) walk(rules)
+          }
+        }
+        var queued = false
+        function queueTranslate() {
+          if (queued) return
+          queued = true
+          window.requestAnimationFrame(function () { queued = false; translateSheets() })
+        }
+
+        function apply() {
+          zoom = computeZoom(realWidth())
+          root.style.fontSize = (zoom === 1 && realWidth() < 721
+            ? Math.min(40, Math.max(20, (40 * realWidth()) / 750)) : 40) + 'px'
+          root.style.zoom = zoom === 1 ? '' : String(zoom)
+          root.style.setProperty('--xq-vh', realHeight() / zoom / 100 + 'px')
+          root.style.setProperty('--xq-vw', realWidth() / zoom / 100 + 'px')
+          root.setAttribute('data-xq-zoom', zoom.toFixed(4))
+          // Viewport-fit pages fall back to normal page scroll when the effective height is short.
+          if (realWidth() >= 1024 && realHeight() / zoom < 600) root.setAttribute('data-xq-short', '')
+          else root.removeAttribute('data-xq-short')
+          translateSheets()
+        }
+
+        if (mode === 'OFF') {
+          var fitRoot = function () {
+            var width = root.clientWidth || window.innerWidth || 390
+            var size = width >= 721 ? 40 : Math.min(40, Math.max(20, (40 * width) / 750))
+            root.style.fontSize = size + 'px'
+            root.style.zoom = ''
+          }
+          window.addEventListener('resize', fitRoot)
+          fitRoot()
+          return
+        }
+
+        function wrapRect(rect) {
+          return zoom === 1 ? rect : new DOMRect(rect.x / zoom, rect.y / zoom, rect.width / zoom, rect.height / zoom)
+        }
+        var rawRect = Element.prototype.getBoundingClientRect
+        Element.prototype.getBoundingClientRect = function () { return wrapRect(rawRect.call(this)) }
+        var rawRects = Element.prototype.getClientRects
+        Element.prototype.getClientRects = function () {
+          var list = rawRects.call(this)
+          if (zoom === 1) return list
+          var out = []
+          for (var i = 0; i < list.length; i++) out.push(wrapRect(list[i]))
+          out.item = function (index) { return out[index] || null }
+          return out
+        }
+        var rawRangeRect = Range.prototype.getBoundingClientRect
+        Range.prototype.getBoundingClientRect = function () { return wrapRect(rawRangeRect.call(this)) }
+        ;['clientX', 'clientY', 'x', 'y', 'pageX', 'pageY'].forEach(function (key) {
+          var descriptor = Object.getOwnPropertyDescriptor(MouseEvent.prototype, key)
+          if (!descriptor || !descriptor.get) return
+          Object.defineProperty(MouseEvent.prototype, key, {
+            configurable: true,
+            enumerable: descriptor.enumerable,
+            get: function () { return descriptor.get.call(this) / zoom },
+          })
+        })
+        Object.defineProperty(window, 'innerWidth', { configurable: true, get: function () { return realWidth() / zoom } })
+        Object.defineProperty(window, 'innerHeight', { configurable: true, get: function () { return realHeight() / zoom } })
+        var rawFromPoint = Document.prototype.elementFromPoint
+        Document.prototype.elementFromPoint = function (x, y) { return rawFromPoint.call(this, x * zoom, y * zoom) }
+        var rawFromPoints = Document.prototype.elementsFromPoint
+        Document.prototype.elementsFromPoint = function (x, y) { return rawFromPoints.call(this, x * zoom, y * zoom) }
+        var rawMatchMedia = window.matchMedia
+        window.matchMedia = function (query) { return rawMatchMedia.call(window, scaleWidthQuery(String(query))) }
+
+        window.addEventListener('resize', apply)
+        document.addEventListener('load', function (event) {
+          if (event.target && event.target.tagName === 'LINK') queueTranslate()
+        }, true)
+        new MutationObserver(queueTranslate).observe(document.head, { childList: true, subtree: true, characterData: true })
+        apply()
+        document.addEventListener('DOMContentLoaded', translateSheets)
+      })(window)
+    </script>
+  </head>
+  <body>
+    <div class="xq-boot-skeleton" aria-hidden="true">
+      <div class="xq-boot-skeleton__bar"></div>
+      <div class="xq-boot-skeleton__panel"></div>
+    </div>
+    <style>
+      .xq-boot-skeleton {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        padding: 88px 24px 24px;
+        background: #f7f6f1;
+        pointer-events: none;
+      }
+      .xq-boot-skeleton__bar,
+      .xq-boot-skeleton__panel {
+        border-radius: 12px;
+        background: #e1e6dc;
+      }
+      .xq-boot-skeleton__bar { width: 210px; height: 28px; }
+      .xq-boot-skeleton__panel { margin-top: 28px; height: 180px; background: #e4e8df; }
+      body:has(.taro_page) .xq-boot-skeleton { display: none; }
+    </style>
+    <div id="app"></div>
+  </body>
+</html>

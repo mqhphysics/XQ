@@ -1,0 +1,64 @@
+.sheet-import-workspace > .mc-field {
+  display: grid;
+  gap: 8px;
+  margin: 0 24px 20px;
+}
+
+.sheet-import {
+  display: grid;
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+.sheet-import .mc-toolbar {
+  padding: 0;
+  border: 0;
+}
+
+.sheet-import .mc-field {
+  display: grid;
+  gap: 8px;
+}
+
+.sheet-import .mc-field > span,
+.sheet-import-workspace > .mc-field > span {
+  color: #52675a;
+  font-size: 12px;
+}
+
+.sheet-import textarea {
+  min-height: 176px;
+  font-family: ui-monospace, Consolas, monospace;
+  line-height: 1.6;
+}
+
+.sheet-import > button {
+  justify-self: start;
+}
+
+.sheet-import-preview {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  background: #f8faf5;
+}
+
+.sheet-import-preview h3,
+.sheet-import-preview p,
+.sheet-import-preview ol {
+  margin: 0;
+}
+
+.sheet-import-preview h3 {
+  color: #194b33;
+  font-size: 20px;
+}
+
+.sheet-import-preview ol {
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.sheet-import-preview > button {
+  justify-self: start;
+}

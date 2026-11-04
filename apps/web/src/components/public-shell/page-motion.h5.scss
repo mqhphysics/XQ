@@ -1,0 +1,48 @@
+/* Round 5 — shared motion: one gentle entrance per page, consistent hover lift on clickable cards.
+   Animations use fill-mode `backwards` so no transform remains afterwards (fixed dialogs stay fixed). */
+@media (min-width: 721px) and (prefers-reduced-motion: no-preference) {
+  .public-app--h5 .public-content > .xq-viewport-page > *,
+  .public-app--h5 .public-content > .desktop-profile > * {
+    animation: xq-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .public-app--h5 .public-content > .xq-viewport-page > :nth-child(2),
+  .public-app--h5 .public-content > .desktop-profile > :nth-child(2) {
+    animation-delay: 50ms;
+  }
+  .public-app--h5 .public-content > .xq-viewport-page > :nth-child(3),
+  .public-app--h5 .public-content > .desktop-profile > :nth-child(3) {
+    animation-delay: 100ms;
+  }
+  .public-app--h5 .public-content > .xq-viewport-page > :nth-child(n + 4),
+  .public-app--h5 .public-content > .desktop-profile > :nth-child(n + 4) {
+    animation-delay: 150ms;
+  }
+}
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .public-app--h5 .compact-match {
+    transition:
+      transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 200ms ease,
+      border-color 200ms ease;
+  }
+  .public-app--h5 .compact-match:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(25, 60, 35, 0.12);
+  }
+  .public-app--h5 .profile-function-card .profile-shortcut .profile-shortcut__icon {
+    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .public-app--h5 .profile-function-card .profile-shortcut:hover .profile-shortcut__icon {
+    transform: translateY(-2px) scale(1.12);
+  }
+}
+@keyframes xq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

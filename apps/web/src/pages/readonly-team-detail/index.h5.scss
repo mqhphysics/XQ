@@ -1,0 +1,37 @@
+/* postcss-pxtransform disable */
+@media (max-width: 720px) {
+  .public-roster__head,
+  .public-roster__row {
+    min-width: 0;
+    min-height: 52px;
+    grid-template-columns: 28px minmax(0, 1.45fr) minmax(0, 0.85fr) 32px 32px 32px;
+    padding: 6px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .public-roster__head {
+    min-height: 40px;
+    font-size: 11px;
+  }
+
+  .public-roster__number {
+    font-size: 14px;
+  }
+
+  .public-roster__player {
+    min-width: 0;
+    font-size: 12px;
+  }
+
+  .public-roster__player > :last-child {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .public-roster__row > :nth-child(3) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

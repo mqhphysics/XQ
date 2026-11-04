@@ -1,0 +1,360 @@
+.native-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 30000;
+  pointer-events: none;
+}
+.native-guide__mask {
+  position: absolute;
+  background: #172c2a99;
+  pointer-events: auto;
+  transition:
+    left 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.native-guide__mask.is-full {
+  animation: native-guide-fade 0.3s ease both;
+}
+.native-guide__ring {
+  position: absolute;
+  border: 3px solid #f0cc91;
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 4px #ffffff59,
+    0 0 26px #f0cc9166;
+  box-sizing: border-box;
+  pointer-events: none;
+  transition:
+    left 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+}
+.native-guide.is-instant .native-guide__mask,
+.native-guide.is-instant .native-guide__ring,
+.native-guide.is-instant .native-guide__pointer {
+  /* A quick tap lands the cutout on the next target at once instead of replaying the glide. */
+  transition: none;
+}
+.native-guide.is-instant .native-guide__mask.is-full {
+  animation: none;
+}
+.native-guide.is-pending .native-guide__ring {
+  opacity: 0.35;
+}
+.native-guide__pulse {
+  position: absolute;
+  inset: -3px;
+  border: 3px solid #f0cc91;
+  border-radius: 18px;
+  box-sizing: border-box;
+  animation: native-guide-pulse 1.6s ease-out 0.2s infinite;
+}
+.native-guide__target {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 16px;
+  pointer-events: auto;
+}
+.native-guide__target::after {
+  border: 0;
+}
+.native-guide__pointer {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin-left: -15px;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 20px solid #f0cc91;
+  filter: drop-shadow(0 2px 4px #0c241c40);
+  pointer-events: none;
+  animation:
+    native-guide-fade 0.3s ease both,
+    native-guide-bounce-up 1.1s ease-in-out 0.3s infinite;
+}
+.native-guide__pointer.is-down {
+  border-bottom: 0;
+  border-top: 20px solid #f0cc91;
+  animation:
+    native-guide-fade 0.3s ease both,
+    native-guide-bounce-down 1.1s ease-in-out 0.3s infinite;
+}
+.native-guide__card {
+  position: absolute;
+  padding: 24px 28px 22px;
+  border-radius: 26px;
+  background: #fcfdf8;
+  box-shadow: 0 14px 40px #0c241c33;
+  box-sizing: border-box;
+  pointer-events: auto;
+  animation: native-guide-card-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.native-guide__card--above {
+  animation-name: native-guide-card-in-down;
+}
+.native-guide__card--center {
+  transform: translateY(-50%);
+  animation-name: native-guide-card-in-center;
+}
+.native-guide__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.native-guide__page {
+  padding: 4px 16px;
+  border-radius: 20px;
+  background: #edf3e5;
+  color: #315f3d;
+  font-size: 21px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+.native-guide__title {
+  display: block;
+  font-size: 32px;
+  line-height: 1.45;
+  font-weight: 750;
+  color: #294e35;
+}
+.native-guide__body {
+  display: block;
+  font-size: 26px;
+  line-height: 1.6;
+  color: #718169;
+  margin: 10px 0 16px;
+}
+.native-guide__tap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #ecefe4;
+  color: #8a7a55;
+  font-size: 23px;
+  line-height: 1.5;
+}
+.native-guide__tap-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d9b46f;
+  animation: native-guide-pulse 1.6s ease-out infinite;
+}
+.native-guide__skip {
+  flex: none;
+  margin: 0;
+  min-height: 0;
+  padding: 6px 18px;
+  border: 1px solid #dfe5d6;
+  border-radius: 24px;
+  background: #f6f8f1;
+  color: #5f7158;
+  font-size: 22px;
+  line-height: 1.5;
+}
+.native-guide__skip::after {
+  border: 0;
+}
+.native-guide__skip.is-pressed {
+  background: #e8eddf;
+}
+.native-guide.is-paused {
+  /* The page stays fully usable: only the hint itself catches taps. */
+  pointer-events: none;
+}
+.native-guide__hint {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px 16px 22px;
+  border-radius: 22px;
+  background: #fcfdf8f2;
+  box-shadow: 0 8px 26px #0c241c26;
+  box-sizing: border-box;
+  pointer-events: auto;
+  animation: native-guide-card-in-down 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.native-guide__hint-dot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #d9b46f;
+  animation: native-guide-pulse 1.6s ease-out infinite;
+}
+.native-guide__hint-text {
+  flex: 1;
+  min-width: 0;
+  color: #4d6046;
+  font-size: 24px;
+  line-height: 1.5;
+}
+.native-guide__mask--light {
+  background: #172c2a66;
+}
+.native-guide__prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 36px 32px 18px;
+  text-align: center;
+}
+.native-guide__prompt-title {
+  display: block;
+  margin-bottom: 26px;
+  color: #294e35;
+  font-size: 31px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+.native-guide__prompt-skip {
+  align-self: center;
+  margin: 12px 0 0;
+  min-height: 0;
+  padding: 6px 20px;
+  border: 0;
+  background: transparent;
+  color: #8b9886;
+  font-size: 22px;
+  line-height: 1.5;
+}
+.native-guide__prompt-skip::after {
+  border: 0;
+}
+.native-guide__prompt-skip.is-pressed {
+  color: #5f7158;
+}
+@keyframes native-guide-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes native-guide-pulse {
+  0% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+@keyframes native-guide-bounce-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes native-guide-bounce-down {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@keyframes native-guide-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes native-guide-card-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes native-guide-card-in-center {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 18px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+.native-player-claim__choice {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 18px;
+  border: 2px solid #e1e9d9;
+  border-radius: 20px;
+  background: #f6f8f1;
+  text-align: left;
+  margin: 14px 0;
+}
+.native-player-claim__choice.is-selected {
+  border-color: #93b185;
+  background: #edf3e5;
+}
+.native-player-claim__choice text {
+  display: block;
+  color: #73816a;
+  font-size: 24px;
+  line-height: 1.55;
+}
+.native-player-claim__choice text:first-child {
+  color: #315332;
+  font-size: 30px;
+  font-weight: 700;
+}
+.native-player-claim__choice > view:last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Card and arrow share one layer so they fade together when the box leaves for another page. */
+.native-guide__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.native-guide.is-leaving .native-guide__layer {
+  opacity: 0;
+}
+.native-guide.is-leaving .native-guide__card {
+  pointer-events: none;
+}
+/* Page switch: the cutout rises and fades out, then drops in from above once the new target is
+   measured. The entering frame parks it without transitions so the drop always plays. */
+.native-guide.is-leaving .native-guide__ring,
+.native-guide.is-entering .native-guide__ring {
+  opacity: 0;
+}
+.native-guide.is-entering .native-guide__mask,
+.native-guide.is-entering .native-guide__ring,
+.native-guide.is-entering .native-guide__target {
+  transition: none;
+}

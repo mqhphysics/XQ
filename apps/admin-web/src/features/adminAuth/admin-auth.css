@@ -1,0 +1,44 @@
+.admin-auth-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: 24px;
+  place-items: center;
+}
+
+.admin-auth-panel {
+  width: min(100%, 440px);
+  padding: 28px;
+}
+
+.admin-auth-panel h1 {
+  margin: 8px 0 12px;
+  font-size: 24px;
+}
+
+.admin-auth-panel p {
+  line-height: 1.6;
+}
+
+.admin-auth-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.admin-auth-form small {
+  color: #5d685f;
+}
+
+.admin-auth-actions,
+.admin-auth-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-auth-status {
+  padding: 12px 24px;
+  color: #a3312a;
+  background: #fff;
+}

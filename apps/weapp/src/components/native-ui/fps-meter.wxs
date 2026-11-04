@@ -1,0 +1,42 @@
+/* Render-layer frame counter for the 设置 → 诊断 FPS meter. It runs on the view thread's own
+   requestAnimationFrame, so it reads the frames actually painted, and shows them through CSS
+   counters (--fps / --fps-min) so the meter itself never calls setData. */
+var generation = 0
+function now() {
+  return getDate().getTime()
+}
+function start(event, owner) {
+  var instance = event.instance
+  generation = generation + 1
+  var mine = generation
+  var state = { frames: 0, windowStart: now(), windows: [], lastSpan: 0, lastFrames: 0, ticks: 0 }
+  function frame() {
+    if (mine !== generation) return
+    if (!instance.hasClass('is-on')) return
+    state.frames = state.frames + 1
+    var time = now(),
+      span = time - state.windowStart
+    if (span >= 500) {
+      var fps = Math.round((state.frames * 1000) / span)
+      /* Rolling average over the last second (two half-second windows). */
+      var average = state.lastSpan
+        ? Math.round(((state.frames + state.lastFrames) * 1000) / (span + state.lastSpan))
+        : fps
+      state.lastSpan = span
+      state.lastFrames = state.frames
+      state.windows.push(fps)
+      if (state.windows.length > 20) state.windows.shift()
+      var lowest = fps
+      for (var i = 0; i < state.windows.length; i++)
+        if (state.windows[i] < lowest) lowest = state.windows[i]
+      instance.setStyle('--fps:' + average + ';--fps-min:' + lowest)
+      if (average < 55) instance.addClass('is-low')
+      else instance.removeClass('is-low')
+      state.frames = 0
+      state.windowStart = time
+    }
+    instance.requestAnimationFrame(frame)
+  }
+  instance.requestAnimationFrame(frame)
+}
+module.exports = { start: start }

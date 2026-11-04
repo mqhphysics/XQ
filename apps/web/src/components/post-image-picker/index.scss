@@ -1,0 +1,49 @@
+.post-image-picker {
+  margin-top: 12px;
+}
+.post-image-picker__file {
+  display: none;
+}
+.post-image-picker__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #647266;
+  font-size: 12px;
+}
+.post-image-picker__controls button {
+  width: auto;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 12px;
+  color: #183f2a;
+  background: #edf3ea;
+  font-size: 13px;
+  line-height: 38px;
+}
+.post-image-picker__controls button::after {
+  border: 0;
+}
+.post-image-picker__preview {
+  display: block;
+  width: 100%;
+  height: 180px;
+  margin-top: 10px;
+  background: #f4f5ef;
+  border-radius: 6px;
+}
+
+.post-image-picker__preview img {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none;
+}
+.post-image-picker__error {
+  display: block;
+  margin-top: 8px;
+  color: #963d31;
+  font-size: 13px;
+}

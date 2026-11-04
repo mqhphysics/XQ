@@ -1,0 +1,121 @@
+.verification-badge {
+  display: none;
+}
+@media (min-width: 721px) {
+  .verification-badge__native {
+    display: none !important;
+  }
+  .verification-badge {
+    --identity-color: #226244;
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 6px;
+    vertical-align: middle;
+    color: var(--identity-color);
+    background: #eaf2ed;
+    line-height: 1;
+    cursor: help;
+    outline-offset: 3px;
+  }
+  .verification-badge--reporter,
+  .verification-badge--captain {
+    --identity-color: #876323;
+    background: #f5efe2;
+  }
+  .verification-badge--student {
+    --identity-color: #456d89;
+    background: #eaf1f6;
+  }
+  .verification-badge--operator {
+    --identity-color: #6e658f;
+    background: #f0edf6;
+  }
+  .verification-badge--admin,
+  .verification-badge--official,
+  .verification-badge--reviewer {
+    --identity-color: #456d89;
+    background: #eaf1f6;
+  }
+  .verification-badge--profile {
+    --identity-color: #77867c;
+    background: #edf1ee;
+  }
+  .verification-badge:focus-visible {
+    outline: 2px solid var(--identity-color);
+  }
+  .verification-badge__symbol {
+    display: block;
+    position: relative;
+    width: 14px;
+    height: 14px;
+  }
+  .verification-badge .verification-badge__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+  }
+  .verification-badge--player .verification-badge__icon {
+    filter: invert(30%) sepia(15%) saturate(1745%) hue-rotate(100deg) brightness(92%) contrast(88%);
+  }
+  .verification-badge--reporter .verification-badge__icon,
+  .verification-badge--captain .verification-badge__icon {
+    filter: invert(41%) sepia(39%) saturate(592%) hue-rotate(3deg) brightness(89%) contrast(87%);
+  }
+  .verification-badge--operator .verification-badge__icon {
+    filter: invert(40%) sepia(14%) saturate(992%) hue-rotate(212deg) brightness(93%) contrast(85%);
+  }
+  .verification-badge--student .verification-badge__icon {
+    filter: invert(39%) sepia(15%) saturate(1318%) hue-rotate(165deg) brightness(96%) contrast(84%);
+  }
+  .verification-badge--profile .verification-badge__icon {
+    opacity: 0.5;
+  }
+  .verification-badge .verification-badge__check {
+    position: absolute;
+    right: -3px;
+    bottom: -2px;
+    width: 8px;
+    height: 8px;
+    padding: 1px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 1px currentColor;
+  }
+  .verification-badge__tooltip {
+    position: absolute;
+    z-index: 8;
+    top: calc(100% + 7px);
+    right: 0;
+    padding: 5px 9px;
+    border-radius: 5px;
+    background: #2f4438;
+    color: #fff;
+    font:
+      11px/1.5 -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Microsoft YaHei',
+      sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(23, 48, 32, 0.12);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .verification-badge:focus-visible .verification-badge__tooltip,
+  .verification-badge:focus-within .verification-badge__tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+  .verification-badge:hover .verification-badge__tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+}

@@ -1,0 +1,46 @@
+/* postcss-pxtransform disable */
+.email-code {
+  min-width: 0;
+  margin: 10px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  &__label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  p {
+    margin: 5px 0;
+    font-size: 12px;
+  }
+  &__input,
+  &__button {
+    box-sizing: border-box;
+    min-height: 40px;
+    border: 1px solid #cedbd1;
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+  }
+  &__input {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+  &__button {
+    padding: 8px 12px;
+    color: #315842;
+    cursor: pointer;
+  }
+  &__button:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  &__error {
+    color: #a32846;
+  }
+}

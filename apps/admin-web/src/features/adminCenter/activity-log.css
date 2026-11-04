@@ -1,0 +1,9 @@
+.activity-log .mc-toolbar { justify-content: space-between; gap: 20px; }
+.activity-log .mc-toolbar form { display: flex; gap: 8px; }
+.activity-log td { vertical-align: top; }
+.activity-log td > div { margin-top: 6px; color: #53645b; font-size: 14px; }
+.activity-detail .mc-table { table-layout: fixed; }
+.activity-detail td { white-space: pre-wrap; overflow-wrap: anywhere; }
+.mc-review-preview { display: flex; gap: 8px; margin-bottom: 8px; }
+.mc-quick-approve { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.workspace-direct-tasks > div > .gov-thumbnail { width: 72px; height: 60px; flex: 0 0 72px; }

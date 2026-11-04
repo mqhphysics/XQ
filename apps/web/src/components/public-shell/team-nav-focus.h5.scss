@@ -1,0 +1,193 @@
+.public-team-focus {
+  display: none;
+}
+
+.public-app--h5 .public-team-nav .public-team-nav__crest--empty {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 0;
+  color: transparent;
+  background: url('../../assets/navigation/unselected-team.svg') center / contain no-repeat;
+  box-shadow: none;
+  font-size: 0;
+  text-shadow: none;
+}
+
+@media (min-width: 721px) {
+  .public-app--h5 {
+    .public-team-focus {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      left: 50%;
+      display: block;
+      width: calc(var(--nav-team-slot) * 1.4);
+      height: 80px;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+
+    .public-team-focus__drawing {
+      display: block;
+      width: 100%;
+      height: 84px;
+      overflow: visible;
+      stroke: currentColor;
+      stroke-linejoin: round;
+    }
+
+    .public-team-focus__trace {
+      opacity: 0.28;
+      stroke-linecap: round;
+      transition: opacity 220ms ease;
+    }
+
+    .public-team-focus__hint {
+      opacity: 0.14;
+      transition: opacity 240ms ease;
+    }
+
+    .public-team-focus__stroke {
+      opacity: 0;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+
+    .public-team-nav.public-team-nav--active {
+      .public-team-focus__trace {
+        opacity: 0.08;
+      }
+      .public-team-focus__hint {
+        opacity: 0.04;
+      }
+      .public-team-focus__stroke {
+        opacity: 1;
+        stroke-dashoffset: 0;
+      }
+      .team-crest {
+        transform: translateY(-2px) scale(1.071429);
+      }
+      .public-team-nav__crest {
+        transform: translateY(-2px) scale(1.38);
+      }
+    }
+    .public-team-nav .team-crest,
+    .public-team-nav__crest {
+      position: relative;
+      z-index: 1;
+    }
+
+    .public-team-focus--preview ~ .team-crest,
+    .public-team-focus--preview ~ .public-team-nav__crest {
+      visibility: hidden;
+    }
+
+    .public-team-focus__sample-crest {
+      position: absolute;
+      z-index: 2;
+      top: 6px;
+      left: 50%;
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      transform: translateX(-50%);
+      transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .public-team-nav--active .public-team-focus__sample-crest {
+      transform: translate(-50%, -2px) scale(1.071429);
+    }
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1040px) {
+  .public-app--h5 .public-team-focus {
+    width: calc(var(--nav-team-slot) * 1.35);
+  }
+}
+
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+  .public-app--h5 .public-team-nav:hover:not(.public-team-nav--active) {
+    .public-team-focus__trace {
+      opacity: 0.42;
+    }
+  }
+}
+
+@media (min-width: 721px) and (prefers-reduced-motion: reduce) {
+  .public-app--h5 {
+    .public-team-focus__trace,
+    .public-team-focus__hint,
+    .public-team-focus__sample-crest {
+      transition: none;
+    }
+  }
+}
+
+.team-nav-preview {
+  display: none;
+}
+
+@media (min-width: 721px) {
+  .team-nav-preview {
+    position: fixed;
+    z-index: 1200;
+    bottom: 20px;
+    left: 20px;
+    display: grid;
+    gap: 9px;
+    padding: 14px;
+    border: 1px solid #dce1d7;
+    border-radius: 10px;
+    background: rgba(250, 249, 245, 0.97);
+    box-shadow: 0 4px 20px rgba(31, 57, 38, 0.09);
+    color: #254735;
+    font:
+      13px/1.4 system-ui,
+      sans-serif;
+  }
+  .team-nav-preview__title {
+    font-weight: 600;
+  }
+  .team-nav-preview__choices {
+    display: flex;
+    gap: 6px;
+  }
+  .team-nav-preview button {
+    padding: 6px 9px;
+    border: 1px solid #d9dfd4;
+    border-radius: 5px;
+    background: #fafaf6;
+    color: #48634f;
+    cursor: pointer;
+    font: inherit;
+  }
+  .team-nav-preview button[aria-pressed='true'] {
+    border-color: #94aa8e;
+    background: #e6eddf;
+    color: #244a32;
+  }
+  .team-nav-preview button:focus-visible {
+    outline: 2px solid #627f5b;
+    outline-offset: 2px;
+  }
+  .team-nav-preview__note {
+    color: #7e897a;
+    font-size: 11px;
+  }
+}
+
+/* Round 12: a 主队 set while a dialog is open hides the old lines until the growth replays. */
+.public-team-focus[data-focus-pending] svg {
+  visibility: hidden;
+}
+
+/* Round 13: the nav button itself is always the click target. A crest/花纹 re-render between
+   press and release (e.g. the 主队 crest image swapping in) would otherwise cancel the click.
+   Keep these universal selectors in H5: the WXSS compiler rejects them. */
+.public-team-nav > :not(.team-nav-preview),
+.public-team-nav .team-crest *,
+.public-nav__item > * {
+  pointer-events: none;
+}

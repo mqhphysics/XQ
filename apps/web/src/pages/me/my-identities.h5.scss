@@ -1,0 +1,49 @@
+@media (min-width: 721px) {
+  .my-identities-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e8eee4;
+  }
+  .my-identities-tabs [data-profile-button] {
+    padding: 9px 15px;
+    border-radius: 18px;
+    border: 1px solid #e2eade;
+    background: white;
+    color: #738369;
+    font-size: 13px;
+  }
+  .my-identities-tabs [aria-selected='true'] {
+    color: #285439;
+    background: #edf5e8;
+    border-color: #aac5a3;
+  }
+  .my-identity-content {
+    padding: 24px 0 20px;
+  }
+  .my-identity-content > p {
+    color: #84917b;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 14px 0 20px;
+  }
+  .my-identity-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .my-identity-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 18px;
+    border-top: 1px solid #e8eee4;
+  }
+  .my-identity-footer [data-profile-button] {
+    color: #708663;
+    font-size: 12px;
+    padding: 4px 0;
+    background: none;
+    border: 0;
+  }
+}

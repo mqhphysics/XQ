@@ -1,0 +1,185 @@
+page,
+body {
+  min-height: 100%;
+  margin: 0;
+  color: #17231a;
+  background: #f4f5f2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+}
+
+.public-app {
+  min-height: 100vh;
+  color: #17231a;
+  background: #f4f5f2;
+}
+
+.public-content {
+  width: calc(100% - 48px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 34px 0 28px;
+}
+
+button {
+  letter-spacing: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+}
+
+.page-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 28px;
+}
+
+.page-intro__eyebrow,
+.page-intro__title,
+.page-intro__copy {
+  display: block;
+}
+
+.page-intro__eyebrow {
+  color: #8b3e32;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.page-intro__title {
+  margin-top: 8px;
+  color: #17231a;
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.page-intro__copy {
+  max-width: 520px;
+  color: #59665d;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.button::after {
+  border: 0;
+}
+
+.button--primary {
+  color: #ffffff;
+  background: #183f2a;
+}
+
+.button--secondary {
+  color: #183f2a;
+  background: #e3ebe5;
+}
+
+.button--light {
+  color: #183f2a;
+  background: #ffffff;
+}
+
+.button--outline {
+  color: #29362d;
+  background: transparent;
+  border: 1px solid #adb7af;
+}
+
+.content-section {
+  margin-top: 42px;
+}
+
+.surface {
+  background: #ffffff;
+  border: 1px solid #dce1dc;
+  border-radius: 6px;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  color: #4e5b52;
+  background: #edf0ed;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.status-tag--live,
+.status-tag--approved,
+.status-tag--locked {
+  color: #155332;
+  background: #dcecdf;
+}
+
+.status-tag--danger {
+  color: #8b3028;
+  background: #f8e1dd;
+}
+
+.status-tag--warning {
+  color: #6a5114;
+  background: #f5e9c1;
+}
+
+.link-row {
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .public-content {
+    width: calc(100% - 28px);
+    padding: 20px 0 18px;
+  }
+
+  .page-intro {
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  .page-intro__title {
+    font-size: 30px;
+  }
+
+  .page-intro__copy {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .content-section {
+    margin-top: 32px;
+  }
+
+  .button {
+    min-height: 44PX;
+    padding: 0 15PX;
+    font-size: 14PX;
+    line-height: 44PX;
+  }
+}

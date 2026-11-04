@@ -1,0 +1,72 @@
+.profile-identity-manager-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.profile-identity-manager-heading h3 {
+  margin: 0;
+  color: #395e3b;
+  font-size: 14px;
+}
+.profile-identity-manager-heading [data-profile-button] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  color: #7a9170;
+  font-size: 11px;
+}
+.profile-identity-manager-heading .profile-icon {
+  width: 13px;
+  height: 13px;
+}
+.profile-identity-apply {
+  margin-top: 25px;
+  padding: 18px;
+  border-top: 1px solid #e9efdf;
+}
+.profile-current-identity {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 0 8px;
+}
+.profile-current-identity > strong {
+  font-size: 22px;
+  color: #456443;
+}
+.profile-identity-work {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: #f6f9f1;
+  border-radius: 8px;
+}
+.profile-identity-work > p {
+  margin: 0;
+  font-size: 12px;
+  color: #7f9174;
+}
+.profile-identity-refresh {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #edf1e6;
+}
+.badge-manager__choices [data-badge-choice] > span {
+  flex: 1;
+}
+.badge-manager__choices [data-badge-choice] > .verification-badge {
+  position: static;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+}
+.badge-manager__choices [data-badge-choice] > small {
+  font-size: 10px;
+}

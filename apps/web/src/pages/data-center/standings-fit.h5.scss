@@ -1,0 +1,79 @@
+@media (min-width: 1024px) {
+  .data-desktop__standings #data-group-content {
+    grid-auto-flow: row;
+    grid-template-rows: repeat(var(--group-rows, 2), max-content);
+    align-content: start;
+    align-items: start;
+    gap: 10px 18px;
+  }
+  .data-desktop__standings .data-desktop__group {
+    height: auto;
+  }
+  .data-desktop__standings .data-desktop__group h3 {
+    line-height: 18px;
+    margin: 0 0 3px;
+    font-size: 13px;
+  }
+  .data-desktop__standings .data-desktop__standing-table {
+    flex: none;
+    height: auto;
+  }
+  .data-desktop__standings .data-desktop__standing-table thead th {
+    height: 24px;
+    padding: 0 3px;
+    font-size: 11px;
+  }
+  .data-desktop__standings .data-desktop__standing-table td {
+    box-sizing: border-box;
+    width: auto;
+    height: var(--standings-row-height, 32px);
+    padding: 1px 3px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .data-desktop__standings .data-desktop__standing-table .data-desktop__standing-rank {
+    font-size: 16px;
+  }
+  .data-desktop__standings .data-desktop__standing-table col:nth-child(9),
+  .data-desktop__standings .data-desktop__standing-table col:nth-child(10) {
+    width: auto;
+  }
+  .data-desktop__standings .data-desktop__standing-table .data-desktop__team-col {
+    width: 34%;
+  }
+  .data-desktop__standings .data-desktop__standing-table .data-desktop__rank-col {
+    width: 28px;
+  }
+  .data-desktop__standings .data-desktop__team-cell {
+    gap: 6px;
+  }
+  .data-desktop__standings .data-desktop__team-cell .team-crest {
+    flex-basis: 20px;
+    width: 20px;
+    height: 22px;
+  }
+  .data-desktop__standings .data-desktop__team-cell a {
+    font-size: 13px;
+  }
+  .data-desktop__standings .data-desktop__table-note {
+    margin-top: 6px;
+  }
+  .data-desktop__hero {
+    margin-bottom: 8px;
+    gap: 22px;
+  }
+  .data-desktop h1 {
+    font-size: clamp(28px, 2.7vw, 40px);
+  }
+  @media (max-height: 800px) {
+    .data-desktop__hero {
+      margin-bottom: 4px;
+    }
+    .data-desktop__toolbar {
+      margin-bottom: 8px;
+    }
+    .data-desktop__competition-panels > .data-desktop__card {
+      padding: 12px 16px 8px;
+    }
+  }
+}

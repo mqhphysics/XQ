@@ -1,0 +1,25 @@
+{
+  "name": "@xiaoqiu/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test src/outbox/outbox-consumer.spec.ts src/outbox/pg-sql-client.spec.ts src/results/match-report-handler.spec.ts src/results/projection-payload.spec.ts",
+    "test:postgres": "tsx --test src/outbox/outbox.postgres.integration.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "latest",
+    "@nestjs/core": "latest",
+    "reflect-metadata": "latest",
+    "rxjs": "latest",
+    "pg": "8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tsx": "latest",
+    "@types/pg": "8.15.5"
+  }
+}

@@ -1,0 +1,19 @@
+/* postcss-pxtransform disable */
+.captain-members .captain-member__position {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #cfdbd3;
+  border-radius: 8px;
+  color: #273b32;
+  background: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.captain-members .captain-member__position:focus-visible {
+  outline: 2px solid #418057;
+  outline-offset: 2px;
+}

@@ -1,0 +1,77 @@
+@media (min-width: 721px) {
+  [aria-label^='关闭'],
+  [data-ui-close] {
+    box-sizing: border-box !important;
+    display: block !important;
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background-color: #f1f5ef !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a6050' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E") !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 20px 20px !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    cursor: pointer;
+  }
+  [aria-label^='关闭'] > *,
+  [data-ui-close] > * {
+    display: none !important;
+  }
+  [aria-label^='关闭']:hover,
+  [data-ui-close]:hover {
+    background-color: #e7eee2 !important;
+  }
+  [aria-label^='关闭']:focus-visible,
+  [data-ui-close]:focus-visible {
+    outline: 2px solid #315b3d;
+    outline-offset: 3px;
+  }
+  .profile-dialog-backdrop {
+    z-index: 2600 !important;
+  }
+  .identity-backdrop {
+    z-index: 2700 !important;
+  }
+  .desktop-settings-backdrop,
+  .managed-media-backdrop,
+  .avatar-cropper-modal,
+  .report-modal {
+    z-index: 2800 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  [aria-label^='关闭'],
+  [data-ui-close] {
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 44PX !important;
+    width: 44PX !important;
+    height: 44PX !important;
+    min-height: 44PX !important;
+    min-width: 44PX !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background-color: #f1f5ef !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a6050' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E") !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 20PX 20PX !important;
+    color: transparent !important;
+    font-size: 0 !important;
+  }
+  [aria-label^='关闭'] > *,
+  [data-ui-close] > * {
+    display: none !important;
+  }
+}

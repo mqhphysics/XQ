@@ -1,0 +1,48 @@
+/* postcss-pxtransform disable */
+.student-registration-notice {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  border: 1px solid #dfd3b7;
+  border-radius: 8px;
+  background: #fcfaf2;
+  color: #695329;
+  font-size: 14px;
+}
+.student-registration-notice > span {
+  flex: 1;
+}
+.student-registration-notice button {
+  padding: 7px 12px;
+  border: 1px solid #c3b892;
+  border-radius: 6px;
+  background: #fff;
+  color: #5b512f;
+  font: inherit;
+  cursor: pointer;
+}
+.registration-number-row form {
+  grid-column: 2 / -1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.registration-number-row input {
+  width: 180px;
+  padding: 9px 11px;
+  border: 1px solid #bdcdbf;
+  border-radius: 6px;
+  font: inherit;
+}
+.registration-number-row [role='alert'] {
+  width: 100%;
+  color: #a23f33;
+}
+.registration-number-state {
+  margin-left: 12px;
+  font-size: 13px;
+  color: #8b7040;
+}

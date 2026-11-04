@@ -1,0 +1,40 @@
+{
+  "name": "@xiaoqiu/web",
+  "version": "0.8.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev-h5.mjs",
+    "build": "taro build --type h5",
+    "serve": "node scripts/serve-h5.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../scripts/test-client.mjs web"
+  },
+  "dependencies": {
+    "@xiaoqiu/contracts": "workspace:*",
+    "@tarojs/components": "4.2.0",
+    "@tarojs/helper": "4.2.0",
+    "@tarojs/plugin-framework-react": "4.2.0",
+    "@tarojs/plugin-platform-h5": "4.2.0",
+    "@tarojs/plugin-platform-weapp": "4.2.0",
+    "@tarojs/react": "4.2.0",
+    "@tarojs/runtime": "4.2.0",
+    "@tarojs/shared": "4.2.0",
+    "@tarojs/taro": "4.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/preset-react": "7.29.7",
+    "@babel/preset-typescript": "7.29.7",
+    "@tarojs/cli": "4.2.0",
+    "@tarojs/taro-loader": "4.2.0",
+    "@tarojs/webpack5-runner": "4.2.0",
+    "@types/react": "18.3.28",
+    "@types/react-dom": "18.3.7",
+    "@types/wechat-miniprogram": "latest",
+    "babel-preset-taro": "4.2.0",
+    "less": "^4.2.2",
+    "sass": "latest"
+  }
+}

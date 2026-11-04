@@ -1,0 +1,350 @@
+.schedule-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.76);
+  border-bottom: 1px solid #d8ded9;
+}
+
+.schedule-controls__context,
+.schedule-controls__context text {
+  display: block;
+  min-width: 0;
+}
+
+.schedule-controls__context text:first-child {
+  overflow: hidden;
+  color: #1b2b21;
+  font-size: 13px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-controls__context text:last-child {
+  margin-top: 3px;
+  color: #7a847d;
+  font-size: 9px;
+}
+
+.schedule-controls__actions,
+.schedule-segment,
+.schedule-order {
+  display: flex;
+  align-items: center;
+}
+
+.schedule-controls__actions {
+  flex: 0 0 auto;
+  gap: 9px;
+}
+
+.schedule-segment,
+.schedule-order {
+  gap: 2px;
+  padding: 3px;
+  background: #e9edea;
+  border-radius: 7px;
+}
+
+.schedule-filter-button,
+.schedule-order button {
+  min-width: 62px;
+  min-height: 30px;
+  margin: 0;
+  padding: 0 10px;
+  color: #667269;
+  background: transparent;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 30px;
+}
+
+.schedule-filter-button::after,
+.schedule-order button::after {
+  border: 0;
+}
+
+.schedule-filter-button--active,
+.schedule-order .schedule-order__active {
+  color: #173f29;
+  background: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 1px 4px rgba(26, 48, 34, 0.11);
+}
+
+.schedule-order button {
+  min-width: 48px;
+}
+
+.schedule-timeline,
+.schedule-day,
+.schedule-day__matches {
+  min-width: 0;
+}
+
+.schedule-day {
+  margin-bottom: 30px;
+}
+
+.schedule-day__date {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+  padding-left: 11px;
+  border-left: 4px solid #9b4034;
+}
+
+.schedule-day__date text:first-child {
+  color: #19291f;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.schedule-day__date text:last-child {
+  padding: 3px 7px;
+  color: #6f7a72;
+  background: #e7ece8;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.schedule-day__matches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.schedule-match {
+  min-width: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #dce2dd;
+  border-radius: 7px;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.schedule-match:hover {
+  border-color: #b8c4bb;
+  box-shadow: 0 5px 15px rgba(28, 48, 35, 0.07);
+}
+
+.schedule-match__head,
+.schedule-match__foot {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.schedule-match__head {
+  min-height: 29px;
+  padding: 5px 10px 0;
+  color: #78827b;
+  font-size: 9px;
+}
+
+.schedule-match__head > text:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-match__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 58px;
+  padding: 4px 10px 7px;
+}
+
+.schedule-match__team {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: #1c2920;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.schedule-match__team--away {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.schedule-match__team--linked {
+  cursor: pointer;
+}
+
+.schedule-match__team--linked:hover > text:not(.team-crest) {
+  color: #8f3d34;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.schedule-match__team > text:not(.team-crest) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-match__center,
+.schedule-match__center text {
+  display: block;
+  text-align: center;
+}
+
+.schedule-match__score,
+.schedule-match__kickoff {
+  color: #183f2a;
+  font-size: 19px;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.schedule-match__kickoff {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.schedule-match__center text:last-child {
+  margin-top: 4px;
+  color: #8a928c;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.schedule-match__foot {
+  min-height: 27px;
+  padding: 0 10px;
+  color: #7a847d;
+  background: #f7f9f7;
+  border-top: 1px solid #edf0ed;
+  font-size: 8px;
+}
+
+.schedule-match__foot text:last-child {
+  color: #356448;
+  font-weight: 850;
+}
+
+.schedule-match__reason {
+  display: block;
+  padding: 7px 10px;
+  color: #705319;
+  background: #f7ecc7;
+  border-top: 1px solid #eadba6;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .schedule-day__matches {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .schedule-controls {
+    display: block;
+    margin: 0 -3px 20px;
+    padding: 10px 3px;
+  }
+
+  .schedule-controls__context {
+    padding: 0 4px 8px;
+  }
+
+  .schedule-controls__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .schedule-segment {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .schedule-filter-button,
+  .schedule-order button {
+    min-height: 44PX;
+    font-size: 13PX;
+    line-height: 44PX;
+  }
+
+  .schedule-filter-button {
+    width: 100%;
+    min-width: 0;
+    padding: 0 5px;
+  }
+
+  .schedule-order button {
+    min-width: 44PX;
+    padding: 0 8PX;
+  }
+
+  .schedule-day {
+    margin-bottom: 24px;
+  }
+
+  .schedule-day__date {
+    margin-bottom: 8px;
+  }
+
+  .schedule-day__date text:first-child {
+    font-size: 13px;
+  }
+
+  .schedule-match__main {
+    grid-template-columns: minmax(0, 1fr) 65px minmax(0, 1fr);
+    gap: 4px;
+    min-height: 54px;
+    padding: 3px 7px 6px;
+  }
+
+  .schedule-match__head,
+  .schedule-match__foot {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .schedule-match__team {
+    gap: 5px;
+    font-size: 10px;
+  }
+
+  .schedule-match__team .team-crest {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    font-size: 8px;
+    line-height: 28px;
+  }
+
+  .schedule-match__score {
+    font-size: 17px;
+  }
+
+  .schedule-match__kickoff {
+    font-size: 14px;
+  }
+}

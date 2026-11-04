@@ -1,0 +1,37 @@
+/* postcss-pxtransform disable */
+/* Fixed px: a diagnostics overlay in a RootPortal, outside the page that defines the rpx scale. */
+.native-fps-meter {
+  display: none;
+}
+.native-fps-meter.is-on {
+  position: fixed;
+  z-index: 9999;
+  top: 88px;
+  left: 8px;
+  display: block;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(10, 32, 20, 0.78);
+  color: #c9f2d4;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  pointer-events: none;
+  counter-reset: fps var(--fps, 0) fpsmin var(--fps-min, 0);
+  /* The start of this animation is what kicks off the WXS frame loop. */
+  animation: native-fps-meter-in 0.12s linear;
+}
+.native-fps-meter.is-on::after {
+  content: counter(fps) ' fps · 最低 ' counter(fpsmin);
+}
+.native-fps-meter.is-on.is-low {
+  color: #ffd0c4;
+}
+@keyframes native-fps-meter-in {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}

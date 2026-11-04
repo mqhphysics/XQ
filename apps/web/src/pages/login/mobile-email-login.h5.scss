@@ -1,0 +1,76 @@
+/* postcss-pxtransform disable */
+.mobile-email-login {
+  box-sizing: border-box;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 36px;
+  color: #42384a;
+  background: #faf8fc;
+  min-height: 100vh;
+  font-size: 14px;
+  header {
+    text-align: center;
+  }
+  header img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+  }
+  h1 {
+    margin: 8px 0 0;
+  }
+  h2 {
+    font-size: 22px;
+    margin: 20px 0 12px;
+  }
+  [data-mobile-field] {
+    display: block;
+    margin: 12px 0;
+  }
+  [data-mobile-input],
+  [data-mobile-button] {
+    box-sizing: border-box;
+    font: inherit;
+    min-height: 42px;
+    border: 1px solid #d5cfe0;
+    border-radius: 5px;
+  }
+  [data-mobile-input] {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 9px 12px;
+    background: white;
+  }
+  [data-mobile-button] {
+    background: white;
+    padding: 9px 14px;
+    color: inherit;
+    cursor: pointer;
+  }
+  [data-mobile-button]:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  &__tabs {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  &__tabs [data-mobile-button] {
+    flex: 1;
+  }
+  &__tabs [aria-pressed='true'] {
+    background: #eee7f3;
+    border-color: #9e82b5;
+  }
+  &__primary {
+    width: 100%;
+    margin-top: 18px;
+    background: #6e5082 !important;
+    color: white !important;
+  }
+  &__error {
+    color: #a32846;
+  }
+}

@@ -1,0 +1,21 @@
+@media (min-width: 721px) {
+  .person-trigger {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    min-width: 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .person-trigger:focus-visible {
+    outline: 2px solid #2d6848;
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+  .person-trigger:hover {
+    color: #63855f;
+  }
+  .person-trigger {
+    transition: color 120ms ease-out;
+  }
+}

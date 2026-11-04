@@ -1,0 +1,83 @@
+.identity-match-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 38px 16px;
+  text-align: center;
+  color: #506e50;
+}
+.identity-match-loading > i {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2ebda;
+  border-top-color: #567d50;
+  border-radius: 50%;
+  animation: identity-match-spin 700ms linear infinite;
+  margin-bottom: 22px;
+}
+.identity-match-loading strong {
+  font-size: 15px;
+}
+.identity-match-loading p,
+.identity-match-note {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #83917b;
+}
+.identity-match-options {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0;
+}
+.identity-match-options > label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px;
+  border: 1px solid #dbe6d5;
+  border-radius: 8px;
+  background: #f7faf2;
+  cursor: pointer;
+}
+.identity-match-options [type='radio'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #456f40;
+}
+.identity-match-options > label > span {
+  display: grid;
+  gap: 4px;
+  color: #456646;
+}
+.identity-match-options small {
+  font-size: 11px;
+  color: #8b9781;
+}
+.identity-match-success {
+  text-align: center;
+  padding: 22px;
+  color: #526f4b;
+}
+.identity-match-success > span {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  background: #ebf4e2;
+  font-size: 28px;
+}
+.identity-match-success p {
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 22px;
+}
+.identity-match-success .profile-button {
+  margin: 0 auto;
+}
+@keyframes identity-match-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,377 @@
+.managed-media-button {
+  border: 1px solid #ccd9cf;
+  background: #fff;
+  color: #24563a;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.managed-media-button:focus-visible,
+.goal-media button:focus-visible {
+  outline: 2px solid #24563a;
+  outline-offset: 3px;
+}
+.media-account-entry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.managed-media-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 360;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(17, 34, 23, 0.4);
+}
+.managed-media-dialog {
+  width: min(760px, 100%);
+  max-height: min(85vh, 850px);
+  overflow: auto;
+  background: #fff;
+  color: #25372b;
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: 0 20px 65px rgba(20, 40, 24, 0.22);
+}
+.managed-media-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.managed-media-dialog h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.managed-media-dialog > header button {
+  border: 0;
+  background: none;
+  font-size: 25px;
+  cursor: pointer;
+}
+.managed-media-form {
+  display: grid;
+  gap: 14px;
+  padding: 16px 0 4px;
+}
+.managed-media-form p {
+  margin: 0;
+}
+.managed-media-form label,
+.media-library label {
+  display: grid;
+  gap: 6px;
+}
+.managed-media-form input {
+  max-width: 100%;
+}
+.managed-media-form small,
+.media-library small {
+  color: #748179;
+}
+.goal-media {
+  margin-top: 10px;
+  max-width: 240px;
+}
+.goal-media button {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #dce4dd;
+  border-radius: 7px;
+  background: #f5f8f5;
+  cursor: pointer;
+  text-align: left;
+  color: #36563e;
+}
+.goal-media img {
+  display: block;
+  width: 100%;
+  max-height: 170px;
+  object-fit: contain;
+}
+.goal-media span {
+  display: block;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+.media-library {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+.media-library > article {
+  display: flex;
+  gap: 15px;
+  border-top: 1px solid #e2e8e3;
+  padding-top: 16px;
+}
+.media-library__copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.media-library__copy small {
+  overflow-wrap: anywhere;
+}
+.media-library__copy p {
+  margin: 4px 0;
+}
+.media-library textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px;
+  border: 1px solid #ccd9cf;
+  border-radius: 5px;
+  font: inherit;
+}
+.media-library__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.media-library__actions button {
+  background: #f0f5f1;
+  color: #24563a;
+  border: 1px solid #ccd9cf;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.media-private-poster {
+  flex: 0 0 120px;
+  min-height: 80px;
+}
+.media-private-poster img {
+  width: 120px;
+  max-height: 130px;
+  object-fit: contain;
+  border-radius: 5px;
+}
+.profile-personal-background {
+  display: block;
+  width: 100%;
+  height: 160px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+@media (max-width: 540px) {
+  .media-private-poster {
+    flex-basis: 75px;
+  }
+  .media-private-poster img {
+    width: 75px;
+  }
+}
+
+@media (max-width: 720px) {
+  .managed-media-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+  .managed-media-dialog {
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 90dvh;
+    padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+    border-radius: 16px 16px 0 0;
+  }
+  .managed-media-dialog > header [data-media-control] {
+    width: 44px;
+    height: 44px;
+  }
+  .managed-media-button,
+  .media-account-entry button {
+    min-height: 44px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}
+
+/* Native H5 controls need attribute selectors; Taro rewrites tag selectors. */
+@media (min-width: 721px) {
+  .managed-media-dialog {
+    box-sizing: border-box;
+    width: min(580px, 100%);
+    padding: 24px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .managed-media-dialog > header {
+    margin-bottom: 6px;
+  }
+  .managed-media-dialog > header h2 {
+    font-size: 22px;
+  }
+  .managed-media-dialog > header [data-media-control] {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #f2f5ef;
+    color: #526957;
+    font-size: 22px;
+    cursor: pointer;
+  }
+  .managed-media-form {
+    gap: 14px;
+    padding-top: 18px;
+  }
+  .managed-media-form > p {
+    margin: 0;
+    color: #768177;
+    font-size: 12px;
+  }
+  .managed-media-picker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 172px;
+    padding: 18px;
+    border: 1px dashed #b7c7b7;
+    border-radius: 9px;
+    background: #f7faf5;
+    cursor: pointer;
+    color: #44644a;
+    text-align: center;
+  }
+  .managed-media-picker:focus-within {
+    outline: 2px solid #315c3d;
+    outline-offset: 3px;
+  }
+  .managed-media-picker [data-media-input] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .managed-media-picker [data-media-input]:disabled {
+    cursor: default;
+  }
+  .managed-media-picker strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+  }
+  .managed-media-picker small {
+    font-size: 11px;
+    color: #7a8679;
+  }
+  .managed-media-picker__preview {
+    max-width: 100%;
+    height: 140px;
+    object-fit: contain;
+    border-radius: 5px;
+  }
+  .managed-media-form > .managed-media-button {
+    justify-self: end;
+    min-width: 104px;
+    background: #31573c;
+    color: white;
+    border: 0;
+    font-size: 13px;
+    padding: 9px 20px;
+  }
+  .managed-media-button {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  .managed-media-button--compact {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 9px;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .managed-media-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.managed-media-picker__preview.managed-media-picker__preview--cover {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2.8;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Round 11 — event media thumbnails in the match timeline. */
+.event-media-thumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 1px solid #dfe7df;
+  border-radius: 8px;
+  background: #eef3ec;
+  cursor: pointer;
+}
+.event-media-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.event-media-thumb__badge {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: #fff;
+  background: #10251acc;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+}
+.event-media-player {
+  display: grid;
+  place-items: center;
+}
+.event-media-player video,
+.event-media-player img {
+  display: block;
+  max-width: min(78vw, 860px);
+  max-height: 70vh;
+  border-radius: 8px;
+  background: #000;
+}
+
+@media (min-width: 721px) {
+  .managed-media-dialog.managed-media-dialog--wide.xq-dialog {
+    width: min(1280px, calc(100vw - 64px));
+    height: min(820px, 90dvh);
+    max-height: 90vh;
+  }
+  .managed-media-dialog--wide .event-media-player video,
+  .managed-media-dialog--wide .event-media-player img {
+    width: 100%;
+    max-width: 100%;
+    max-height: 76vh;
+    object-fit: contain;
+  }
+}

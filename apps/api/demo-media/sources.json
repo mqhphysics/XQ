@@ -1,0 +1,42 @@
+{
+  "notice": "DEMO_FIXTURE visual samples only. The photographed people are not the fictional students in the database.",
+  "crestSource": "https://www.football-data.org/documentation/quickstart",
+  "crestUsage": "Real club crest images used only as visual placeholders in the local DEMO_FIXTURE; they are not crests of the fictional campus teams.",
+  "crestSamples": [
+    { "id": "01", "club": "华中师范大学物理科学与技术学院（物院一队）", "url": "user-provided college logo, 2026-10-18" },
+    { "id": "02", "club": "华中师范大学物理科学与技术学院（物院二队）", "url": "user-provided college logo, 2026-10-18" },
+    { "id": "03", "club": "Liverpool FC", "url": "https://crests.football-data.org/64.png" },
+    { "id": "04", "club": "Arsenal FC", "url": "https://crests.football-data.org/57.png" },
+    { "id": "05", "club": "Chelsea FC", "url": "https://crests.football-data.org/61.png" },
+    { "id": "06", "club": "Tottenham Hotspur FC", "url": "https://crests.football-data.org/73.png" },
+    { "id": "07", "club": "Newcastle United FC", "url": "https://crests.football-data.org/67.png" },
+    { "id": "08", "club": "Aston Villa FC", "url": "https://crests.football-data.org/58.png" },
+    { "id": "09", "club": "Everton FC", "url": "https://crests.football-data.org/62.png" },
+    { "id": "10", "club": "Fulham FC", "url": "https://crests.football-data.org/63.png" },
+    { "id": "11", "club": "Wolverhampton Wanderers FC", "url": "https://crests.football-data.org/76.png" },
+    { "id": "12", "club": "Brentford FC", "url": "https://crests.football-data.org/402.png" },
+    { "id": "13", "club": "Brighton & Hove Albion FC", "url": "https://crests.football-data.org/397.png" },
+    { "id": "14", "club": "Crystal Palace FC", "url": "https://crests.football-data.org/354.png" },
+    { "id": "15", "club": "Nottingham Forest FC", "url": "https://crests.football-data.org/351.png" },
+    { "id": "16", "club": "AFC Bournemouth", "url": "https://crests.football-data.org/1044.png" }
+  ],
+  "portraitLicense": "https://unsplash.com/license",
+  "portraitSamples": [
+    { "id": "01", "photo": "1645857195444-2064b4ecabf3", "page": "https://unsplash.com/photos/a-young-man-poses-for-a-picture-with-his-hand-on-his-chin-Ski5jkhduAY" },
+    { "id": "02", "photo": "1751394210894-241bcfb94ef6", "page": "https://unsplash.com/photos/soccer-player-taking-a-break-looking-up-GOk8zBiPRfY" },
+    { "id": "03", "photo": "1786483989175-b2a5768f36b8", "page": "https://unsplash.com/photos/young-man-black-and-white-portrait-TePUeLWIKHE" },
+    { "id": "04", "photo": "1532306201592-901907906c23", "page": "https://unsplash.com/photos/female-soccer-player-standing-at-field-oz9A3hZJzuE" },
+    { "id": "05", "photo": "1560272564-c83b66b1ad12", "page": "https://unsplash.com/photos/man-playing-soccer-during-daytime-Z0KjmjxUsKs" },
+    { "id": "06", "photo": "1623512083603-5068ca8290f4", "page": "https://unsplash.com/photos/man-in-gray-and-black-pullover-hoodie-standing-beside-yellow-plastic-chair-gYGqJBFWnlk" },
+    { "id": "07", "photo": "1666860339130-ca977001324e", "page": "https://unsplash.com/photos/a-man-with-his-arms-crossed-_uxmFql4ycQ" },
+    { "id": "08", "photo": "1582070595814-fe36a8d39532", "page": "https://unsplash.com/photos/grayscale-photo-of-man-in-collared-shirt-tjFQ_G_zQpU" },
+    { "id": "09", "photo": "1642597196338-4ba3252a852f", "page": "https://unsplash.com/photos/a-young-asian-woman-posing-for-a-picture-_6274ybW9Gg" },
+    { "id": "10", "photo": "1758600587833-c07c5bda5c70", "page": "https://unsplash.com/photos/close-up-of-a-smiling-asian-woman-with-long-dark-hair-Yh1jghdz9Mg" },
+    { "id": "11", "photo": "1758600587683-d86675a2f6e9", "page": "https://unsplash.com/photos/a-smiling-asian-woman-with-dark-hair-5V6takmtNUM" },
+    { "id": "12", "photo": "1773899337975-442ba9358dec", "page": "https://unsplash.com/photos/a-young-woman-with-long-dark-hair-smiles-oTDQTME3phs" },
+    { "id": "13", "photo": "1653146889633-f06eb8489789", "page": "https://unsplash.com/photos/a-man-sitting-on-top-of-a-yellow-and-white-sign-p8fOJAFYx4Y" },
+    { "id": "14", "photo": "1681937704747-4121274f855f", "page": "https://unsplash.com/photos/a-man-in-a-white-shirt-posing-for-a-picture-ETcNUgjr3lg" },
+    { "id": "15", "photo": "1649433658557-54cf58577c68", "page": "https://unsplash.com/photos/a-man-with-black-hair-and-a-beard-smiling-eucPfcmTQig" },
+    { "id": "16", "photo": "1770237711142-6c0e1589cb94", "page": "https://unsplash.com/photos/a-female-soccer-player-kicks-the-ball-during-a-game-6-RJhFb4WJY" }
+  ]
+}

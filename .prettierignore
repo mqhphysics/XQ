@@ -1,0 +1,7 @@
+node_modules
+dist
+.taro
+coverage
+pnpm-lock.yaml
+packages/api-client/src/generated
+docs/research

@@ -1,0 +1,53 @@
+{
+  "name": "@xiaoqiu/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "contracts:build": "npm --prefix ../../packages/contracts run build",
+    "predev": "npm run contracts:build && npm run prisma:generate",
+    "dev": "node scripts/dev.mjs",
+    "prebuild": "npm run contracts:build && npm run prisma:generate",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-prisma-engine.mjs dist/generated/prisma",
+    "start": "node dist/main.js",
+    "mail:check": "tsx src/auth/check-mail.cli.ts",
+    "pretypecheck": "npm run contracts:build && npm run prisma:generate",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pretest": "npm run contracts:build && npm run prisma:generate && npm --prefix ../worker run build",
+    "test": "tsc -p tsconfig.test.json && node scripts/copy-prisma-engine.mjs dist/test/generated/prisma && node scripts/test.mjs unit",
+    "prisma:validate": "prisma validate --schema ../../prisma/schema.prisma",
+    "prisma:format": "prisma format --schema ../../prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema ../../prisma/schema.prisma && prettier --write \"src/generated/prisma/**/*.ts\"",
+    "db:migrate:deploy": "prisma migrate deploy --schema ../../prisma/schema.prisma",
+    "db:import:registration": "tsx src/roster/import-registration.cli.ts",
+    "predb:bootstrap-admin": "npm run prisma:generate",
+    "db:bootstrap-admin": "tsx src/database/bootstrap-admin.cli.ts",
+    "predb:seed": "npm run prisma:generate",
+    "db:seed": "tsx src/database/seed.ts",
+    "test:integration": "npm run pretest && tsc -p tsconfig.test.json && node scripts/copy-prisma-engine.mjs dist/test/generated/prisma && node scripts/test.mjs integration",
+    "test:all": "npm run pretest && tsc -p tsconfig.test.json && node scripts/copy-prisma-engine.mjs dist/test/generated/prisma && node scripts/test.mjs all"
+  },
+  "dependencies": {
+    "@nestjs/common": "latest",
+    "@nestjs/core": "latest",
+    "@nestjs/platform-express": "latest",
+    "@nestjs/swagger": "latest",
+    "@prisma/client": "6.19.3",
+    "@xiaoqiu/contracts": "workspace:*",
+    "class-transformer": "latest",
+    "class-validator": "latest",
+    "reflect-metadata": "latest",
+    "rxjs": "latest",
+    "nodemailer": "10.0.16",
+    "sharp": "0.34.5"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "11.1.26",
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "@types/nodemailer": "8.0.2",
+    "@types/supertest": "7.2.0",
+    "prisma": "6.19.3",
+    "supertest": "7.2.2",
+    "tsx": "latest"
+  }
+}

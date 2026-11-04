@@ -1,0 +1,64 @@
+.campus-profile-images__preview .gov-thumbnail,
+.campus-profile-images__preview .gov-image-preview {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+}
+.campus-profile-images__preview .gov-thumbnail img,
+.campus-profile-images__preview .gov-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.gov-image-open {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: inherit;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: zoom-in;
+}
+.gov-image-open:not(:disabled):hover {
+  background: transparent;
+}
+.gov-image-open img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.mc-modal.mc-image-lightbox {
+  width: min(1200px, calc(100vw - 80px));
+}
+.gov-full-image {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100dvh - 180px);
+  object-fit: contain;
+  margin: 20px auto;
+}
+.mc-entity-media {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 22px;
+  padding: 20px 24px;
+}
+.mc-entity-media article {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  color: #36533f;
+  font-size: 14px;
+}
+.mc-entity-media .gov-image-preview {
+  width: 100%;
+  height: 180px;
+}
+.mc-entity-media img {
+  object-fit: contain;
+}

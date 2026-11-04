@@ -1,0 +1,223 @@
+{
+  "scope": "All desktop H5 pages; min-width: 1024px, hover: hover, pointer: fine. Football and morph are confined to the login artwork/divider.",
+  "implementation": "Native PNG cursors at rest. Busy/progress use six fixed segment contours whose dark fills chase clockwise in 1200ms. Orange accent is stationary at the upper right. Reduced motion or image failure retains a visible static native cursor.",
+  "sourceReferenceDirectory": "参考图片/04-登录页定稿与光标-2026-10-01",
+  "assets": [
+    {
+      "file": "football-28.svg",
+      "width": 28,
+      "height": 28,
+      "hotspotX": 14,
+      "hotspotY": 14,
+      "fallback": "default",
+      "role": "Left artwork only",
+      "source": "Original minimal SVG: fine outer contour, central pentagon, five seams, no attached decoration"
+    },
+    {
+      "file": "default-32.png",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 2,
+      "hotspotY": 2,
+      "fallback": "default",
+      "role": "Default pointer throughout desktop H5",
+      "source": "Original reference bitmap layer retained, with an imagegen-edited interior clipped underneath; no replacement vector outline or coral fold.",
+      "sourceSha256": "a3edcb574fbd62a02f3b82eee88fea8de73c9249ad71bd6707bc049ca745802b",
+      "viewBox": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "preserveAspectRatio": "xMidYMid meet",
+      "note": "Transparent canvas cropped at [402,274,492,728], scaled proportionally to 30px high at (1,1); 32px/64px native PNGs. Original reference remains unchanged.",
+      "sourceSvg": "default-32.svg",
+      "fillSource": "default-interior-fill-source.png"
+    },
+    {
+      "file": "text-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "text",
+      "role": "Real input and textarea elements",
+      "source": "Code-native fine I outline based on the leftmost glyph of 03-cursor-strip-reference.png"
+    },
+    {
+      "file": "hand-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 12,
+      "hotspotY": 4,
+      "fallback": "pointer",
+      "role": "Enabled tabs, buttons and links",
+      "source": "Simplified sage-filled index hand with a thin green outline and coral palm line."
+    },
+    {
+      "file": "disabled-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "not-allowed",
+      "role": "disabled",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "busy-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "wait",
+      "role": "busy",
+      "source": "Six stationary annular segments with clockwise dark-fill chase. Orange arc remains fixed at upper right."
+    },
+    {
+      "file": "progress-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 2,
+      "hotspotY": 2,
+      "fallback": "progress",
+      "role": "progress",
+      "source": "Actual original bitmap arrow with the same stationary-contour loading ring."
+    },
+    {
+      "file": "move-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "move",
+      "role": "move",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "grab-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "grab",
+      "role": "grab",
+      "source": "Open palm: four fingers of staggered lengths, separate thumb, fine finger creases and coral wrist line."
+    },
+    {
+      "file": "grabbing-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "grabbing",
+      "role": "grabbing",
+      "source": "Compact closed grasp: four rounded knuckles, short finger creases, thumb tucked behind the side; no thumb drawn across the palm."
+    },
+    {
+      "file": "precision-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "crosshair",
+      "role": "precision",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "resize-ew-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "ew-resize",
+      "role": "resize-ew",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "resize-ns-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "ns-resize",
+      "role": "resize-ns",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "resize-nwse-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "nwse-resize",
+      "role": "resize-nwse",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "resize-nesw-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 16,
+      "hotspotY": 16,
+      "fallback": "nesw-resize",
+      "role": "resize-nesw",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "help-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 2,
+      "hotspotY": 2,
+      "fallback": "help",
+      "role": "help",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "zoom-in-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 13,
+      "hotspotY": 13,
+      "fallback": "zoom-in",
+      "role": "zoom-in",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    },
+    {
+      "file": "zoom-out-32.svg",
+      "width": 32,
+      "height": 32,
+      "hotspotX": 13,
+      "hotspotY": 13,
+      "fallback": "zoom-out",
+      "role": "zoom-out",
+      "source": "Code-native transparent SVG adapted from cursor scheme C and strip reference; deep green outlines and coral accent"
+    }
+  ],
+  "hotspotVerification": "Positions checked against SVG coordinates. Final perceived tip alignment and operating-system native cursor display require a visible desktop browser check; ordinary Playwright page screenshots omit the native cursor.",
+  "integration": {
+    "importStyle": "H5 AccountBoundary mounts and cleans up mountCursorSkin once for login and product pages. Shared App and WeChat boundary are unchanged.",
+    "rootClass": "xq-cursor-skin on document.documentElement",
+    "sceneClass": "art-login__scene",
+    "panelClass": "art-login__panel",
+    "inputClass": "art-login__input",
+    "controlClass": "art-login__control",
+    "disabledControls": "Native disabled, disabled attribute, aria-disabled=true, existing Taro disabled class and no-drop show the coral unavailable skin; disabling or re-enabling a hovered control updates without pointer movement. aria-busy=true takes priority over disabled while submitting."
+  },
+  "loading": {
+    "source": "loading-ring-animated.svg",
+    "staticSource": "loading-ring.svg",
+    "segments": 6,
+    "darkSegments": 3,
+    "lightSegments": 3,
+    "contourMotion": "none",
+    "accentPosition": "fixed upper right",
+    "accentStartDegrees": -84,
+    "accentSweepDegrees": 56,
+    "colorCycleMs": 1200,
+    "reviewFrames": 24,
+    "frameMs": 50,
+    "generator": "scripts/build-cursor-assets.mjs"
+  }
+}

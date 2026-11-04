@@ -1,0 +1,169 @@
+name: ${COMPOSE_PROJECT_NAME:-xiaoqiu-release}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+x-build-args: &build-args
+  NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+  PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+
+x-database: &database
+  DATABASE_URL: postgresql://${POSTGRES_USER:-xiaoqiu}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the private release env file}@postgres:5432/${POSTGRES_DB:-xiaoqiu_release}?schema=public
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17.4-bookworm}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-xiaoqiu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the private release env file}
+      POSTGRES_DB: ${POSTGRES_DB:-xiaoqiu_release}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    logging: *logging
+
+  migration:
+    image: xiaoqiu-migration:${APP_VERSION:-local-release}
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.migration
+      args: *build-args
+    restart: 'no'
+    environment:
+      <<: *database
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging
+
+  api:
+    image: xiaoqiu-api:${APP_VERSION:-local-release}
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+      args: *build-args
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 45s
+    environment:
+      <<: *database
+      NODE_ENV: production
+      APP_VERSION: ${APP_VERSION:-local-release}
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set the exact H5 and admin origins}
+      DEFAULT_ORGANIZATION_ID: ${DEFAULT_ORGANIZATION_ID:-}
+      DEFAULT_TOURNAMENT_ID: ${DEFAULT_TOURNAMENT_ID:-}
+      POST_MEDIA_DIRECTORY: /app/private-data/media/posts
+      ENABLE_DEMO_IDENTITY_RECOVERY: 'false'
+      REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
+    ports:
+      - '127.0.0.1:${API_BIND_PORT:-3101}:3000'
+    volumes:
+      - media_data:/app/private-data/media
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/health/ready').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    logging: *logging
+
+  worker:
+    image: xiaoqiu-worker:${APP_VERSION:-local-release}
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.worker
+      args: *build-args
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 45s
+    environment:
+      <<: *database
+      NODE_ENV: production
+      APP_VERSION: ${APP_VERSION:-local-release}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-4}
+      WORKER_POLL_MS: ${WORKER_POLL_MS:-1000}
+      WORKER_LEASE_MS: ${WORKER_LEASE_MS:-30000}
+      WORKER_TRANSACTION_TIMEOUT_MS: ${WORKER_TRANSACTION_TIMEOUT_MS:-10000}
+      WORKER_RETRY_BASE_MS: ${WORKER_RETRY_BASE_MS:-250}
+      WORKER_RETRY_MAX_MS: ${WORKER_RETRY_MAX_MS:-60000}
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    logging: *logging
+
+  admin-web:
+    image: xiaoqiu-admin-web:${APP_VERSION:-local-release}
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.admin-web
+      args:
+        <<: *build-args
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.27.4-alpine}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set the public HTTPS API URL ending in /api}
+        VITE_ORGANIZATION_ID: ${DEFAULT_ORGANIZATION_ID:-}
+        VITE_PUBLIC_WEBSITE_URL: ${VITE_PUBLIC_WEBSITE_URL:-https://xiaoqiu-beta.pages.dev/}
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${ADMIN_BIND_PORT:-5180}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://127.0.0.1/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    logging: *logging
+
+  # Enable only on an authorized server after DNS and HTTPS prerequisites are ready.
+  edge:
+    profiles: [edge]
+    image: ${CADDY_IMAGE:-caddy:2.10.2-alpine}
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:-api.example.invalid}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:-admin.example.invalid}
+      ACME_EMAIL: ${ACME_EMAIL:-operator@example.invalid}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      admin-web:
+        condition: service_healthy
+    logging: *logging
+
+volumes:
+  postgres_data:
+    name: ${COMPOSE_PROJECT_NAME:-xiaoqiu-release}_postgres_data
+  media_data:
+    name: ${COMPOSE_PROJECT_NAME:-xiaoqiu-release}_media_data
+  caddy_data:
+    name: ${COMPOSE_PROJECT_NAME:-xiaoqiu-release}_caddy_data
+  caddy_config:
+    name: ${COMPOSE_PROJECT_NAME:-xiaoqiu-release}_caddy_config

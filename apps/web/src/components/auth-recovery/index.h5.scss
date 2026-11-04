@@ -1,0 +1,397 @@
+/* postcss-pxtransform disable */
+.auth-recovery__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #183d30;
+  background: #15392d3b;
+  backdrop-filter: blur(6px);
+}
+.auth-recovery__dialog {
+  width: min(600px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 32px 36px;
+  background: #fcfdf9;
+  border: 1px solid #dce5dc;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px #10352524;
+  scrollbar-width: thin;
+  outline: none;
+}
+.auth-recovery__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.auth-recovery__eyebrow {
+  margin: 0 0 9px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #718677;
+}
+.auth-recovery__header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  outline: none;
+}
+.auth-recovery__header p:last-child {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #728078;
+}
+.auth-recovery__dialog :is([type='button'], [type='submit']) {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+}
+.auth-recovery__dialog :is([type='button'], [type='submit']):focus-visible,
+.auth-recovery__upload:focus-within {
+  outline: 2px solid #709980;
+  outline-offset: 3px;
+}
+.auth-recovery__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-top: -5px;
+  padding: 0;
+  color: #456354;
+  border: 0;
+  border-radius: 50%;
+  background: #eaf0e8;
+  font-size: 26px !important;
+  line-height: 1;
+}
+.auth-recovery__methods {
+  display: flex;
+  gap: 26px;
+  margin-top: 30px;
+  border-bottom: 1px solid #dce5dc;
+}
+.auth-recovery__methods [type='button'] {
+  padding: 0 0 13px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #809085;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+}
+.auth-recovery__methods .is-active {
+  color: #183d30;
+  border-bottom-color: #234e3b;
+}
+.auth-recovery__body {
+  margin: 24px 0 0;
+}
+.auth-recovery__intro {
+  margin: 0 0 20px;
+  font-size: 15px;
+  color: #526c5a;
+}
+.auth-recovery__field {
+  display: block;
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.auth-recovery__field .auth-recovery__input,
+.auth-recovery__field .auth-recovery__textarea {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 11px 13px;
+  color: #183d30;
+  border: 1px solid #c4d2c6;
+  border-radius: 7px;
+  background: #ffffff48;
+  font: inherit;
+  font-weight: 400;
+}
+.auth-recovery__field .auth-recovery__input {
+  height: 46px;
+}
+.auth-recovery__field .auth-recovery__textarea {
+  resize: vertical;
+  min-height: 88px;
+  max-height: 180px;
+}
+.auth-recovery__field .auth-recovery__input:focus,
+.auth-recovery__field .auth-recovery__textarea:focus {
+  outline: 2px solid #86a59042;
+  outline-offset: 1px;
+  border-color: #739780;
+}
+.auth-recovery__field .auth-recovery__input::placeholder,
+.auth-recovery__field .auth-recovery__textarea::placeholder {
+  color: #95a398;
+}
+.auth-recovery__notice {
+  padding: 13px 15px;
+  color: #6c7c70;
+  background: #edf2e9;
+  border-radius: 7px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.auth-recovery__primary {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  padding: 11px 14px;
+  color: #fff;
+  background: #244f3b;
+  border: 1px solid #244f3b;
+  border-radius: 7px;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+.auth-recovery__primary:disabled {
+  color: #83918a;
+  background: #e4ebe2;
+  border-color: #dce5dc;
+  cursor: not-allowed;
+}
+.auth-recovery__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 19px;
+  border-top: 1px solid #dce5dc;
+  font-size: 13px;
+  color: #77877b;
+}
+.auth-recovery__footer [type='button'],
+.auth-recovery__back {
+  padding: 0;
+  color: #244f3b;
+  background: none;
+  border: 0;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+.auth-recovery__back {
+  margin-top: 24px;
+}
+.auth-recovery__wechat {
+  text-align: center;
+}
+.auth-recovery__qr {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  margin: 18px auto 0;
+  color: #345b47;
+  background: #fff;
+  border: 1px solid #dce5dc;
+  border-radius: 8px;
+}
+.auth-recovery__qr svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+.auth-recovery__qr span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 9px;
+  border: 1px solid #dde6dc;
+  border-radius: 5px;
+  background: #fcfdf9;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.auth-recovery__qr-caption {
+  margin: 9px 0 22px;
+  font-size: 12px;
+  color: #7c8c80;
+}
+.auth-recovery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.auth-recovery__hint {
+  margin: -3px 0 17px;
+  font-size: 12px;
+  color: #809085;
+  line-height: 1.65;
+}
+.auth-recovery__field small,
+.auth-recovery__evidence-title small {
+  margin-left: 4px;
+  color: #809085;
+  font-size: 11px;
+  font-weight: 400;
+}
+.auth-recovery__evidence {
+  margin: 17px 0;
+}
+.auth-recovery__evidence-title {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.auth-recovery__upload {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 7px 18px;
+  font-size: 13px;
+  border: 1px dashed #9db59f;
+  border-radius: 6px;
+  background: #f1f5ed;
+  cursor: pointer;
+}
+.auth-recovery__upload .auth-recovery__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.auth-recovery__previews {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+}
+.auth-recovery__previews figure {
+  position: relative;
+  width: 112px;
+  margin: 0;
+}
+.auth-recovery__previews .auth-recovery__image {
+  display: block;
+  width: 112px;
+  height: 74px;
+  object-fit: contain;
+  border: 1px solid #dce5dc;
+  border-radius: 5px;
+  background: #eef2eb;
+}
+.auth-recovery__previews figcaption {
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #77877b;
+}
+.auth-recovery__previews [type='button'] {
+  padding: 2px 0;
+  color: #527760;
+  background: none;
+  border: 0;
+  font-size: 12px !important;
+}
+.auth-recovery__error {
+  margin: 10px 0;
+  color: #9c5647;
+  font-size: 13px;
+}
+.auth-recovery__status {
+  display: inline-block;
+  margin: 0 0 18px;
+  padding: 5px 10px;
+  color: #64765c;
+  border-radius: 5px;
+  background: #eaf0e4;
+  font-size: 12px;
+}
+.auth-recovery__summary {
+  margin: 0 0 22px;
+}
+.auth-recovery__summary > div {
+  display: grid;
+  grid-template-columns: 114px minmax(0, 1fr);
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid #e1e8de;
+  font-size: 14px;
+}
+.auth-recovery__summary dt {
+  color: #7d8d81;
+}
+.auth-recovery__summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+@media (max-height: 760px) {
+  .auth-recovery__dialog {
+    padding: 24px 30px;
+  }
+  .auth-recovery__header h2 {
+    font-size: 25px;
+  }
+  .auth-recovery__body {
+    margin-top: 18px;
+  }
+  .auth-recovery__field {
+    margin-bottom: 12px;
+  }
+}
+
+/* Round 4: the shared email-code row matches the recovery fields (height, radius, colours). */
+.auth-recovery__dialog .email-code {
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+.auth-recovery__dialog .email-code__label {
+  margin-bottom: 7px;
+  font-weight: 500;
+}
+.auth-recovery__dialog .email-code__row {
+  align-items: stretch;
+  gap: 10px;
+}
+.auth-recovery__dialog .email-code__input,
+.auth-recovery__dialog .email-code__button {
+  height: 46px;
+  min-height: 46px;
+  border-radius: 7px;
+}
+.auth-recovery__dialog .email-code__input {
+  padding: 11px 13px;
+  border-color: #c4d2c6;
+  background: #ffffff48;
+  color: #183d30;
+}
+.auth-recovery__dialog .email-code__input:focus {
+  outline: 2px solid #86a59042;
+  outline-offset: 1px;
+  border-color: #739780;
+}
+.auth-recovery__dialog .email-code__button {
+  min-width: 128px;
+  padding: 0 14px;
+  border-color: #2f6b45;
+  background: #fff;
+  color: #2f6b45;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.auth-recovery__dialog .email-code__button:disabled {
+  border-color: #d3ddd5;
+  background: #f3f6f3;
+  color: #8a978c;
+  opacity: 1;
+}

@@ -1,0 +1,2386 @@
+@media (min-width: 721px) {
+  .public-app--h5:has(.th-page) {
+    background: #f6f8f5;
+    .public-content {
+      width: min(1520px, calc(100% - 48px));
+      max-width: none;
+      padding: 16px 0 20px;
+    }
+    .public-footer {
+      display: none;
+    }
+  }
+  .th-root {
+    color: #14251d;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+    h1 {
+      font-size: 30px;
+      line-height: 1.3;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 650;
+    }
+    small {
+      font-size: 12px;
+    }
+    [data-team-control],
+    [data-team-action] {
+      font: inherit;
+    }
+    [data-team-control],
+    [data-team-action],
+    .th-team-link {
+      cursor: pointer;
+    }
+    [data-team-control]:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+    [data-team-control]:focus-visible,
+    [data-team-action]:focus-visible,
+    .th-team-link:focus-visible {
+      outline: 2px solid #6a9778;
+      outline-offset: 3px;
+    }
+    [data-team-control] {
+      margin: 0;
+      border-radius: 5px;
+    }
+  }
+  .th-page {
+    position: relative;
+    isolation: isolate;
+  }
+  .th-page::before {
+    position: fixed;
+    z-index: -1;
+    inset: 180px -160px 0 auto;
+    width: 700px;
+    content: '';
+    pointer-events: none;
+    opacity: 0.1;
+    background: url('../../assets/home-visual/stadium-front-lineart.png') right 80% / contain
+      no-repeat;
+  }
+  .th-muted,
+  .th-small-note {
+    color: #7b8790;
+  }
+  .th-small-note {
+    margin-top: 7px !important;
+    font-size: 12px;
+  }
+  .th-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    vertical-align: middle;
+  }
+  .th-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+    border: 0;
+    color: #416a54;
+    background: transparent;
+  }
+  .th-icon-button:hover {
+    background: #eaf2ec;
+  }
+  .th-primary-button,
+  .th-soft-button,
+  .th-outline-button,
+  .th-text-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 7px 13px;
+    border: 0;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.4;
+  }
+  .th-primary-button {
+    color: white;
+    background: #194c34;
+  }
+  .th-primary-button:hover {
+    background: #245c40;
+  }
+  .th-soft-button {
+    color: #245c40;
+    background: #e6f2e9;
+  }
+  .th-soft-button:hover {
+    background: #dceee1;
+  }
+  .th-outline-button {
+    color: #25372d;
+    border: 1px solid #dfe5e0;
+    background: white;
+  }
+  .th-text-button {
+    padding: 4px 0;
+    color: #31654a;
+    background: transparent;
+  }
+  .th-text-button:hover {
+    color: #4b7e61;
+  }
+  .th-follow-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 8px 8px 12px;
+    background: rgba(247, 251, 246, 0.96);
+    border: 1px solid #e3eee4;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .th-follow-strip > section {
+    min-width: 0;
+  }
+  .th-follow-strip__primary,
+  .th-follow-strip__teams {
+    padding-right: 22px;
+    border-right: 1px solid #e6eae6;
+  }
+  .th-follow-strip__label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    margin-bottom: 6px;
+    color: #667580;
+  }
+  .th-follow-strip__label > strong {
+    color: #194a33;
+    font-size: 16px;
+  }
+  .th-follow-strip__manage {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: #2f6144;
+    background: #e7f2e8;
+  }
+  .th-follow-strip__manage:hover {
+    background: #d7ead9;
+  }
+  .th-switch {
+    position: relative;
+    width: 24px;
+    height: 24px;
+  }
+  .th-switch .th-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .th-switch [role='tooltip'] {
+    position: absolute;
+    z-index: 5;
+    top: 28px;
+    right: -16px;
+    padding: 4px 8px;
+    color: white;
+    border-radius: 4px;
+    background: #244d37;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 140ms ease;
+  }
+  .th-switch:hover [role='tooltip'],
+  .th-switch:focus-visible [role='tooltip'] {
+    opacity: 1;
+  }
+  .th-follow-strip__scroll {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #afc5b4 transparent;
+    padding: 2px 2px 4px;
+  }
+  .th-follow-strip__scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  .th-follow-strip__scroll::-webkit-scrollbar-thumb {
+    background: #afc5b4;
+    border-radius: 8px;
+  }
+  .th-follow-strip__teams .th-follow-chip {
+    min-width: 150px;
+    text-align: left;
+  }
+  .th-follow-chip {
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 6px 11px;
+    border: 1px solid #dce8de;
+    background: #fff;
+    color: #24312d;
+    white-space: nowrap;
+    border-radius: 8px;
+  }
+  .th-follow-chip strong {
+    font-size: 14px;
+  }
+  .th-follow-chip .team-crest {
+    width: 28px;
+    height: 32px;
+  }
+  .th-follow-chip:hover {
+    border-color: #bfcfc2;
+  }
+  .th-follow-chip.is-selected {
+    color: #164831;
+    border-color: #a7c9ae;
+    background: #edf6ee;
+  }
+  .th-follow-chip--primary {
+    border-left: 3px solid #6aa876;
+    background: #f3faf3;
+  }
+  .th-follow-chip--add {
+    color: #3d6d4f;
+    border-style: dashed;
+    background: #f7fbf6;
+  }
+  .th-follow-chip--primary strong {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+  .th-follow-chip strong {
+    transition: color 160ms ease;
+  }
+  .th-follow-chip:hover strong {
+    color: #537c60;
+  }
+  .th-follow-chip--player {
+    min-width: 132px;
+    min-height: 46px;
+  }
+  .th-follow-chip--player .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .th-follow-chip--player small {
+    display: block;
+    color: #78858c;
+    text-align: left;
+    font-size: 11px;
+  }
+  .th-empty-chip {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    color: #85918a;
+    border: 0;
+    background: transparent;
+    font-size: 13px !important;
+  }
+  .th-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    margin: 10px 0 12px;
+    border: 1px solid #e3e9e3;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.65);
+  }
+  .th-tabs [role='tab'] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 40px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 5px;
+    color: #65736e;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .th-tabs [role='tab'] .th-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .th-tabs [role='tab']:hover {
+    color: #3e6850;
+    background: #eff5ef;
+  }
+  .th-tabs [role='tab'].is-active {
+    color: white;
+    background: #194930;
+    box-shadow: inset 0 0 10px rgba(18, 55, 37, 0.3);
+  }
+  .th-panel {
+    animation: th-enter 160ms ease-out;
+  }
+  .th-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+  .th-columns > .th-surface {
+    position: sticky;
+    top: 84px;
+    align-self: start;
+    max-height: calc(100dvh - 100px);
+    overflow: auto;
+  }
+  .th-columns--feed {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  }
+  .th-surface {
+    min-width: 0;
+    padding: 17px 18px;
+    border: 1px solid #edf0ed;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.97);
+  }
+  .th-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 37px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid #edf0ed;
+    margin-bottom: 14px;
+  }
+  .th-heading select {
+    max-width: 200px;
+  }
+  .th-root select {
+    height: 35px;
+    min-width: 0;
+    padding: 0 8px;
+    color: #273c2f;
+    background: white;
+    border: 1px solid #e1e7e2;
+    font-size: 12px;
+  }
+  .th-post {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 13px;
+    padding: 1px 0 17px;
+    margin-bottom: 17px;
+    border-bottom: 1px solid #eaf0ea;
+  }
+  .th-post:last-child {
+    margin-bottom: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .th-post__avatar .team-crest {
+    width: 40px;
+    height: 47px;
+  }
+  .th-post__byline {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    color: #7d8798;
+    font-size: 12px;
+  }
+  .th-name {
+    padding: 0;
+    border: 0;
+    color: #293c32;
+    background: transparent;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    transition: color 160ms ease;
+  }
+  .th-name:hover {
+    color: #4e795d;
+  }
+  .th-post__text {
+    display: block;
+    width: 100%;
+    margin-top: 6px !important;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    color: #536171;
+    font-size: 14px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .th-post__text > strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #1c2c23;
+    font-size: 16px;
+  }
+  .th-post__images {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin: 8px 0 0;
+  }
+  .th-post__images [data-team-control] {
+    display: block;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    background: #eef3ed;
+  }
+  .th-post__images img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1.55;
+    object-fit: cover;
+  }
+  .th-post__images--single {
+    grid-template-columns: 1fr;
+  }
+  .th-post__images--single img {
+    aspect-ratio: 3.1;
+    max-height: 240px;
+  }
+  .th-image-failed {
+    display: grid;
+    place-items: center;
+    min-height: 100px;
+    color: #879387;
+    font-size: 12px;
+  }
+  .th-post__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .th-post__footer > div {
+    display: flex;
+    gap: 16px;
+  }
+  .th-post__footer [data-team-control] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    color: #7c8696;
+    background: none;
+    font-size: 12px;
+  }
+  .th-post__footer [data-team-control]:hover,
+  .th-post__footer .is-liked {
+    color: #3f7552;
+  }
+  .th-post__footer .th-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .th-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .th-filters [data-team-control] {
+    min-height: 35px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    color: #64716b;
+    background: #f1f5f2;
+    font-size: 13px;
+  }
+  .th-filters [data-team-control].is-active {
+    color: white;
+    background: #1c4d34;
+  }
+  .th-filters--small {
+    margin: 0;
+    width: 175px;
+    gap: 4px;
+    flex: 0 0 auto;
+  }
+  .th-filters--small [data-team-control] {
+    background: white;
+    border-color: #e6ece7;
+    min-height: 34px;
+    font-size: 12px;
+  }
+  .th-match {
+    display: grid;
+    grid-template-columns: 71px minmax(0, 1fr);
+    gap: 12px;
+    padding: 19px 0;
+    border-top: 1px solid #edf1ed;
+  }
+  .th-match__date {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 10px;
+    color: #657587;
+    border-right: 1px solid #e9eee9;
+    font-size: 13px;
+  }
+  .th-match__date small {
+    font-size: 11px;
+  }
+  .th-match__teams {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+  .th-team-link {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    color: #28372e;
+    background: transparent;
+    font: inherit;
+    transition: color 160ms ease;
+  }
+  .th-team-link:hover {
+    color: #537c60;
+  }
+  .th-team-link > span {
+    min-width: 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .th-team-link .team-crest--small {
+    width: 31px;
+    height: 38px;
+  }
+  .th-score {
+    padding: 2px;
+    border: 0;
+    color: #172b20;
+    background: transparent;
+    font-size: 19px !important;
+    font-weight: 750 !important;
+    white-space: nowrap;
+  }
+  .th-score:hover {
+    color: #457459;
+  }
+  .th-match__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 11px;
+  }
+  .th-match__meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #7b8796;
+    font-size: 11px;
+  }
+  .th-match__meta .th-icon {
+    width: 14px;
+    height: 14px;
+  }
+  .th-root .match-status {
+    min-height: 23px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .th-staff {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .th-staff__card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 9px;
+    margin-top: 7px;
+    border: 1px solid #e7ece7;
+    border-radius: 5px;
+  }
+  .th-staff__card small,
+  .th-player__name small {
+    display: block;
+    color: #85919a;
+    font-size: 11px;
+  }
+  .th-staff__icon {
+    display: grid;
+    place-items: center;
+    width: 43px;
+    height: 43px;
+    border-radius: 5px;
+    background: #edf4ed;
+    color: #426c51;
+    font-size: 20px;
+  }
+  .th-roster-group {
+    margin-top: 14px;
+  }
+  .th-roster-group h3 {
+    margin-bottom: 6px;
+    color: #1e4d33;
+  }
+  .th-roster-group h3 > span {
+    color: #83908f;
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .th-roster {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .th-player {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #e7ece7;
+    background: white;
+    text-align: left;
+  }
+  .th-player:hover {
+    border-color: #b6cbbb;
+    background: #fbfdfb;
+  }
+  .th-player .user-avatar {
+    width: 44px;
+    height: 49px;
+    border-radius: 5px;
+    font-size: 17px;
+  }
+  .th-player__number {
+    min-width: 22px;
+    color: #1b4b34;
+    font-size: 20px;
+    text-align: center;
+  }
+  .th-player__name {
+    min-width: 0;
+    flex: 1;
+  }
+  .th-player__name > strong {
+    display: block;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .th-player__stats {
+    display: flex;
+    gap: 10px;
+    color: #81909b;
+    font-size: 10px;
+    text-align: center;
+  }
+  .th-player__stats strong {
+    display: block;
+    color: #2a3c31;
+    font-size: 13px;
+  }
+  .th-chevron {
+    color: #667e6d;
+    font-size: 23px;
+  }
+  .th-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    margin: 14px 0 20px;
+    padding: 14px 0;
+    border: 1px solid #ebefeb;
+    border-radius: 5px;
+  }
+  .th-stat-grid > div {
+    text-align: center;
+    border-right: 1px solid #e8eee8;
+  }
+  .th-stat-grid > div:last-child {
+    border: 0;
+  }
+  .th-stat-grid span {
+    display: block;
+    font-size: 11px;
+    color: #7d8998;
+  }
+  .th-stat-grid strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 23px;
+    color: #144931;
+  }
+  .th-subheading {
+    margin: 17px 0 8px !important;
+    color: #194b32;
+  }
+  .th-standings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .th-standings > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #fcfdfb;
+    border: 1px solid #e9eeea;
+    border-radius: 5px;
+  }
+  .th-standings .th-icon {
+    width: 27px;
+    height: 27px;
+    color: #b47f34;
+  }
+  .th-standings strong {
+    display: block;
+    font-size: 14px;
+  }
+  .th-standings small {
+    color: #829099;
+    font-size: 11px;
+  }
+  .th-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid #e8eee8;
+    border-radius: 5px;
+    padding: 12px 0;
+    text-align: center;
+  }
+  .th-metrics > div {
+    border-right: 1px solid #e8eee8;
+  }
+  .th-metrics > div:last-child {
+    border: 0;
+  }
+  .th-metrics span {
+    display: block;
+    color: #84929d;
+    font-size: 12px;
+  }
+  .th-metrics strong {
+    display: block;
+    font-size: 21px;
+  }
+  .th-data-note {
+    margin-top: 15px !important;
+  }
+  .th-profile-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+    padding: 8px 0 20px;
+  }
+  .th-profile-facts > div {
+    padding-right: 10px;
+    border-right: 1px solid #e5ebe5;
+    min-width: 0;
+  }
+  .th-profile-facts > div:last-child {
+    border: 0;
+  }
+  .th-profile-facts small {
+    display: block;
+    color: #8693a1;
+  }
+  .th-profile-facts strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .th-profile-copy {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: #52646f;
+  }
+  .th-profile-copy .th-icon {
+    color: #376c4c;
+  }
+  .th-profile-copy h3 {
+    color: #25442f;
+    margin-bottom: 4px;
+  }
+  .th-profile-copy p {
+    font-size: 13px;
+  }
+  .th-profile-block {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9eee9;
+  }
+  .th-profile-block h2 {
+    font-size: 22px;
+  }
+  .th-timeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin: 16px 0 8px;
+  }
+  .th-timeline__dot {
+    width: 11px;
+    height: 11px;
+    border: 3px solid #3c7752;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+  .th-timeline p,
+  .th-profile-block > p {
+    color: #81908d;
+    font-size: 12px;
+  }
+  .th-profile-history {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 18px;
+    border-top: 1px solid #e9eee9;
+    padding-top: 15px;
+  }
+  .th-profile-history .th-empty {
+    padding: 14px 5px;
+    text-align: left;
+  }
+  .th-transfer-note {
+    margin-top: 25px;
+    padding: 17px;
+    background: #f2f7f1;
+    border: 1px solid #e8eee5;
+    border-radius: 5px;
+    color: #7e8b92;
+    font-size: 12px;
+  }
+  .th-transfer-note h3 {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    color: #2c5d3e;
+    margin-bottom: 8px;
+  }
+  .th-empty {
+    padding: 32px 12px;
+    text-align: center;
+    color: #87938c;
+    font-size: 13px;
+  }
+  .th-empty strong {
+    display: block;
+    color: #708176;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .th-empty p {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  .th-welcome {
+    text-align: center;
+    padding: 30px 22px;
+  }
+  .th-welcome .th-empty strong {
+    color: #214e35;
+    font-size: 24px;
+  }
+  .th-discover {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 32px;
+  }
+  .th-discover [data-team-control] {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    padding: 14px 8px;
+    background: #fff;
+    border: 1px solid #e5ebe5;
+    color: #526a5b;
+    font-size: 12px;
+  }
+  .th-inline-error {
+    padding: 8px 0;
+    color: #a1604e;
+    font-size: 12px;
+  }
+  .th-inline-error [data-team-control] {
+    margin-left: 8px;
+    padding: 2px 5px;
+    color: #3b7151;
+    background: transparent;
+    border: 0;
+  }
+  .th-team-cover {
+    background-color: #edf3e9;
+    background-image:
+      linear-gradient(
+        105deg,
+        rgba(247, 250, 244, 0.98),
+        rgba(241, 247, 236, 0.9) 48%,
+        rgba(234, 243, 227, 0.55)
+      ),
+      url('../../assets/home-visual/home-campus-football-1200.webp');
+    background-size: cover;
+    background-position:
+      center,
+      center 44%;
+    background-repeat: no-repeat;
+  }
+  .th-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    padding: 22px 24px;
+    margin-bottom: 14px;
+    border: 1px solid #e1e9dc;
+    border-radius: 9px;
+  }
+  .th-hero__identity {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 0;
+  }
+  .th-hero__identity > .team-crest {
+    width: 100px;
+    height: 120px;
+  }
+  .th-hero__title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .th-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #3a7950;
+    background: #e3f1e6;
+  }
+  .th-source-badge {
+    margin-left: 10px;
+    vertical-align: middle;
+    font-weight: 500;
+  }
+  .th-hero__identity p {
+    color: #7d8b99;
+    margin-top: 5px;
+    font-size: 13px;
+  }
+  .th-hero__motto {
+    max-width: 640px;
+  }
+  .th-hero__facts {
+    display: flex;
+    margin-top: 14px;
+  }
+  .th-hero__facts > span {
+    min-width: 90px;
+    padding: 0 16px;
+    text-align: center;
+    border-right: 1px solid #dfe7de;
+    color: #839188;
+    font-size: 11px;
+  }
+  .th-hero__facts > span:first-child {
+    padding-left: 0;
+  }
+  .th-hero__facts > span:last-child {
+    border: 0;
+  }
+  .th-hero__facts strong {
+    display: block;
+    color: #234530;
+    font-size: 18px;
+  }
+  .th-hero__actions {
+    flex: 0 0 215px;
+    padding: 14px;
+    border: 1px solid #e6ece6;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .th-actions {
+    display: grid;
+    gap: 9px;
+  }
+  .th-actions .th-text-button {
+    font-size: 12px !important;
+  }
+  .th-scrim {
+    position: fixed;
+    z-index: 1600;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background: rgba(17, 33, 24, 0.36);
+    backdrop-filter: blur(4px);
+  }
+  .th-scrim--detail {
+    z-index: 1950;
+  }
+  .th-detail-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(1400px, 100%);
+    max-height: calc(100vh - 60px);
+    overflow: hidden;
+    border-radius: 10px;
+    background: #f7f9f5;
+    box-shadow: 0 16px 80px rgba(20, 42, 26, 0.2);
+    animation: th-enter 170ms ease-out;
+  }
+  .th-modal-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 20px;
+    color: #819086;
+    border-bottom: 1px solid #e6ece5;
+    font-size: 12px;
+  }
+  .th-detail-modal__content {
+    overflow: auto;
+    padding: 14px 20px 20px;
+    scrollbar-width: thin;
+  }
+  .th-picker {
+    width: min(640px, 100%);
+    max-height: calc(100vh - 80px);
+    padding: 22px;
+    overflow: auto;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 16px 80px rgba(20, 42, 26, 0.18);
+    animation: th-enter 160ms ease-out;
+  }
+  .th-picker h2 {
+    font-size: 22px;
+  }
+  .th-search {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #dfe7df;
+    border-radius: 5px;
+    background: #fafcf9;
+    color: #788d7d;
+  }
+  .th-search [aria-label='搜索球队'],
+  .th-search [aria-label='搜索球队或球员'] {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: #324c3c;
+    font-size: 14px;
+  }
+  .th-root .th-search [aria-label='搜索球队']:focus-visible,
+  .th-root .th-search [aria-label='搜索球队或球员']:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+  .th-search [data-team-control]:focus-visible {
+    outline: 0;
+  }
+  .th-search [type='button'] {
+    display: flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #728a78;
+  }
+  .th-picker__summary {
+    margin: 15px 0 10px;
+    color: #849087;
+    font-size: 12px;
+  }
+  .th-picker__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    max-height: 430px;
+    overflow: auto;
+    padding: 2px;
+  }
+  .th-picker__team {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid #e3eae3;
+    background: white;
+    color: #3c5546;
+    text-align: left;
+  }
+  .th-picker__team .team-crest {
+    width: 38px;
+    height: 44px;
+  }
+  .th-picker__team > span {
+    min-width: 0;
+  }
+  .th-picker__team strong {
+    display: block;
+    font-size: 13px;
+  }
+  .th-picker__team small {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: #8b988f;
+    overflow-wrap: anywhere;
+  }
+  .th-picker__team.is-selected {
+    border-color: #84b693;
+    background: #f0f8f1;
+  }
+  .th-picker__check {
+    margin-left: auto;
+    color: #357b4c;
+  }
+  .th-picker__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 17px;
+    padding-top: 14px;
+    border-top: 1px solid #e9eee7;
+    font-size: 12px;
+  }
+  .th-player-picker .th-picker__list {
+    grid-template-columns: 1fr;
+  }
+  .th-player-result {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 10px;
+    border-bottom: 1px solid #e8eee6;
+  }
+  .th-player-result > span {
+    flex: 1;
+  }
+  .th-player-result small {
+    display: block;
+    color: #82908a;
+  }
+  &.th-hub-dialog {
+    width: min(540px, calc(100vw - 48px));
+    max-width: 560px;
+    background: #f7fbf6;
+  }
+  .th-hub-search {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 20px 0;
+  }
+  .th-hub-search .th-search {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-color: #cfe0d2;
+    background: #fff;
+  }
+  .th-hub-search.is-discover .th-search {
+    border-color: #9cc4a4;
+    box-shadow: 0 0 0 3px rgba(122, 168, 128, 0.16);
+  }
+  .th-hub-search__back {
+    width: 36px;
+    height: 36px;
+    color: #2f6144;
+    background: #e7f2e8;
+  }
+  .th-hub-dialog .th-inline-error {
+    flex: 0 0 auto;
+    margin: 8px 20px 0;
+  }
+  .th-hub-dialog__body {
+    padding: 8px 16px 10px;
+  }
+  .th-hub-dialog__body > :last-child {
+    margin-bottom: 0;
+  }
+  .th-hub-hint {
+    margin: 24px 0;
+    color: #7d8c80;
+    text-align: center;
+    font-size: 13px;
+  }
+  .th-hub-discover {
+    display: grid;
+    gap: 16px;
+  }
+  .th-hub-discover h3 {
+    margin: 4px 6px 8px;
+    color: #2c5d3e;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .th-hub-row {
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border: 1px solid #e3eee4;
+    border-radius: 10px;
+    background: #fff;
+    color: #24362c;
+    text-align: left;
+  }
+  .th-hub-row__copy {
+    min-width: 0;
+    flex: 1 1 auto;
+    text-align: left;
+  }
+  .th-hub-row strong,
+  .th-hub-row small {
+    display: block;
+    text-align: left;
+  }
+  .th-hub-row small {
+    margin-top: 2px;
+    color: #7d8c80;
+    font-size: 11px;
+  }
+  .th-hub-row__kind {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #e8f2ea;
+    color: #3a6b4c;
+    font-size: 10px;
+    font-weight: 650;
+    font-style: normal;
+    letter-spacing: 0.02em;
+    vertical-align: 1px;
+  }
+  .th-hub-row__kind--home {
+    background: #cfe8d4;
+    color: #24563a;
+  }
+  .th-hub-followed {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .th-hub-row .th-text-button,
+  .th-hub-row .th-icon-button {
+    flex: 0 0 auto;
+  }
+  .th-hub-row--pinned {
+    cursor: default;
+    background: #f3faf4;
+    border-color: #d5ead8;
+  }
+  .th-hub-row .team-crest {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 38px;
+  }
+  .th-hub-row .user-avatar {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+  }
+  .th-hub-row .th-soft-button {
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 4px 10px;
+  }
+  .th-hub-row .th-soft-button.is-followed {
+    color: #355f45;
+    background: #dceee1;
+  }
+  .th-hub-sort {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    user-select: none;
+  }
+  .th-hub-sort .th-hub-row:last-child,
+  .th-hub-followed > :last-child {
+    margin-bottom: 0;
+  }
+  .th-hub-sort.is-dragging {
+    touch-action: none;
+    cursor: grabbing;
+  }
+  .th-hub-row--sort {
+    position: relative;
+    cursor: grab;
+    touch-action: none;
+    transition: transform 420ms cubic-bezier(0.22, 1.18, 0.36, 1);
+  }
+  .th-hub-row--sort.is-lifted {
+    transition: none;
+    cursor: grabbing;
+    border-color: #b7d4bb;
+    background: #fff;
+    box-shadow: 0 16px 32px rgba(32, 74, 48, 0.2);
+  }
+  .th-hub-row__grip {
+    display: inline-flex;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 36px;
+    color: #8aa392;
+    pointer-events: none;
+  }
+  .th-spotlight {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .th-spotlight:has(.th-spotlight__card:only-child) {
+    grid-template-columns: 1fr;
+  }
+  .th-spotlight__card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    min-height: 112px;
+    padding: 12px 16px 14px;
+    border: 1px solid #d7e6d9;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fcf7 0%, #eef6ef 100%);
+    color: #20362a;
+    text-align: left;
+  }
+  .th-spotlight__card:hover {
+    border-color: #b7d0bb;
+    background: linear-gradient(180deg, #f4faf4 0%, #e6f2e8 100%);
+  }
+  .th-spotlight__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+  }
+  .th-spotlight__meta small {
+    min-width: 0;
+    color: #7a8a7f;
+    font-size: 12px;
+    line-height: 18px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .th-spotlight__meta small i {
+    margin: 0 6px;
+    color: #b3c0b6;
+    font-style: normal;
+  }
+  .th-spotlight__status {
+    flex: 0 0 auto;
+    display: inline-flex;
+  }
+  .th-spotlight__status > * {
+    min-height: 0 !important;
+    height: 20px;
+    padding: 0 7px !important;
+    border-radius: 999px !important;
+    font-size: 11px !important;
+    line-height: 20px !important;
+  }
+  .th-spotlight__teams {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+  }
+  .th-spotlight__side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .th-spotlight__side--home {
+    justify-content: flex-end;
+  }
+  .th-spotlight__side--away {
+    justify-content: flex-start;
+  }
+  .th-spotlight__side strong {
+    min-width: 0;
+    color: #183526;
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .th-spotlight__side .team-crest {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 44px;
+  }
+  .th-spotlight__teams em {
+    min-width: 52px;
+    font-style: normal;
+    font-weight: 800;
+    color: #163d28;
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .th-spotlight__teams em.is-score {
+    font-size: 24px;
+    letter-spacing: 0.02em;
+  }
+  .th-spotlight__teams em.is-vs {
+    color: #4d6d58;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+  }
+  .th-feed--compact .th-heading {
+    min-height: 32px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+  .th-feed--compact .th-post {
+    gap: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+  .th-feed--compact .th-post__text {
+    margin-top: 4px !important;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .th-feed--compact .th-post__images {
+    margin-top: 6px;
+  }
+  .th-feed--compact .th-post__images--single img {
+    max-height: 150px;
+    aspect-ratio: 2.6;
+  }
+  .th-feed--compact .th-post__footer {
+    margin-top: 6px;
+  }
+  .team-name-link {
+    cursor: pointer;
+    transition: color 160ms ease;
+  }
+  .team-name-link:hover,
+  .player-team-link:hover,
+  .experience-scoreboard__team--linked:hover {
+    color: #527b60;
+  }
+  .schedule-row__team:hover,
+  .schedule-primary-team:hover strong,
+  .data-desktop a[href*='readonly-team-detail']:hover,
+  .team-card:hover .team-card__name,
+  .tournament-team:hover .tournament-team__name {
+    color: #527b60;
+  }
+  .team-crest--interactive {
+    cursor: pointer;
+  }
+}
+@media (min-width: 721px) {
+  .team-trigger {
+    display: inline-flex;
+    min-width: 0;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  .team-trigger:focus-visible {
+    outline: 2px solid #719a7c;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  .th-roster > .player-trigger {
+    display: block;
+    border-radius: 5px;
+  }
+  .th-roster .th-player {
+    width: 100%;
+  }
+  .player-profile-inline {
+    font:
+      14px/1.5 -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Microsoft YaHei',
+      sans-serif;
+    color: #24372d;
+    background: #f4f7f5;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .player-profile-inline [type] {
+    cursor: pointer;
+    font: inherit;
+    border: 0;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .player-profile-inline [type]:focus-visible {
+    outline: 2px solid #719a7c;
+    outline-offset: 3px;
+  }
+  .team-hover-card {
+    position: fixed;
+    z-index: 2300;
+    width: min(336px, calc(100vw - 32px));
+    padding: 0 16px 12px;
+    color: #263d2f;
+    background: #fff;
+    border: 1px solid #e4ece4;
+    border-radius: 12px;
+    box-shadow: 0 15px 48px rgba(22, 47, 29, 0.15);
+    font:
+      13px/1.5 -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Microsoft YaHei',
+      sans-serif;
+  }
+  .team-hover-card__cover {
+    position: relative;
+    margin: 0 -16px;
+    padding: 34px 16px 12px;
+    border-radius: 11px 11px 0 0;
+  }
+  .team-hover-card .team-hover-card__identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 0;
+    color: #263d2f;
+    text-align: left;
+    border-radius: 4px;
+  }
+  .team-hover-card__identity:hover strong {
+    color: #3f6f4b;
+  }
+  .team-hover-card .team-hover-card__follow {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    gap: 5px;
+    padding: 4px 9px;
+    border: 1px solid rgba(81, 116, 72, 0.2);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.86);
+    color: #456e4e;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .team-hover-card__follow svg {
+    width: 13px;
+    height: 13px;
+  }
+  .team-hover-card__follow[aria-pressed='true'] {
+    background: #e4efdf;
+  }
+  .team-hover-card__follow[aria-pressed='true'] svg {
+    fill: #669171;
+  }
+  .team-hover-card__follow:disabled {
+    cursor: default;
+  }
+  .team-hover-card__follow[aria-busy='true'] {
+    opacity: 0.6;
+  }
+  .team-hover-card__identity .team-crest {
+    width: 54px;
+    height: 64px;
+  }
+  .team-hover-card__identity > div {
+    min-width: 0;
+  }
+  .team-hover-card__identity strong {
+    display: block;
+    font-size: 19px;
+  }
+  .team-hover-card__identity span {
+    display: block;
+    color: #6f8172;
+    font-size: 12px;
+  }
+  .team-hover-card__identity small {
+    display: block;
+    color: #788c78;
+    margin-top: 5px;
+  }
+  .team-hover-card__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 0;
+    padding: 10px 0;
+    border-bottom: 1px solid #edf1eb;
+    text-align: center;
+  }
+  .team-hover-card__stats > div + div {
+    border-left: 1px solid #edf1eb;
+  }
+  .team-hover-card__stats strong {
+    display: block;
+    font-size: 19px;
+    color: #235236;
+  }
+  .team-hover-card__stats span {
+    color: #91a090;
+    font-size: 11px;
+  }
+  .team-hover-card p {
+    margin: 9px 0 0;
+    color: #82927f;
+    font-size: 11px;
+  }
+  .team-hover-card :where([type]) {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border: 0;
+    color: #4b7758;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+  .team-hover-card [type]:focus-visible {
+    outline: 2px solid #719a7c;
+    outline-offset: 2px;
+  }
+  .team-hover-card__state {
+    display: grid;
+    gap: 10px;
+    min-height: 86px;
+    align-content: center;
+    color: #899889;
+    padding-top: 12px;
+  }
+  .team-hover-card .team-hover-card__error {
+    color: #a65c47;
+  }
+  .team-hover-card__error button {
+    margin-left: 8px;
+  }
+}
+@media (min-width: 721px) and (max-width: 1150px) {
+  .th-follow-strip {
+    gap: 8px;
+    padding: 8px;
+  }
+  .th-follow-strip__primary,
+  .th-follow-strip__teams {
+    padding-right: 14px;
+  }
+  .th-roster {
+    grid-template-columns: 1fr;
+  }
+  .th-surface {
+    padding: 14px;
+  }
+  .th-heading h2 {
+    font-size: 21px;
+  }
+  .th-columns {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+  .th-match {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .th-match__teams {
+    gap: 5px;
+  }
+  .th-match .th-team-link {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .th-stat-grid strong {
+    font-size: 20px;
+  }
+  .th-standings {
+    grid-template-columns: 1fr;
+  }
+  .th-discover {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 721px) and (max-width: 900px) {
+  .public-app--h5:has(.th-page) .public-content {
+    width: calc(100% - 36px);
+  }
+  .th-columns {
+    grid-template-columns: 1fr;
+  }
+  .th-spotlight {
+    grid-template-columns: 1fr;
+  }
+  .th-hero {
+    gap: 15px;
+  }
+  .th-hero__identity > .team-crest {
+    width: 72px;
+    height: 90px;
+  }
+  .th-hero__actions {
+    flex-basis: 180px;
+  }
+  .th-root h1 {
+    font-size: 25px;
+  }
+  .th-match .th-team-link {
+    flex-direction: row;
+  }
+  .th-roster,
+  .th-standings {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@keyframes th-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .th-root *,
+  .th-root,
+  .team-name-link {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Round 4 — viewport-fit hub: follow strip + tabs fixed, columns scroll inside and reach the bottom. */
+@media (min-width: 1024px) {
+  html:not([data-xq-short]) {
+    .th-page.xq-viewport-page {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .th-page > .th-follow-strip {
+      flex: 0 0 auto;
+    }
+    .th-page > .th-page__body {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .th-page__body > .th-tabs {
+      flex: 0 0 auto;
+    }
+    .th-page__body > .th-panel {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .th-page__body > .th-panel > .th-columns {
+      height: 100%;
+      grid-template-rows: minmax(0, 1fr);
+      align-items: stretch;
+    }
+    .th-page__body > .th-panel > .th-columns > .th-surface {
+      position: static;
+      align-self: stretch;
+      max-height: none;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+  }
+}
+
+/* Round 9 — 球队详情 modal: a larger dialog whose body never scrolls as a whole.
+   Header, hero and tabs stay put; only each tab's two modules scroll inside. */
+@media (min-width: 721px) {
+  .th-root.th-detail-modal.xq-dialog--wide {
+    width: min(1320px, calc(100vw - 48px));
+    height: min(880px, calc(100dvh - 40px));
+    max-height: min(880px, calc(100dvh - 40px));
+    border-radius: 18px;
+  }
+  .th-root.th-detail-modal > .th-modal-top.xq-dialog__header {
+    align-items: center;
+    padding: 14px 24px;
+  }
+  .th-root.th-detail-modal > .th-modal-top h2 {
+    font-size: 21px;
+  }
+  .th-root.th-detail-modal > .th-detail-modal__content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 18px 24px 22px;
+  }
+  .th-detail-modal__content > .th-detail-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .th-detail-body > .th-hero {
+    flex: 0 0 auto;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .th-detail-body > .th-hero h1 {
+    font-size: 32px;
+  }
+  .th-detail-body > .th-hero .th-hero__identity p {
+    font-size: 14px;
+  }
+  .th-detail-body > .th-hero .th-hero__facts strong {
+    font-size: 20px;
+  }
+  .th-detail-body > .th-hero .th-hero__facts > span {
+    font-size: 12px;
+  }
+  .th-detail-body > .th-hero .th-hero__actions {
+    flex-basis: 236px;
+  }
+  .th-detail-body > .th-tabs {
+    flex: 0 0 auto;
+    margin: 0 0 16px;
+  }
+  .th-detail-body > .th-tabs [role='tab'] {
+    height: 44px;
+    font-size: 15px;
+  }
+  .th-detail-body > .th-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .th-detail-body > .th-panel > .th-columns {
+    height: 100%;
+    gap: 16px;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .th-detail-body > .th-panel > .th-columns > .th-surface {
+    position: static;
+    align-self: stretch;
+    max-height: none;
+    min-height: 0;
+    padding: 20px 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    font-size: 15px;
+  }
+  .th-detail-body .th-heading h2 {
+    font-size: 23px;
+  }
+  /* Short effective viewports keep the old whole-body scroll so nothing is clipped. */
+  html[data-xq-short] .th-root.th-detail-modal > .th-detail-modal__content {
+    display: block;
+    overflow-y: auto;
+  }
+  html[data-xq-short] .th-detail-body > .th-panel > .th-columns {
+    height: auto;
+  }
+  html[data-xq-short] .th-detail-body > .th-panel > .th-columns > .th-surface {
+    max-height: 70vh;
+  }
+}
+
+/* Round 9: 入队申请 dialog (replaces the inline select/input form). */
+@media (min-width: 721px) {
+  .th-join-scrim {
+    position: fixed;
+    z-index: 2100;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(13, 28, 19, 0.42);
+    backdrop-filter: blur(3px);
+    animation: th-join-fade 140ms ease-out;
+  }
+  .th-join-dialog {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: min(520px, 100%);
+    max-height: calc(100dvh - 48px);
+    overflow: hidden;
+    border-radius: 16px;
+    color: #1f3427;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(9, 26, 16, 0.26);
+    animation: th-join-rise 160ms ease-out;
+  }
+  .th-join-dialog__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #edf1ec;
+  }
+  .th-join-dialog__header > div {
+    flex: 1;
+    min-width: 0;
+  }
+  .th-join-dialog__header small {
+    display: block;
+    color: #4f7d5e;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .th-join-dialog__header h2 {
+    margin: 3px 0 0;
+    overflow: hidden;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .th-join-dialog__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: #36503f;
+    background: #f0f4f0;
+  }
+  .th-join-dialog__close:hover {
+    background: #e4ece5;
+  }
+  .th-join-dialog__close svg {
+    width: 16px;
+    height: 16px;
+  }
+  .th-join-dialog__body {
+    display: grid;
+    gap: 18px;
+    padding: 20px 24px 4px;
+    overflow-y: auto;
+  }
+  .th-join-positions {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  .th-join-positions legend,
+  .th-join-note > span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 0;
+    color: #3d5546;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .th-join-note em {
+    color: #93a196;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+  }
+  .th-join-positions [role='radiogroup'] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .th-join-position {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 12px 6px 11px;
+    border: 1px solid #dfe7e0;
+    border-radius: 12px;
+    color: #31483a;
+    background: #fbfcfb;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .th-join-position:hover:not(:disabled) {
+    border-color: #b9d0bf;
+    background: #f4f9f5;
+  }
+  .th-join-position b {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin-bottom: 4px;
+    border-radius: 50%;
+    color: #3b6a4b;
+    background: #e9f2eb;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .th-join-position strong {
+    font-size: 14px;
+    font-weight: 750;
+  }
+  .th-join-position small {
+    color: #8a978d;
+    font-size: 11px;
+  }
+  .th-join-position.is-selected {
+    border-color: #2f6b47;
+    background: #f1f8f3;
+    box-shadow: 0 0 0 3px rgba(47, 107, 71, 0.12);
+  }
+  .th-join-position.is-selected b {
+    color: #fff;
+    background: #245c40;
+  }
+  .th-join-position:focus-visible {
+    outline: 2px solid rgba(47, 107, 71, 0.45);
+    outline-offset: 2px;
+  }
+  .th-join-note {
+    position: relative;
+    display: block;
+  }
+  .th-join-note .th-join-note__field {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 104px;
+    padding: 11px 13px 24px;
+    border: 1px solid #dbe4dc;
+    border-radius: 12px;
+    outline: none;
+    color: #23382b;
+    background: #fbfcfb;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background 0.15s ease;
+  }
+  .th-join-note .th-join-note__field::placeholder {
+    color: #a3afa6;
+  }
+  .th-join-note .th-join-note__field:focus,
+  .th-join-note .th-join-note__field:focus-visible {
+    border-color: #4c8a5f;
+    outline: none !important;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(56, 103, 71, 0.13);
+  }
+  .th-join-note > small {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    color: #9aa79d;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .th-join-dialog__hint {
+    margin: -4px 0 0;
+    color: #87958b;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .th-join-dialog__error {
+    margin: 0;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: #9a3f33;
+    background: #fbefec;
+    font-size: 12px;
+  }
+  .th-join-dialog__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 24px 22px;
+  }
+  .th-join-dialog__footer .th-join-dialog__action {
+    min-width: 96px;
+    min-height: 38px;
+    border-radius: 10px;
+  }
+  @keyframes th-join-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes th-join-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+}
+
+/* Round 11 — team schedule rows: 2-line date block, centered matchup, venue secondary. */
+@media (min-width: 721px) {
+  .th-match {
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    padding: 14px 10px;
+    margin: 0 -10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 140ms ease;
+  }
+  .th-match:focus-visible {
+    outline: 2px solid #9b7f37;
+    outline-offset: -2px;
+  }
+  .th-match__date {
+    gap: 4px;
+    min-width: 0;
+    padding-right: 12px;
+    white-space: nowrap;
+  }
+  .th-match__date strong {
+    overflow: hidden;
+    color: #2b3b31;
+    font-size: 13px;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+  }
+  .th-match__date span {
+    overflow: hidden;
+    color: #7b8a80;
+    font-size: 11px;
+    text-overflow: ellipsis;
+  }
+  .th-match__main {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .th-match__teams {
+    width: 100%;
+    max-width: 420px;
+    grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .th-match__teams > .team-trigger:first-child,
+  .th-match__teams > .th-team-link--mirrored {
+    justify-self: end;
+  }
+  .th-match__teams > :last-child {
+    justify-self: start;
+  }
+  .th-match__teams .team-trigger {
+    display: inline-flex;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .th-match .th-team-link,
+  .th-match .th-team-link--mirrored {
+    max-width: 100%;
+    flex-direction: row;
+    gap: 8px;
+  }
+  .th-match .th-team-link--mirrored {
+    flex-direction: row-reverse;
+  }
+  .th-match .th-team-link > span {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .th-match .th-score {
+    justify-self: center;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .th-match__venue {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #8a96a0;
+    font-size: 11px;
+  }
+  .th-match__venue .th-icon {
+    width: 13px;
+    height: 13px;
+  }
+}
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+  .th-match:hover {
+    background: #f0f5ee;
+  }
+}
+
+/* Round 12 — legibility audit (desktop 我的/主队). */
+@media (min-width: 721px) {
+  .th-page .th-spotlight__meta small,
+  .th-page .th-post__byline,
+  .th-page .th-post__byline time,
+  .th-page .th-post__footer .th-muted,
+  .th-page .th-post__footer [type='button'] {
+    font-size: 13px;
+  }
+  .th-page .th-match__date span,
+  .th-page .th-match__venue {
+    font-size: 13px;
+  }
+  .th-page .match-status {
+    font-size: 12px;
+  }
+}
+
+/* Round 13 — the team banner is the team's stored 2.80:1 background (captain upload or the
+   pre-cropped default) in one 2.80:1 frame, the same frame as the captain 球队管理 header.
+   Name, facts and actions sit on a soft white backing over the image. */
+@media (min-width: 721px) {
+  .th-hero.th-team-banner,
+  .th-detail-body > .th-hero.th-team-banner {
+    position: relative;
+    display: grid;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    aspect-ratio: 2.8;
+    background: #1d4f33;
+    isolation: isolate;
+  }
+  .th-team-banner > .th-team-banner__img,
+  .th-team-banner > .th-team-banner__panel {
+    grid-area: 1 / 1;
+  }
+  .th-team-banner__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+  }
+  .th-team-banner__panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    align-self: end;
+    justify-content: space-between;
+    gap: 24px;
+    min-width: 0;
+    margin: 12px;
+    padding: 12px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.74);
+    box-shadow: 0 8px 26px rgba(10, 35, 20, 0.16);
+    backdrop-filter: blur(10px) saturate(1.1);
+  }
+  .th-team-banner .th-hero__identity > .team-crest {
+    width: 72px;
+    height: 86px;
+  }
+}
+@media (min-width: 721px) {
+  .team-hover-card .team-hover-card__cover {
+    padding-top: 0;
+  }
+  .team-hover-card__banner {
+    display: block;
+    width: calc(100% + 32px);
+    margin: 0 -16px 12px;
+    aspect-ratio: 2.8;
+    object-fit: cover;
+    border-radius: 11px 11px 0 0;
+    user-select: none;
+  }
+}

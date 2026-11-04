@@ -1,0 +1,64 @@
+.test-role-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(20 36 29 / 35%);
+}
+.test-role-dialog {
+  width: min(440px, 100%);
+  padding: 24px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 20px 70px rgb(0 0 0 / 18%);
+  color: #223c30;
+}
+.test-role-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.test-role-dialog h2 {
+  margin: 0;
+  font-size: 21px;
+}
+.test-role-dialog p {
+  margin: 16px 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.test-role-dialog button {
+  min-height: 44px;
+  border: 1px solid #dce6df;
+  border-radius: 10px;
+  background: #f7faf8;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.test-role-dialog header button {
+  width: 44px;
+  font-size: 25px;
+}
+.test-role-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.test-role-options button:hover {
+  background: #eaf2ed;
+}
+.test-role-dialog button:focus-visible {
+  outline: 2px solid #438563;
+  outline-offset: 3px;
+}
+.test-role-dialog button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.test-role-dialog [role='alert'] {
+  color: #984a38;
+}

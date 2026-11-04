@@ -1,0 +1,825 @@
+/* postcss-pxtransform disable */
+@use '../../pages/readonly-match-detail/index';
+
+.experience-scoreboard .experience-scoreboard__score .experience-scoreboard__result {
+  margin: 0;
+  color: #fff;
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.experience-scoreboard .experience-scoreboard__score .experience-scoreboard__penalty {
+  margin-top: 6px;
+  color: #d7c680;
+  font-size: 12px;
+}
+.experience-scoreboard__name {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.experience-scoreboard__inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 48px;
+  font-weight: 900;
+  color: white;
+}
+.experience-scoreboard__input {
+  box-sizing: border-box;
+  width: 74px;
+  height: 72px;
+  padding: 0;
+  color: white;
+  background: #ffffff12;
+  border: 1px solid #d5e2cc8c;
+  border-radius: 5px;
+  font: inherit;
+  text-align: center;
+  appearance: textfield;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+  }
+}
+.rating-choice {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.rating-form__hint {
+  display: block;
+  margin-top: 8px;
+  color: #7a847d;
+  font-size: 11px;
+}
+.rating-distribution {
+  display: flex;
+  gap: 18px;
+  margin-top: 10px;
+}
+.rating-distribution__item {
+  display: grid;
+  grid-template-columns: auto 42px auto;
+  align-items: center;
+  gap: 6px;
+  color: #667368;
+  font-size: 11px;
+  i {
+    height: 5px;
+    overflow: hidden;
+    background: #e4e9e2;
+    border-radius: 3px;
+  }
+  b {
+    display: block;
+    height: 100%;
+    background: #b59a4b;
+  }
+  strong {
+    color: #28442f;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+.match-comment-entry {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 12px;
+  padding: 14px 0;
+  color: #738078;
+  font-size: 12px;
+  [type='button'] {
+    padding: 8px 16px;
+    color: #224e34;
+    background: #fff;
+    border: 1px solid #c9d5c8;
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+.match-comment-form {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #d4ddd2;
+  border-radius: 6px;
+  .match-comment-form__label {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .match-comment-form__textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 85px;
+    padding: 12px;
+    resize: vertical;
+    border: 1px solid #d4ddd2;
+    border-radius: 4px;
+    font: inherit;
+    font-size: 13px;
+  }
+  > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .match-comment-form__count {
+    margin-right: auto;
+    color: #7a847d;
+    font-size: 11px;
+  }
+  [type='button'],
+  [type='submit'] {
+    padding: 8px 14px;
+    border: 1px solid #c9d5c8;
+    border-radius: 4px;
+    background: #f6f7f0;
+    color: #31543b;
+    cursor: pointer;
+  }
+  [type='submit'] {
+    color: #fff;
+    background: #234b33;
+    border-color: #234b33;
+  }
+  [type]:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+@media (min-width: 721px) {
+  .match-dialog.xq-dialog {
+    container-type: size;
+    container-name: match-dlg;
+  }
+  .match-dialog.xq-dialog > .match-dialog__bar {
+    min-height: 48px;
+    padding: 8px 16px;
+  }
+  .match-dialog .experience-match-header {
+    padding: 6px 16px 8px;
+  }
+  .match-dialog .experience-match-header__date {
+    margin-top: 2px;
+  }
+  .match-dialog .experience-match-header__venue {
+    margin-top: 0;
+  }
+  .match-dialog .experience-scoreboard {
+    margin-top: 4px;
+    gap: 10px;
+  }
+  .match-dialog .experience-scoreboard .team-crest {
+    width: 40px;
+    height: 40px;
+  }
+  .match-dialog
+    .experience-scoreboard
+    .experience-scoreboard__score
+    .experience-scoreboard__result {
+    font-size: 36px;
+  }
+  .match-dialog .match-detail-tabs {
+    margin-top: 8px;
+  }
+  .match-dialog .match-horizontal-lineups__heading {
+    padding-bottom: 6px;
+  }
+  .match-dialog .match-horizontal-pitch {
+    /* Real 105×68 pitch sized from the dialog height (see panels.h5.scss); no forced height. */
+    height: auto;
+  }
+  .experience-match-header__context {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .experience-match-header__context .experience-match-header__date,
+  .experience-match-header__context .experience-match-header__venue {
+    margin: 0;
+  }
+  .experience-match-header {
+    position: relative;
+    padding: 12px 24px 16px;
+    border-bottom-width: 3px;
+  }
+  .experience-match-header__date {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  .experience-match-header__venue {
+    margin-top: 3px;
+  }
+  .experience-scoreboard {
+    grid-template-columns: minmax(0, 1fr) 190px minmax(0, 1fr);
+    max-width: 680px;
+    margin: 12px auto 0;
+    gap: 22px;
+  }
+  .experience-scoreboard__team {
+    gap: 7px;
+    cursor: default;
+  }
+  .experience-scoreboard .team-crest {
+    width: 68px;
+    height: 68px;
+  }
+  .match-summary {
+    margin-top: 12px;
+    padding: 10px 14px;
+  }
+  .match-detail-tabs {
+    max-width: none;
+    margin: 16px 0 0;
+    padding: 3px;
+  }
+  .match-detail-tab {
+    min-height: 36px;
+    line-height: 36px;
+    font-size: 12px;
+  }
+  .match-tab-content {
+    margin-top: 16px;
+  }
+  .rating-overview {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+  .rating-overview__score {
+    min-height: 92px;
+    padding: 14px;
+  }
+  .rating-overview__score text:first-child {
+    font-size: 32px;
+  }
+  .rating-overview__score text:nth-child(2) {
+    margin-top: 5px;
+    font-size: 13px;
+  }
+  .rating-overview__score text:last-child {
+    margin-top: 4px;
+  }
+  .rating-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 20px;
+  }
+  .rating-form__title {
+    font-size: 13px;
+  }
+  .rating-stars {
+    margin: 5px 0 0;
+  }
+  .rating-star {
+    width: 30px;
+    height: 32px;
+    font-size: 25px;
+    line-height: 32px;
+  }
+  .rating-form__submit {
+    width: auto;
+    min-height: 32px;
+    margin: 0;
+    padding: 6px 15px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .match-review-section {
+    margin-top: 0;
+  }
+  .match-review-section .product-section-heading__title {
+    font-size: 17px;
+  }
+  .match-review-section .product-section-heading__kicker {
+    display: none;
+  }
+  .match-review-section .product-section {
+    margin-top: 14px;
+  }
+  .match-review {
+    padding: 14px;
+  }
+}
+@media (min-width: 721px) and (max-width: 960px) {
+  .rating-distribution {
+    gap: 9px;
+  }
+  .rating-distribution__item {
+    grid-template-columns: auto auto;
+    i {
+      display: none;
+    }
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .experience-scoreboard__name:hover {
+    color: #d8c984;
+  }
+}
+
+// Existing match styling uses web pixel sizes; preserve them on H5 screens.
+@media (max-width: 720px) {
+  .match-dialog .match-detail-tab {
+    min-height: 44px;
+    line-height: 44px;
+  }
+  .match-dialog .rating-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .match-dialog .rating-overview__score,
+  .match-dialog .rating-form,
+  .match-dialog .rating-choice {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .match-dialog .rating-overview__score {
+    min-height: 112px;
+    padding: 16px;
+  }
+  .match-dialog .rating-choice {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .match-dialog .rating-form {
+    box-sizing: border-box;
+  }
+  .match-dialog .rating-form__submit {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .match-dialog .rating-star {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+  }
+  .match-dialog .match-review__actions button,
+  .match-dialog .match-review__actions taro-button-core {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 13px;
+    line-height: 44px;
+  }
+  .match-dialog .lineup-tabs button {
+    min-height: 44px;
+    line-height: 44px;
+  }
+}
+
+/* Round 5 — one-line comment composer: avatar · input · emoji · 发送. */
+.match-comment-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 18px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid #dfe7dc;
+  border-radius: 999px;
+  background: #fff;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+  &:focus-within {
+    border-color: #9cc4a6;
+    box-shadow: 0 0 0 3px rgba(76, 154, 98, 0.14);
+  }
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+  }
+  .match-comment-inline__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 34px;
+    padding: 0 4px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #1f3324;
+    font: inherit;
+    font-size: 14px;
+    &::placeholder {
+      color: #9aa59d;
+    }
+  }
+  .post-emoji-picker {
+    position: relative;
+    flex: none;
+  }
+  .match-comment-inline__send {
+    flex: none;
+    height: 34px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: #234b33;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      transform 120ms ease;
+    &:hover:not(:disabled) {
+      background: #2f6243;
+    }
+    &:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+    &:disabled {
+      background: #c9d5cc;
+      cursor: default;
+    }
+  }
+  &.is-disabled {
+    background: #f7f9f6;
+  }
+}
+.match-bulletin {
+  margin: 16px 0 18px;
+  padding: 16px 16px 14px;
+  background: #fff;
+  border: 1px solid #d5e3d8;
+  border-radius: 10px;
+}
+.match-bulletin__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.match-bulletin__kicker {
+  color: #3d7a54;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+.match-bulletin__meta {
+  color: #7c8a80;
+  font-size: 11px;
+}
+.match-bulletin__title {
+  margin: 0 0 8px;
+  color: #1f3324;
+  font-size: 17px;
+  line-height: 1.4;
+}
+.match-bulletin__body {
+  margin: 0 0 12px;
+  color: #3f5346;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.match-bulletin__image {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #e8f2ea;
+}
+
+.match-dialog input:focus,
+.match-dialog textarea:focus,
+.match-dialog input:focus-visible,
+.match-dialog textarea:focus-visible {
+  outline: none;
+  border-color: #9cc4a6;
+  box-shadow: 0 0 0 3px rgba(76, 154, 98, 0.14);
+}
+.match-dialog button:focus-visible,
+.match-tab-content button:focus-visible {
+  outline: 2px solid #9cc4a6;
+  outline-offset: 2px;
+}
+
+.match-comment-inline .post-emoji-picker .post-tool {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 50%;
+  background: transparent;
+  color: #6f8476;
+  box-shadow: none;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+  &:hover:not(:disabled),
+  &[aria-expanded='true'] {
+    background: #eef4ee;
+    color: #2f6243;
+  }
+}
+
+/* Round 5 · 快报 (above 评分, above 评论) */
+.match-flash {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+}
+.match-flash__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.match-flash__badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent, #1f7a4d);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.match-flash__count {
+  color: var(--muted, #6b7280);
+  font-size: 12px;
+}
+.match-flash__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background 0.18s ease;
+}
+.match-flash__item:hover {
+  background: rgba(31, 122, 77, 0.06);
+}
+.match-flash__media {
+  position: relative;
+  width: 168px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e8ece9;
+}
+.match-flash__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.match-flash__gif {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.match-flash__text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.match-flash__text strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+.match-flash__body {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--muted, #4b5563);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.match-flash__meta {
+  color: var(--muted, #8a9099);
+  font-size: 12px;
+}
+
+/* Round 12: the dark hero uses its space — readable stage/date/venue, real-size crests and names;
+   an undecided side (待定) uses exactly the same crest box and name type as a real team. */
+.experience-scoreboard__name--static {
+  cursor: default;
+}
+@media (hover: hover) and (pointer: fine) {
+  .experience-scoreboard__name--static:hover {
+    color: inherit;
+  }
+}
+@media (min-width: 721px) {
+  .match-dialog .experience-match-header,
+  .experience-match-header {
+    padding: 14px 28px 18px;
+  }
+  .experience-match-header .experience-match-header__meta {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .experience-match-header .experience-match-header__context {
+    gap: 14px;
+    margin-top: 6px;
+  }
+  .experience-match-header .experience-match-header__date {
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .experience-match-header .experience-match-header__venue {
+    color: #d3e0d6;
+    font-size: 15px;
+  }
+  .match-dialog .experience-scoreboard,
+  .experience-scoreboard {
+    max-width: 760px;
+    margin-top: 12px;
+    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) 200px minmax(0, 1fr);
+  }
+  .match-dialog .experience-scoreboard .team-crest,
+  .experience-scoreboard .team-crest {
+    width: 76px;
+    height: 76px;
+  }
+  .experience-scoreboard .experience-scoreboard__team {
+    gap: 10px;
+  }
+  .experience-scoreboard .experience-scoreboard__name {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  .match-dialog
+    .experience-scoreboard
+    .experience-scoreboard__score
+    .experience-scoreboard__result {
+    font-size: 52px;
+  }
+  .experience-scoreboard .experience-scoreboard__score .experience-scoreboard__penalty {
+    font-size: 14px;
+  }
+}
+
+/* Round 12: 观赛评论 card — "⋯" menu (投诉) at the top-right, no 私聊, readable type. */
+.match-review {
+  position: relative;
+}
+.match-review__menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+.match-review__menu-trigger {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b766f;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.match-review__menu-trigger:hover,
+.match-review__menu-trigger[aria-expanded='true'] {
+  background: #eef3ef;
+  color: #1f3d2c;
+}
+.match-review__menu-list {
+  position: absolute;
+  z-index: 5;
+  top: 36px;
+  right: 0;
+  min-width: 112px;
+  padding: 6px;
+  border: 1px solid #dfe6e0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(18, 38, 26, 0.14);
+}
+.match-review__menu-list [type='button'] {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #9a3b2c;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.match-review__menu-list [type='button']:hover {
+  background: #fbefec;
+}
+@media (min-width: 721px) {
+  .match-review-list {
+    gap: 12px;
+  }
+  .match-dialog .match-review,
+  .match-review {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 16px;
+    padding: 18px 56px 18px 20px;
+    align-items: start;
+  }
+  .match-review .user-avatar {
+    width: 48px;
+    height: 48px;
+  }
+  .match-review .match-review__heading {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .match-review .match-review__heading text:first-child,
+  .match-review .match-review__heading .person-trigger,
+  .match-review .match-review__heading .person-trigger text {
+    color: #1a2820;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .match-review .match-review__heading text:nth-child(2) {
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+  .match-review .match-review__heading text:last-child {
+    margin-left: 0;
+    color: #7a847d;
+    font-size: 14px;
+  }
+  .match-review .match-review__body {
+    margin-top: 8px;
+    color: #2f3b34;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+}
+
+/* Round 12 — legibility audit (desktop match detail). */
+@media (min-width: 721px) {
+  .match-dialog .match-detail-tab,
+  .match-dialog .match-detail-tab text {
+    font-size: 14px;
+  }
+  .match-dialog .match-detail-tabs .match-detail-tab text:nth-child(2) {
+    font-size: 11px;
+  }
+  .match-dialog .rating-overview__score text:last-child {
+    font-size: 12px;
+  }
+  .match-flash__meta,
+  .match-review-section .product-section-heading__note {
+    font-size: 13px;
+  }
+  .match-dialog .rating-form .rating-form__submit {
+    font-size: 14px;
+  }
+}
+.match-adjudication-label {
+  padding: 5px 12px;
+  border-radius: 5px;
+  color: #735a21;
+  background: #f3ecd9;
+  font-size: 14px;
+  font-weight: 600;
+}
+.match-adjudication-link {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 7px 12px;
+  border: 1px solid #cbd7cd;
+  border-radius: 6px;
+  color: #28553d;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}

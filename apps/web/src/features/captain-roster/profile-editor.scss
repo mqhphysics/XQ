@@ -1,0 +1,117 @@
+.captain-profile {
+  margin-bottom: 20px;
+  padding: 22px;
+  color: var(--text, #273b32);
+  h3 {
+    margin: 0;
+    font-size: 18px;
+  }
+  p {
+    margin: 10px 0;
+    color: var(--text-soft, #6c7d73);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  button {
+    min-height: 38px;
+    padding: 8px 14px;
+    border: 1px solid #cfdbd3;
+    border-radius: 10px;
+    background: #f5faf6;
+    color: #23563a;
+    font: inherit;
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  input,
+  textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #cfdbd3;
+    border-radius: 10px;
+    background: #fff;
+    color: #273b32;
+    font: inherit;
+  }
+  input:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible {
+    outline: 2px solid #418057;
+    outline-offset: 3px;
+  }
+  textarea,
+  .captain-profile__textarea {
+    min-height: 110px;
+    max-height: 160px;
+    overflow: auto;
+    resize: vertical;
+  }
+  .captain-profile__error {
+    color: #a33f36;
+  }
+}
+.captain-profile__heading,
+.captain-profile__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.captain-profile__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+  label {
+    display: grid;
+    gap: 8px;
+  }
+}
+.captain-profile__wide {
+  grid-column: 1 / -1;
+}
+.captain-profile__actions span {
+  font-size: 13px;
+  color: #6c7d73;
+}
+.captain-profile__refresh {
+  margin-top: 12px;
+}
+@media (max-width: 600px) {
+  .captain-profile {
+    padding: 16px;
+  }
+  .captain-profile__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.captain-profile__motto-tags .captain-profile__tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.captain-profile__tag {
+  border: 1px solid #cfe0d4;
+  background: #eef7f0;
+  color: #2f5b3f;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.captain-profile__motto-tags input {
+  min-width: 140px;
+  flex: 1;
+}

@@ -1,0 +1,101 @@
+name: xiaoqiu-staging
+
+services:
+  migration:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.migration
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+    restart: 'no'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://replace-me:replace-me@postgres.invalid:5432/xiaoqiu}
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_VERSION: ${APP_VERSION:-staging}
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set the exact H5 and admin origins}
+      DEFAULT_ORGANIZATION_ID: ${DEFAULT_ORGANIZATION_ID:-}
+      DEFAULT_TOURNAMENT_ID: ${DEFAULT_TOURNAMENT_ID:-}
+      POST_MEDIA_DIRECTORY: /app/private-data/media/posts
+      ENABLE_DEMO_IDENTITY_RECOVERY: 'false'
+      DATABASE_URL: ${DATABASE_URL:-postgresql://replace-me:replace-me@postgres.invalid:5432/xiaoqiu}
+      SENTRY_DSN_API: ${SENTRY_DSN_API:-}
+    expose:
+      - '3000'
+    volumes:
+      - media_data:/app/private-data/media
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/health/ready').then((response)=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.worker
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_VERSION: ${APP_VERSION:-staging}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://replace-me:replace-me@postgres.invalid:5432/xiaoqiu}
+      SENTRY_DSN_WORKER: ${SENTRY_DSN_WORKER:-}
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+
+  admin-web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.admin-web
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.14.0-bookworm-slim}
+        PNPM_VERSION: ${PNPM_VERSION:-11.5.2}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.27.4-alpine}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api-staging.example.invalid/api}
+        VITE_ORGANIZATION_ID: ${DEFAULT_ORGANIZATION_ID:-}
+    restart: unless-stopped
+    expose:
+      - '80'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://127.0.0.1/healthz
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+volumes:
+  media_data:

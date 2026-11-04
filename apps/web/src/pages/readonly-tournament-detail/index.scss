@@ -1,0 +1,245 @@
+.tournament-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.65fr);
+  min-height: 300px;
+  color: #ffffff;
+  background: #183f2a;
+}
+
+.tournament-hero__main,
+.tournament-hero__aside {
+  padding: 40px;
+}
+
+.tournament-hero__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  color: #233126;
+  background: #e9d27a;
+}
+
+.tournament-hero__eyebrow,
+.tournament-hero__title,
+.tournament-hero__meta,
+.tournament-hero__copy,
+.tournament-hero__date,
+.tournament-hero__count {
+  display: block;
+}
+
+.tournament-hero__eyebrow {
+  color: #c4dfc9;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.tournament-hero__title {
+  max-width: 720px;
+  margin-top: 18px;
+  overflow-wrap: anywhere;
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.tournament-hero__meta {
+  margin-top: 14px;
+  color: #dbe8dd;
+  font-size: 15px;
+}
+
+.tournament-hero__copy {
+  max-width: 650px;
+  margin-top: 28px;
+  color: #e3ece5;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.tournament-hero__date {
+  margin-top: 24px;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.tournament-hero__count {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.tournament-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  background: #ffffff;
+  border: 1px solid #dce1dc;
+  border-top: 0;
+}
+
+.tournament-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(290px, 0.7fr);
+  gap: 28px;
+}
+
+.tournament-columns__main,
+.tournament-columns__aside {
+  min-width: 0;
+}
+
+.tournament-match-list,
+.rule-list {
+  overflow: hidden;
+}
+
+.tournament-match {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 92px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e5e1;
+}
+
+.tournament-match:last-child,
+.rule-row:last-child {
+  border-bottom: 0;
+}
+
+.tournament-match__time text,
+.tournament-match__teams,
+.tournament-match__meta,
+.tournament-team__name,
+.tournament-team__meta {
+  display: block;
+}
+
+.tournament-match__time {
+  color: #183f2a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.tournament-match__body,
+.tournament-team__body {
+  min-width: 0;
+}
+
+.tournament-match__teams,
+.tournament-team__name {
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.4;
+}
+
+.tournament-match__meta,
+.tournament-team__meta {
+  margin-top: 5px;
+  color: #6a756d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rule-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid #e1e5e1;
+}
+
+.rule-row__index {
+  color: #a04a3d;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.rule-row__copy,
+.rule-list__empty {
+  color: #4e5b52;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.rule-list__empty {
+  display: block;
+  padding: 22px;
+}
+
+.tournament-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tournament-team {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 88px;
+  padding: 16px;
+}
+
+@media (max-width: 900px) {
+  .tournament-hero,
+  .tournament-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .tournament-hero__aside {
+    min-height: 170px;
+  }
+
+  .tournament-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .tournament-hero__main,
+  .tournament-hero__aside {
+    padding: 26px 22px;
+  }
+
+  .tournament-hero__title {
+    font-size: 31px;
+  }
+
+  .tournament-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 14px;
+  }
+
+  .tournament-actions .button {
+    width: 100%;
+    padding: 0 8px;
+  }
+
+  .tournament-match {
+    grid-template-columns: 65px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .tournament-match .status-tag {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .tournament-team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .tournament-actions {
+    grid-template-columns: 1fr;
+  }
+}

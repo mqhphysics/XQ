@@ -1,0 +1,28 @@
+.native-content-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.native-content-swiper {
+  width: 100%;
+  min-height: 160px;
+  transition: height 160ms ease-out;
+}
+.native-content-slide {
+  width: 100%;
+  min-width: 0;
+  display: flow-root;
+}
+.native-content-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  z-index: 1;
+}
+.native-content-edge--left {
+  left: 0;
+}
+.native-content-edge--right {
+  right: 0;
+}

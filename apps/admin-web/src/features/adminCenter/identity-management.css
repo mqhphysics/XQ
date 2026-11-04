@@ -1,0 +1,106 @@
+.mc-identity {
+  margin-top: 28px;
+}
+.mc-identity-create {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #dfe7df;
+  border-radius: 14px;
+}
+.mc-identity-create h3,
+.mc-identity-wide {
+  grid-column: 1/-1;
+}
+.mc-identity label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  margin: 12px 0;
+}
+.mc-identity input,
+.mc-identity select,
+.mc-identity textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  padding: 11px;
+  border: 1px solid #cbd5cc;
+  border-radius: 8px;
+  background: white;
+}
+.mc-identity textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+.mc-identity button {
+  cursor: pointer;
+  min-height: 44px;
+  font: inherit;
+  padding: 10px 16px;
+  border: 1px solid #cad6ca;
+  border-radius: 8px;
+  background: #fff;
+  color: #20462e;
+  margin-right: 10px;
+}
+.mc-identity button.mc-primary {
+  background: #214f37;
+  color: white;
+}
+.mc-identity-error {
+  padding: 16px;
+  border-radius: 10px;
+  background: #fff0ed;
+  color: #942a26;
+}
+.mc-identity-applications article {
+  margin: 16px 0;
+  padding: 22px;
+  border: 1px solid #dce5dc;
+  border-radius: 12px;
+  background: white;
+}
+.mc-identity-applications header,
+.mc-identity-records article {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.mc-identity-records article {
+  padding: 16px 0;
+  border-top: 1px solid #dce5dc;
+}
+.mc-identity p {
+  line-height: 1.65;
+}
+.mc-identity small {
+  color: #68796b;
+}
+.mc-identity-verify {
+  display: grid;
+  gap: 8px;
+  max-width: 360px;
+}
+.mc-identity-verify select,
+.mc-identity-verify input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #d5dfd0;
+  border-radius: 6px;
+  font: inherit;
+  background: white;
+}
+.mc-identity-verify button {
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #edf4e7;
+  color: #45663e;
+  cursor: pointer;
+}

@@ -1,0 +1,36 @@
+/* Round 11: single undecided-team placeholder (replaces '?' rings, grey 待定 squares). */
+.tbd-crest {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  box-sizing: border-box;
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #8a988d;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+.tbd-crest__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Round 12: named sizes take their box from the shared .team-crest--* rules. */
+.tbd-crest.team-crest {
+  display: inline-grid;
+  object-fit: initial;
+  color: #8a988d;
+  font-weight: 700;
+}
+.tbd-crest--named {
+  container-type: size;
+}
+.tbd-crest--named .tbd-crest__mark {
+  font-size: 42cqw;
+}

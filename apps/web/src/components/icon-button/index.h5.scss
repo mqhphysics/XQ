@@ -1,0 +1,58 @@
+.ui-icon-button__fallback { display: contents; }
+.ui-icon-button__icon { display: none; }
+
+@media (min-width: 721px) {
+  .ui-icon-button.ui-icon-button {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 42PX;
+    min-width: 42PX;
+    height: 42PX;
+    min-height: 42PX;
+    margin: 0;
+    padding: 0;
+    border: 1PX solid #d5dfd6;
+    border-radius: 12PX;
+    color: #183f2a;
+    background: rgba(255, 255, 255, 0.88);
+    font-size: 0;
+    line-height: 1;
+    letter-spacing: 0;
+    cursor: pointer;
+    transform: none;
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+
+  .ui-icon-button .ui-icon-button__fallback { display: none; }
+  .ui-icon-button .ui-icon-button__icon {
+    display: block;
+    flex: 0 0 22PX;
+    width: 22PX;
+    height: 22PX;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+    pointer-events: none;
+  }
+
+  .ui-icon-button.ui-icon-button::after { border: 0; }
+  .ui-icon-button.ui-icon-button:active { background: #e4ede5; transform: none; }
+  .ui-icon-button.ui-icon-button:focus-visible {
+    outline: 2PX solid #245b39;
+    outline-offset: 3PX;
+  }
+  .ui-icon-button.ui-icon-button:disabled { opacity: 0.45; cursor: default; }
+}
+
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+  .ui-icon-button.ui-icon-button:hover:not(:disabled) {
+    background: #edf3ee;
+    border-color: #b8cbbb;
+  }
+}
+
+@media (min-width: 721px) and (prefers-reduced-motion: reduce) {
+  .ui-icon-button.ui-icon-button { transition: none; }
+}

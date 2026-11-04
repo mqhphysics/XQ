@@ -1,0 +1,65 @@
+.registration-review {
+  margin-bottom: 16px;
+}
+.registration-review-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px 10px;
+}
+.registration-review-heading h2 {
+  margin: 0;
+  color: #284b36;
+  font-size: 16px;
+}
+.registration-review-heading h2 span {
+  margin-left: 8px;
+  color: #8c5d25;
+}
+.registration-review-heading > span {
+  color: #365d43;
+  font-size: 14px;
+}
+.registration-review-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 20px;
+  border-top: 1px solid #e3e9e0;
+}
+.registration-review-person {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  flex: 1;
+}
+.registration-review-person strong {
+  font-size: 15px;
+  color: #254a35;
+}
+.registration-review-person span {
+  color: #43584b;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.registration-actions {
+  display: flex;
+  gap: 8px;
+}
+.registration-actions button {
+  min-height: 36px;
+  padding: 7px 16px;
+}
+.registration-message {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+.registration-message p {
+  margin: 0;
+}
+.registration-message textarea {
+  min-height: 110px;
+  resize: vertical;
+}

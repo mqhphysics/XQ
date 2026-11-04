@@ -1,0 +1,1589 @@
+/*postcss-pxtransform disable*/
+/*
+ * Wide windows (foldables opened, tablets, Android split-screen, PC) are styled by a CSS media query
+ * so the renderer applies them against the real viewport, the way 0.7.3/0.7.4 did. JavaScript only
+ * picks the structure (top navigation vs bottom tab bar); see viewport.logic.weapp.ts.
+ * Units are physical px (pxtransform is disabled) so nothing scales up with the window width.
+ *
+ * Every rpx length in the compiled WXSS is rewritten by config/weapp-wide-units.js to
+ * calc(N * var(--u)). A phone keeps 1 design unit = 1rpx (100vw/750); a wide window pins it to 0.5px, the
+ * size the same design unit has on a 375px phone, which is also the website's desktop scale.
+ */
+/* WeChat does not convert rpx inside a custom property (1rpx there computes as 1px), so the phone
+ * unit is written as the rpx definition itself: 1/750 of the window width. */
+/* RootPortal content is mounted outside page and does not inherit --u, so each portal root
+ * (dialogs, welcome, detail host, drawers, guide, pickers) defines it too. */
+page,
+.native-dialog-mask,
+.native-welcome,
+.native-detail-host,
+.native-account-mask,
+.native-comment-overlay,
+.native-guide,
+.native-player-wheel-mask {
+  --u: calc(100vw / 750);
+}
+
+@media (min-width: 520px) {
+  page,
+  .native-dialog-mask,
+  .native-welcome,
+  .native-detail-host,
+  .native-account-mask,
+  .native-comment-overlay,
+  .native-guide,
+  .native-player-wheel-mask {
+    --u: 0.5px;
+  }
+
+  /*
+   * Sizes: every rpx in the app already halves here (--u = 0.5px), which is the website's desktop
+   * scale, so this block only changes layout. Lengths below are physical px taken from the website
+   * (apps/mini-program *.h5.scss) at 1024px.
+   */
+  page .public-app.public-app.public-app {
+    width: 100%;
+    max-width: none;
+  }
+  page .public-app.public-app.public-app .public-content.public-content {
+    width: 100%;
+    max-width: none;
+    padding: 14px 20px 16px;
+  }
+  page .native-main-root .public-app.public-app .public-content.public-content {
+    padding: 0;
+  }
+  page .public-app .native-main-panel-body {
+    width: calc(100% - 40px);
+    max-width: 1180px;
+    padding: 14px 0 16px;
+  }
+  page .public-app .native-main-panel-body--data,
+  page .public-app .native-main-panel-body--schedule {
+    padding-bottom: 12px;
+  }
+  page .public-app.public-app.public-app .public-account,
+  page .public-app .public-account__avatar.public-account__avatar,
+  page .public-app .public-account__avatar .user-avatar.user-avatar {
+    width: 33px;
+    height: 33px;
+    min-height: 33px;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  /* ---------- Login: big stadium on the left, form column on the right ---------- */
+  page .native-login.native-login.native-login .auth-page.auth-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 34vw, 360px);
+    align-items: stretch;
+    height: var(--native-login-content-height);
+    min-height: 0;
+    padding: 0;
+  }
+  page .native-login.native-login .native-auth-scene {
+    position: relative;
+    grid-column: 1;
+    grid-row: 1;
+    height: auto;
+    min-height: 0;
+    margin-right: -48px;
+    padding: 6px 40px 24px 28px;
+  }
+  page .native-login.native-login .native-auth-scene__brand {
+    gap: 10px;
+    height: 52px;
+    font-size: 24px;
+  }
+  page .native-login.native-login .native-auth-scene__mark {
+    width: 50px;
+    height: 44px;
+  }
+  page .native-login.native-login .native-auth-scene__caption {
+    display: block;
+    margin-top: 2px;
+    color: #6f7d6b;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  page .native-login.native-login .native-auth-scene__art {
+    margin: 0 0 0 -12px;
+  }
+  page .native-login.native-login .native-auth-scene__image {
+    top: 0;
+  }
+  page .native-login.native-login .native-auth-scene__copy {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 520px;
+    padding-top: 8px;
+  }
+  page .native-login.native-login .native-auth-scene__title {
+    color: #173f29;
+    font-size: 24px;
+    font-weight: 850;
+    line-height: 1.3;
+  }
+  page .native-login.native-login .native-auth-scene__body {
+    color: #5d6b5a;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  page .native-login.native-login .native-auth-scene__tagline {
+    color: #a17343;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  page .native-login.native-login .auth-panel.auth-panel {
+    position: relative;
+    z-index: 2;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 44px 28px 20px;
+    border-left: 1px solid rgba(31, 74, 51, 0.14);
+    border-radius: 0;
+    background: rgba(250, 250, 246, 0.94);
+    box-shadow: -12px 0 32px rgba(31, 74, 51, 0.06);
+  }
+  page .native-login.native-login .auth-form__title {
+    margin-top: 6px;
+    font-size: 30px;
+  }
+  page .native-login.native-login .auth-form__subtitle {
+    font-size: 13px;
+  }
+  page .native-login.native-login .auth-form .auth-label {
+    margin: 12px 0 6px;
+    font-size: 13px;
+  }
+  page .native-login.native-login .auth-input.auth-input {
+    height: 44px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  page .native-login.native-login .auth-tabs > button,
+  page .native-login.native-login .login-methods > button {
+    min-height: 38px;
+    font-size: 14px;
+  }
+  page .native-login.native-login .auth-primary.auth-primary,
+  page .native-login.native-login .guest-entry__button.guest-entry__button {
+    height: 44px;
+    min-height: 44px;
+    line-height: 44px;
+    font-size: 15px;
+  }
+  page .native-login.native-login .guest-entry__hint {
+    display: block;
+    margin-top: 8px;
+    color: #7c8878;
+    font-size: 12px;
+  }
+
+  /* ---------- 首页 ---------- */
+  page .public-app.public-app.public-app .native-home-page .native-home-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.25fr);
+    align-items: stretch;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid #e1e7dc;
+    border-radius: 16px;
+    background: #faf8f2;
+  }
+  page .public-app .native-home-hero__copy {
+    justify-content: center;
+    padding: 16px 18px;
+  }
+  page .public-app .native-home-hero__title {
+    display: block;
+    font-size: 44px;
+    line-height: 1.25;
+  }
+  page .public-app .native-home-hero__title--warm {
+    margin-left: 48px;
+  }
+  page .public-app .native-home-hero__photos {
+    height: 236px;
+    border-radius: 0;
+  }
+  page .public-app .native-home-focus {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  page .public-app .native-home-feed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  page .public-app .native-home-feed__column {
+    gap: 14px;
+  }
+
+  /* ---------- 赛程: list on the left, my team + progress on the right ---------- */
+  page .public-app .native-schedule.native-schedule--wide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(220px, 27%, 300px);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    column-gap: 14px;
+  }
+  page .public-app .native-schedule--wide > .native-page-top,
+  page .public-app .native-schedule--wide > .native-date-rail {
+    grid-column: 1 / -1;
+  }
+  page .public-app .native-schedule--wide > .native-schedule-summary {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  page .public-app .native-schedule--wide > .native-schedule-list {
+    grid-column: 1;
+    grid-row: 4;
+    height: 100%;
+    min-height: 0;
+  }
+  page .public-app .native-schedule--wide > .native-schedule-aside {
+    grid-column: 2;
+    grid-row: 3 / 5;
+    min-height: 0;
+  }
+  page .public-app .native-schedule-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+  }
+  page .public-app .native-schedule-aside__card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #e1e7dc;
+    border-radius: 14px;
+    background: #fff;
+  }
+  page .public-app .native-schedule-aside__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  page .public-app .native-schedule-aside__title {
+    color: #173f29;
+    font-size: 16px;
+    font-weight: 850;
+  }
+  page .public-app .native-schedule-aside__link.native-schedule-aside__link {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2f6a47;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  page .public-app .native-schedule-aside__link::after {
+    border: 0;
+  }
+  page .public-app .native-schedule-aside__team {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  page .public-app .native-schedule-aside__crest {
+    display: flex;
+    flex: 0 0 48px;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #f1f5ee;
+  }
+  page .public-app .native-schedule-aside__crest .team-crest {
+    width: 36px;
+    height: 36px;
+  }
+  page .public-app .native-schedule-aside__copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+  page .public-app .native-schedule-aside__name {
+    overflow: hidden;
+    color: #173f29;
+    font-size: 16px;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  page .public-app .native-schedule-aside__note,
+  page .public-app .native-schedule-aside__meta,
+  page .public-app .native-schedule-aside__empty {
+    color: #74826f;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  page .public-app .native-schedule-aside__next {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f3f7f0;
+  }
+  page .public-app .native-schedule-aside__label {
+    color: #a17343;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  page .public-app .native-schedule-aside__vs {
+    color: #173f29;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  /* ---------- 主队: website-style merged tabs, two columns ---------- */
+  page .public-app .native-team-wide {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+  }
+  page .public-app .native-team-wide.native-team-wide--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  page .public-app .native-team-wide__card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #e1e7dc;
+    border-radius: 14px;
+    background: #fff;
+  }
+  page .public-app .native-team-wide__title {
+    padding-bottom: 8px;
+    border-bottom: 1px solid #edf1e9;
+    color: #173f29;
+    font-size: 18px;
+    font-weight: 850;
+  }
+
+  /* ---------- 数据: segmented tabs + select in one row, groups two by two ---------- */
+  page .public-app .native-data-toolbar {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  page .public-app .native-data-toolbar > .native-select {
+    flex: 0 0 auto;
+    min-width: 200px;
+  }
+  page .public-app .native-data-tabs {
+    flex: 0 0 auto;
+    width: auto;
+    margin-bottom: 0;
+    padding: 3px;
+    border: 1px solid #dce4d6;
+    border-radius: 10px;
+    background: #fff;
+  }
+  page .public-app .native-data-tabs > button {
+    flex: 0 0 auto;
+    min-width: 96px;
+    min-height: 34px;
+    padding: 6px 18px;
+    border-radius: 8px;
+    line-height: 22px;
+  }
+  page .public-app .native-data-tabs > button.is-active {
+    background: #1f4a33;
+    color: #fff;
+  }
+  page .public-app .native-data-tabs > button.is-active::before {
+    display: none;
+  }
+  page .public-app .native-data-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 14px;
+  }
+  page .public-app .native-data-panel > .native-note {
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- 我的: person card | team card, then one compact function strip ---------- */
+  page .public-app .native-profile.native-profile--wide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: stretch;
+    gap: 14px;
+  }
+  page .public-app .native-profile--wide > .native-profile-card {
+    grid-column: 1;
+    height: auto;
+    min-height: 200px;
+    margin: 0;
+    border-radius: 16px;
+  }
+  page .public-app .native-profile--wide .native-profile-function-grid {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    padding: 6px;
+    border-width: 1px;
+    border-radius: 14px;
+  }
+  page .public-app .native-profile--wide .native-profile-shortcut.native-profile-shortcut {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    min-height: 72px;
+    padding: 10px 4px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 13px;
+    text-align: center;
+  }
+  page .public-app .native-profile--wide .native-profile-shortcut__arrow {
+    display: none;
+  }
+  page .public-app .native-profile--wide .native-profile-shortcut .native-menu-row__icon,
+  page .public-app .native-profile--wide .native-profile-shortcut .native-profile-icon {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+  }
+  page .public-app .native-profile-team {
+    position: relative;
+    display: flex;
+    grid-column: 2;
+    min-height: 200px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    overflow: hidden;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #173f29 0%, #1f4a33 55%, #2c5d40 100%);
+    color: #fff;
+  }
+  page .public-app .native-profile-team__art {
+    position: absolute;
+    top: 0;
+    right: -20px;
+    bottom: 0;
+    width: 62%;
+    height: 100%;
+    opacity: 0.26;
+  }
+  page .public-app .native-profile-team__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(23, 63, 41, 0.92) 30%, rgba(23, 63, 41, 0.1));
+  }
+  page .public-app .native-profile-team__eyebrow,
+  page .public-app .native-profile-team__main,
+  page .public-app .native-profile-team__actions {
+    position: relative;
+    z-index: 1;
+  }
+  page .public-app .native-profile-team__eyebrow {
+    color: #d9b27d;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+  page .public-app .native-profile-team__main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  page .public-app .native-profile-team__crest {
+    display: flex;
+    flex: 0 0 72px;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    background: #fff;
+  }
+  page .public-app .native-profile-team__crest .team-crest {
+    width: 54px;
+    height: 54px;
+  }
+  page .public-app .native-profile-team__placeholder {
+    color: #1f4a33;
+    font-size: 26px;
+    font-weight: 900;
+  }
+  page .public-app .native-profile-team__copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+  }
+  page .public-app .native-profile-team__name {
+    overflow: hidden;
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  page .public-app .native-profile-team__slogan {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  page .public-app .native-profile-team__actions {
+    display: flex;
+    gap: 10px;
+  }
+  page .public-app .native-profile-team__button.native-profile-team__button {
+    height: 36px;
+    min-height: 36px;
+    margin: 0;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 34px;
+  }
+  page .public-app .native-profile-team__button.native-profile-team__button--primary {
+    border-color: #fff;
+    background: #fff;
+    color: #1f4a33;
+  }
+  page .public-app .native-profile-team__button::after {
+    border: 0;
+  }
+
+  /* ---------- Match detail ---------- */
+  page .public-app .native-football-pitch--both {
+    width: min(100%, 520px);
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: min(154.4118%, 803px);
+  }
+  page .public-app .native-checkin-preview {
+    width: min(100%, 540px);
+    margin: 24px auto;
+  }
+}
+
+/* =====================================================================================
+ * Website type scale (wide only). Values are the website's computed sizes at a 1024px
+ * desktop viewport (CSS px x 0.856 zoom), so a wide WeChat window reads like the H5 site.
+ * Physical px here: this file is outside pxtransform. Phone layout is not affected.
+ * ===================================================================================== */
+@media (min-width: 520px) {
+  /* ---------- 首页 ---------- */
+  page .public-app.public-app .native-home-page .product-section-heading__kicker {
+    font-size: 9.5px;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  page
+    .public-app.public-app
+    .native-home-page
+    .product-section-heading__title.product-section-heading__title {
+    font-size: 23px;
+    font-weight: 900;
+    line-height: 1.25;
+  }
+  page
+    .public-app.public-app
+    .native-home-page
+    .product-section-heading__action.product-section-heading__action {
+    height: 24px;
+    min-height: 24px;
+    font-size: 12px;
+    font-weight: 850;
+    line-height: 24px;
+  }
+  page .public-app.public-app .native-home-page .native-note {
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-home-page .native-home-announcement.native-home-announcement {
+    min-height: 38px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card.native-focus-card {
+    height: auto;
+    min-height: 112px;
+    gap: 6px;
+    padding: 10px 12px;
+    border-width: 1px;
+    border-radius: 7px;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card__label {
+    font-size: 11px;
+  }
+  /* website compact match card: home | score | away, crest above the name */
+  page .public-app.public-app .native-home-page .native-focus-card__teams {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 0 10px;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card__teams > view {
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 12px;
+    font-weight: 900;
+    color: #17281c;
+    text-align: center;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card__teams > view:nth-child(2) {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card__teams > view > text {
+    max-width: 100%;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card .team-crest {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card__value {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    font-size: 22px;
+    font-weight: 900;
+  }
+  page .public-app.public-app .native-home-page .native-focus-card__value--time {
+    font-size: 13px;
+    font-weight: 750;
+  }
+  page .public-app.public-app .native-home-page .post-card.post-card {
+    padding: 12px;
+    border-radius: 7px;
+  }
+  page .public-app.public-app .native-home-page .post-card__name {
+    font-size: 12px;
+    font-weight: 850;
+  }
+  page .public-app.public-app .native-home-page .post-card__time.post-card__time {
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-home-page .post-card__title {
+    font-size: 14.5px;
+    font-weight: 900;
+  }
+  /* 0,3,1 on purpose: the large-text preference (0,4,1) must still win */
+  page .public-app .native-home-page .post-card__body {
+    font-size: 12px;
+    line-height: 1.65;
+  }
+  page .public-app.public-app .native-home-page .post-card__action.post-card__action {
+    height: 30px;
+    min-height: 30px;
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-home-page .post-card__open.post-card__open {
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  /* ---------- 页面大标题（赛程 / 数据 等） ---------- */
+  page .public-app.public-app .native-schedule .native-page-title {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  /* ---------- 赛程: controls ---------- */
+  page .public-app.public-app .native-schedule-controls {
+    gap: 8px;
+  }
+  page .public-app.public-app .native-schedule-filter.native-schedule-filter,
+  page .public-app.public-app .native-schedule-bracket.native-schedule-bracket {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    gap: 6px;
+    width: auto;
+    min-width: 75px;
+    height: 36px;
+    min-height: 36px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid #dfe6d9;
+    border-radius: 4px;
+    background: #fff;
+    color: #24402f;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 36px;
+  }
+  page .public-app.public-app .native-schedule-bracket.native-schedule-bracket {
+    min-width: 87px;
+  }
+  page .public-app.public-app .native-schedule-filter.is-active {
+    background: #fcf1df;
+    border-color: #d9b781;
+  }
+  page .public-app.public-app .native-schedule-filter__icon,
+  page .public-app.public-app .native-schedule-bracket__icon {
+    flex: 0 0 15px;
+    width: 15px;
+    height: 15px;
+  }
+  page .public-app.public-app .native-schedule-bracket__icon {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2324402f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h5v5H3zM3 14h5v5H3zM8 7.5h3v9H8M11 12h4M15 9.5h6v5h-6z'/%3E%3C/svg%3E")
+      center/contain no-repeat;
+  }
+  page .public-app.public-app .native-schedule-filter__label {
+    font-size: 12px;
+  }
+  page .public-app.public-app .native-schedule-filter__count {
+    top: -6px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 16px;
+  }
+  page .public-app.public-app .native-schedule-controls .native-select.native-select {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    border-width: 1px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  /* date strip: website 91x55 white cells */
+  page .public-app.public-app .native-date-rail__items {
+    gap: 6px;
+    padding-bottom: 8px;
+  }
+  page .public-app.public-app .native-date-rail__items > button {
+    flex: 0 0 88px;
+    gap: 2px;
+    width: 88px;
+    min-height: 55px;
+    padding: 6px;
+    border-width: 1px;
+    border-radius: 4px;
+    color: #4c5750;
+    font-size: 11px;
+    font-weight: 650;
+  }
+  page .public-app.public-app .native-date-rail__items > button > text:last-child {
+    color: #818a84;
+    font-size: 11px;
+    font-weight: 400;
+  }
+  page .public-app.public-app .native-date-rail__items > button.is-active > text:last-child {
+    color: #8a6a3c;
+  }
+  page .public-app.public-app .native-schedule-summary {
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-schedule-summary .native-button {
+    min-height: 28px;
+    font-size: 11px;
+  }
+  /* day heading: website h3 14.5/750 */
+  page .public-app.public-app .native-schedule-day {
+    margin-bottom: 14px;
+  }
+  page .public-app.public-app .native-schedule-day__title {
+    margin: 0;
+    padding: 8px 10px;
+    border-left-width: 2px;
+    border-radius: 4px 4px 0 0;
+    color: #1a3325;
+    font-size: 14.5px;
+    font-weight: 750;
+  }
+  page .public-app.public-app .native-schedule-day__title > text:last-child {
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-schedule-day__empty {
+    padding: 18px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  page .public-app.public-app .native-schedule-day__empty > text:last-child {
+    font-size: 11px;
+  }
+
+  /* ---------- 赛程: website row list ---------- */
+  page .public-app.public-app .native-schedule-row.native-schedule-row {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-top: 1px solid #e8ede8;
+    border-radius: 0;
+    background: #fff;
+    text-align: left;
+    line-height: 1.35;
+  }
+  page .public-app.public-app .native-schedule-day__title + .native-schedule-row {
+    border-top: 0;
+  }
+  page .public-app .native-schedule-row__body {
+    display: grid;
+    grid-template-columns: 42px 76px minmax(0, 1fr) 56px 84px;
+    align-items: center;
+    gap: 7px;
+    min-height: 70px;
+    padding: 9px 10px;
+  }
+  page .public-app .native-schedule-row__time {
+    color: #26332b;
+    font-size: 14.5px;
+    font-weight: 650;
+  }
+  page .public-app .native-schedule-row__phase {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding-left: 7.5px;
+    border-left: 1px solid #e4eae4;
+  }
+  page .public-app .native-schedule-row__round {
+    overflow: hidden;
+    color: #39483e;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  page .public-app .native-schedule-row__group {
+    overflow: hidden;
+    color: #8b938c;
+    font-size: 10.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  page .public-app .native-schedule-row__fixture {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 55px minmax(0, 1fr);
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  page .public-app .native-schedule-row__team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+  }
+  page .public-app .native-schedule-row__name {
+    max-width: 100%;
+    overflow: hidden;
+    color: #17281c;
+    font-size: 9.5px;
+    font-weight: 650;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  page .public-app .native-schedule-row__crest {
+    display: block;
+    width: 27px;
+    height: 34px;
+  }
+  page .public-app .native-schedule-row__crest--empty {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: #eef2ec;
+  }
+  page .public-app .native-schedule-row__score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  page .public-app .native-schedule-row__score-main {
+    color: #113f2a;
+    font-size: 17px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  page .public-app .native-schedule-row__penalty {
+    color: #7b857d;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+  page .public-app .native-schedule-row__status {
+    justify-self: center;
+    min-width: 50px;
+    padding: 4px 7px;
+    border-radius: 4px;
+    background: #e3efe4;
+    color: #315f44;
+    font-size: 10.5px;
+    font-weight: 850;
+    text-align: center;
+    white-space: nowrap;
+  }
+  page .public-app .native-schedule-row__status--warning,
+  page .public-app .native-schedule-row__status--danger {
+    background: #f5e8bc;
+    color: #725415;
+  }
+  page .public-app .native-schedule-row__status--live {
+    background: #fbe3d6;
+    color: #a2461d;
+  }
+  page .public-app .native-schedule-row__status--ruled {
+    background: #f3ecd9;
+    color: #735a21;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  page .public-app .native-schedule-row__venue {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    color: #8a938c;
+    font-size: 11px;
+  }
+  page .public-app .native-schedule-row__pin {
+    flex: 0 0 12px;
+    width: 12px;
+    height: 12px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a938c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z'/%3E%3Ccircle cx='12' cy='9' r='2.5'/%3E%3C/svg%3E")
+      center/contain no-repeat;
+  }
+  page .public-app .native-schedule-row__venue-name {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  page .public-app .native-schedule-row__reason {
+    display: block;
+    padding: 6px 14px;
+    background: #faf3e6;
+    color: #88642c;
+    font-size: 9.5px;
+  }
+
+  /* ---------- 赛程: aside (website 233 wide, crest 62, no crest box) ---------- */
+  page .public-app.public-app .native-schedule-aside__card {
+    padding: 12px;
+    border-radius: 4px;
+  }
+  page .public-app.public-app .native-schedule-aside__title {
+    color: #183c29;
+    font-size: 14.5px;
+    font-weight: 750;
+  }
+  page .public-app.public-app .native-schedule-aside__link.native-schedule-aside__link {
+    color: #466b53;
+    font-size: 10.5px;
+    font-weight: 500;
+  }
+  page .public-app.public-app .native-schedule-aside__crest {
+    flex: 0 0 62px;
+    width: 62px;
+    height: 62px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  page .public-app.public-app .native-schedule-aside__crest .team-crest {
+    width: 62px;
+    height: 62px;
+  }
+  page .public-app.public-app .native-schedule-aside__name {
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+  page .public-app.public-app .native-schedule-aside__note,
+  page .public-app.public-app .native-schedule-aside__meta,
+  page .public-app.public-app .native-schedule-aside__empty {
+    color: #929a93;
+    font-size: 10.5px;
+  }
+  page .public-app.public-app .native-schedule-aside__next {
+    padding: 10px;
+    border-radius: 4px;
+    background: #f2f5ef;
+  }
+  page .public-app.public-app .native-schedule-aside__label {
+    color: #92703c;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  page .public-app.public-app .native-schedule-aside__next .team-crest {
+    width: 20px;
+    height: 20px;
+  }
+  page .public-app.public-app .native-schedule-aside__vs {
+    font-size: 11px;
+  }
+
+  /* ---------- 数据: 赛事数据 title + stat tags ---------- */
+  page .public-app .native-data-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  page .public-app .native-data-hero__title {
+    color: #152c29;
+    font-size: 28px;
+    font-weight: 950;
+    line-height: 1.15;
+  }
+  page .public-app .native-data-hero__kpis {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.68);
+  }
+  page .public-app .native-data-hero__stat {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 12px;
+  }
+  page .public-app .native-data-hero__stat + .native-data-hero__stat {
+    border-left: 1px solid #e1e7e1;
+  }
+  page .public-app .native-data-hero__icon {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  page .public-app .native-data-hero__icon--ball {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%23204f36' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='17' stroke-width='2.5'/%3E%3Cpath d='m20 12 8 6-3 9H15l-3-9 8-6Zm0-9v9M4 15l8 3m3 9-6 7m16-7 6 7m-3-16 8-3' stroke-width='2'/%3E%3C/svg%3E");
+  }
+  page .public-app .native-data-hero__icon--pitch {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%23204f36' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='34' height='26' rx='2' stroke-width='2.5'/%3E%3Cpath d='M20 7v26M3 15h7v10H3m34-10h-7v10h7' stroke-width='2'/%3E%3Ccircle cx='20' cy='20' r='5' stroke-width='2'/%3E%3C/svg%3E");
+  }
+  page .public-app .native-data-hero__icon--teams {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%23204f36' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='34' height='26' rx='2' stroke-width='2.5'/%3E%3Cpath d='M20 7v26M3 15h7v10H3m34-10h-7v10h7' stroke-width='2'/%3E%3Ccircle cx='20' cy='20' r='5' stroke-width='2'/%3E%3Cpath d='M8 6v8m-4-4h8m20 16v8m-4-4h8' stroke-width='3'/%3E%3C/svg%3E");
+  }
+  page .public-app .native-data-hero__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  page .public-app .native-data-hero__label {
+    color: #7a8783;
+    font-size: 11px;
+  }
+  page .public-app .native-data-hero__line {
+    display: flex;
+    align-items: baseline;
+  }
+  page .public-app .native-data-hero__value {
+    color: #10392e;
+    font-size: 24px;
+    font-weight: 850;
+    line-height: 1.1;
+  }
+  page .public-app .native-data-hero__unit {
+    margin-left: 6px;
+    color: #7a8783;
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-data-tabs > button {
+    min-height: 35px;
+    padding: 6px 18px;
+    border-radius: 5px;
+    font-size: 12.8px;
+    font-weight: 750;
+  }
+  page .public-app.public-app .native-data-tabs > button.is-active {
+    background: #204e32;
+  }
+  page .public-app.public-app .native-data-swiper .native-section-title {
+    font-size: 21px;
+    font-weight: 900;
+  }
+  page .public-app.public-app .native-standing.native-standing {
+    min-height: 38px;
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-standing.native-standing--head {
+    min-height: 30px;
+    font-size: 9.5px;
+  }
+  page .public-app.public-app .native-standing .team-crest {
+    width: 17px;
+    height: 17px;
+  }
+  page .public-app.public-app .native-leader.native-leader {
+    min-height: 44px;
+    font-size: 11.5px;
+  }
+  page .public-app.public-app .native-leader--head.native-leader {
+    min-height: 30px;
+    font-size: 9.5px;
+  }
+
+  /* ---------- 主队 ---------- */
+  page .public-app.public-app .native-hub-chip.native-hub-chip {
+    flex-direction: row;
+    gap: 7px;
+    width: auto;
+    max-width: 150px;
+    min-height: 40px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: #f4f7f2;
+    color: #164831;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  page .public-app.public-app .native-hub-chip.is-selected {
+    background: #e3efe4;
+    box-shadow: inset 0 0 0 1px #bcd3c0;
+  }
+  page .public-app.public-app .native-hub-chip .team-crest,
+  page .public-app.public-app .native-hub-chip .native-player-face,
+  page .public-app.public-app .native-hub-chip .user-avatar {
+    width: 24px;
+    height: 24px;
+  }
+  page .public-app.public-app .native-hub-chip text.user-avatar {
+    font-size: 11px;
+    line-height: 24px;
+  }
+  page .public-app.public-app .native-hub-chip > .native-hub-chip__name {
+    width: auto;
+    height: 20px;
+    line-height: 20px;
+  }
+  page .public-app.public-app .native-detail-tabs {
+    gap: 4px;
+    margin: 12px 0 10px;
+    padding: 3px;
+    border: 1px solid #e0e7dd;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.65);
+  }
+  page .public-app.public-app .native-detail-tabs > button {
+    padding: 8px 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  page .public-app.public-app .native-detail-tabs > button.is-active {
+    background: #194930;
+    color: #fff;
+    box-shadow: none;
+  }
+  page .public-app.public-app .native-team-wide__title {
+    font-size: 20.5px;
+    font-weight: 750;
+  }
+  /* match rows used by 主队 / 我的 lists: website list row sizes */
+  page .public-app.public-app .native-match.native-match {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  /* ---------- 我的 ---------- */
+  page .public-app.public-app .native-profile--wide .native-profile-avatar.native-profile-avatar {
+    width: 69px;
+    height: 69px;
+  }
+  page .public-app.public-app .native-profile--wide .native-profile-avatar .user-avatar {
+    width: 65px;
+    height: 65px;
+  }
+  page .public-app.public-app .native-profile--wide .native-profile-card__name {
+    font-size: 17px;
+    font-weight: 800;
+  }
+  page .public-app.public-app .native-profile--wide .native-profile-card__bio,
+  page .public-app.public-app .native-profile--wide .native-profile-card__copy > .native-note {
+    color: #7c8792;
+    font-size: 10.5px;
+  }
+  page .public-app .native-profile-card__stats {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  page .public-app .native-profile-card__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 55px;
+    height: 37px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+  page .public-app .native-profile-card__stat-value {
+    color: #1d4f33;
+    font-size: 14.5px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  page .public-app .native-profile-card__stat-label {
+    color: #66726b;
+    font-size: 9.5px;
+  }
+  page .public-app.public-app .native-profile-team__eyebrow {
+    color: #e3eee4;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  page .public-app.public-app .native-profile-team__crest {
+    flex: 0 0 81px;
+    width: 81px;
+    height: 90px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  page .public-app.public-app .native-profile-team__crest .team-crest {
+    width: 81px;
+    height: 90px;
+  }
+  page .public-app.public-app .native-profile-team__name {
+    font-size: 25px;
+    font-weight: 800;
+  }
+  page .public-app.public-app .native-profile-team__slogan {
+    color: #e1ebe1;
+    font-size: 11px;
+  }
+  page .public-app.public-app .native-profile-team__button.native-profile-team__button {
+    min-width: 96px;
+    height: 32px;
+    min-height: 32px;
+    border-radius: 4px;
+    background: rgba(31, 64, 41, 0.25);
+    color: #e5ede1;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 32px;
+  }
+  page .public-app.public-app .native-profile-team__button.native-profile-team__button--primary {
+    background: #fbfcf6;
+    color: #2a553a;
+  }
+  /* body: functions + contribution on the left, the personal stream on the right */
+  page .public-app .native-profile--wide .native-profile-body {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+  }
+  page .public-app .native-profile-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+  page .public-app .native-profile-functions,
+  page .public-app .native-profile-season,
+  page .public-app .native-profile-stream {
+    min-width: 0;
+    padding: 12px 18px;
+    border: 1px solid #e3e9e0;
+    border-radius: 7px;
+    background: #fff;
+  }
+  page .public-app .native-profile-functions__heading,
+  page .public-app .native-profile-season__heading,
+  page .public-app .native-profile-stream__heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  page .public-app .native-profile-functions__title,
+  page .public-app .native-profile-season__title {
+    color: #1e2f25;
+    font-size: 15.5px;
+    font-weight: 750;
+  }
+  page .public-app .native-profile-functions__note,
+  page .public-app .native-profile-season__season,
+  page .public-app .native-profile-stream__sub {
+    color: #78837c;
+    font-size: 10.5px;
+  }
+  page .public-app.public-app .native-profile--wide .native-profile-function-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  page
+    .public-app.public-app
+    .native-profile--wide
+    .native-profile-shortcut.native-profile-shortcut {
+    gap: 5px;
+    min-height: 61px;
+    padding: 8px 4px;
+    border-radius: 8.5px;
+    background: #f4f7f1;
+    color: #23313a;
+    font-size: 12px;
+    font-weight: 750;
+  }
+  page .public-app.public-app .native-profile--wide .native-profile-shortcut .native-menu-row__icon,
+  page .public-app.public-app .native-profile--wide .native-profile-shortcut .native-profile-icon {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+  }
+  page .public-app .native-profile-season__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  page .public-app .native-profile-season__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    background: #f4f7f1;
+  }
+  page .public-app .native-profile-season__value {
+    color: #1d4f33;
+    font-size: 17px;
+    font-weight: 800;
+  }
+  page .public-app .native-profile-season__label {
+    color: #66726b;
+    font-size: 10.5px;
+  }
+  page .public-app .native-profile-season__note {
+    display: block;
+    margin-top: 8px;
+    color: #78837c;
+    font-size: 10.5px;
+  }
+  page .public-app .native-profile-stream {
+    padding-top: 0;
+  }
+  page .public-app .native-profile-tabs {
+    display: flex;
+    align-items: center;
+    gap: 19px;
+    height: 48px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e6ebe4;
+  }
+  page .public-app .native-profile-tabs__tab.native-profile-tabs__tab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: auto;
+    height: 48px;
+    min-height: 48px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #687581;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 48px;
+  }
+  page .public-app .native-profile-tabs__tab::before {
+    content: '';
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background: center/contain no-repeat;
+  }
+  page .public-app .native-profile-tabs__tab:nth-child(1)::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23687581' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2'/%3E%3Cpath d='M8 9h8M8 13h8M8 17h5'/%3E%3C/svg%3E");
+  }
+  page .public-app .native-profile-tabs__tab:nth-child(2)::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23687581' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='5' width='16' height='15' rx='2'/%3E%3Cpath d='M8 3v4M16 3v4M4 10h16'/%3E%3C/svg%3E");
+  }
+  page .public-app .native-profile-tabs__tab:nth-child(3)::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23687581' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 4h12v16l-6-4-6 4z'/%3E%3C/svg%3E");
+  }
+  page .public-app .native-profile-tabs__tab.is-active {
+    color: #235b38;
+    box-shadow: inset 0 -2px #235b38;
+  }
+  page .public-app .native-profile-tabs__add.native-profile-tabs__add {
+    width: 21px;
+    height: 21px;
+    min-height: 21px;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 1px solid #cfdacd;
+    border-radius: 50%;
+    background: #fff;
+    color: #235b38;
+    font-size: 14px;
+    line-height: 19px;
+    text-align: center;
+  }
+  page .public-app .native-profile-stream__heading {
+    color: #1e2f25;
+    font-size: 14.5px;
+    font-weight: 750;
+  }
+  page .public-app .native-profile-stream__note {
+    display: block;
+    margin: 4px 0 8px;
+    color: #78837c;
+    font-size: 10.5px;
+  }
+  page .public-app .native-profile-filters {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  page .public-app .native-profile-filters__item.native-profile-filters__item {
+    width: auto;
+    height: 28px;
+    min-height: 28px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid #dfe6d9;
+    border-radius: 4px;
+    background: #fff;
+    color: #4c5750;
+    font-size: 11px;
+    line-height: 26px;
+  }
+  page .public-app .native-profile-filters__item.is-active {
+    border-color: #194930;
+    background: #194930;
+    color: #fff;
+  }
+  page .public-app .native-profile-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 16px;
+    text-align: center;
+  }
+  page .public-app .native-profile-empty__title {
+    color: #1e2f25;
+    font-size: 20.5px;
+    font-weight: 900;
+  }
+  page .public-app .native-profile-empty__note {
+    color: #78837c;
+    font-size: 12.8px;
+  }
+  page .public-app .native-profile-empty__action.native-profile-empty__action {
+    min-width: 113px;
+    height: 38px;
+    min-height: 38px;
+    margin: 6px 0 0;
+    padding: 0 16px;
+    border-radius: 5px;
+    background: #194930;
+    color: #fff;
+    font-size: 12.8px;
+    font-weight: 650;
+    line-height: 38px;
+  }
+
+  /* ---------- 登录 ---------- */
+  page .native-login.native-login .native-auth-scene__brand {
+    font-size: 27px;
+    font-weight: 750;
+  }
+  page .native-login.native-login .native-auth-scene__mark {
+    width: 63px;
+    height: 55px;
+  }
+  page .native-login.native-login .native-auth-scene__title {
+    font-size: 27px;
+    font-weight: 800;
+  }
+  page .native-login.native-login .native-auth-scene__body {
+    color: #777d78;
+    font-size: 13px;
+  }
+  page .native-login.native-login .native-auth-scene__tagline {
+    font-size: 10px;
+  }
+  page .native-login.native-login .auth-tabs > button {
+    font-size: 17px;
+    font-weight: 650;
+  }
+  page .native-login.native-login .login-methods > button {
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+  page .native-login.native-login .auth-form__title {
+    font-size: 32px;
+    font-weight: 800;
+  }
+  page .native-login.native-login .auth-form .auth-label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  page .native-login.native-login .auth-input.auth-input {
+    font-size: 13.5px;
+  }
+  page .native-login.native-login .auth-link {
+    font-size: 12px;
+  }
+  page .native-login.native-login .auth-primary.auth-primary,
+  page .native-login.native-login .guest-entry__button.guest-entry__button {
+    height: 46px;
+    min-height: 46px;
+    border-radius: 5px;
+    font-size: 15.5px;
+    font-weight: 650;
+    line-height: 46px;
+  }
+  page .native-login.native-login .guest-entry__hint {
+    font-size: 10.5px;
+  }
+}

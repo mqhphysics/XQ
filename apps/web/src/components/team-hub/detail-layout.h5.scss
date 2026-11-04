@@ -1,0 +1,59 @@
+@media (min-width: 721px) {
+  .th-root.th-detail-modal.xq-dialog--wide > .th-detail-modal__content {
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .th-root.th-detail-modal .th-detail-body {
+    display: block;
+    min-height: auto;
+  }
+  .th-root.th-detail-modal .th-detail-body > .th-panel {
+    flex: none;
+    min-height: auto;
+  }
+  .th-root.th-detail-modal .th-detail-body > .th-panel > .th-columns {
+    height: auto;
+    grid-template-rows: auto;
+    align-items: start;
+  }
+  .th-root.th-detail-modal .th-detail-body > .th-panel > .th-columns > .th-surface {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+  .th-root .th-detail-body > .th-hero.th-team-banner {
+    display: block;
+    aspect-ratio: auto;
+    min-height: 200px;
+    background: #f1f6ef;
+  }
+  .th-root .th-team-banner .th-team-banner__img {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 65%;
+    height: 100%;
+    opacity: 0.25;
+    object-fit: cover;
+    mask-image: linear-gradient(90deg, transparent, #000);
+  }
+  .th-root .th-team-banner .th-team-banner__panel {
+    position: relative;
+    margin: 0;
+    padding: 24px 28px;
+    min-height: 200px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .th-root .th-team-banner .th-hero__identity > .team-crest {
+    width: 64px;
+    height: 76px;
+  }
+  .th-root .th-team-banner .th-hero__title {
+    font-size: 30px;
+  }
+}

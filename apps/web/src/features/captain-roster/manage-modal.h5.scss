@@ -1,0 +1,1894 @@
+// Captain 「管理球队」 modal — desktop H5. Tokens follow team-hub / dialog-chrome.
+$green: #194c34;
+$green-hover: #245c40;
+$green-mid: #2f7d55;
+$soft: #e6f2e9;
+$soft-hover: #dceee1;
+$line: #e3e9e4;
+$line-strong: #d3ddd5;
+$ink: #14251d;
+$ink-2: #34463b;
+$muted: #74827a;
+$bg: #f5f8f4;
+$danger: #b3261e;
+$gold: #b8860b;
+$radius: 8px;
+$card-radius: 12px;
+$dialog-h: min(640px, calc(var(--xq-vh, 1vh) * 100 - 72px));
+$header-h: 64px;
+
+.cm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 380;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 34, 23, 0.46);
+  backdrop-filter: blur(4px);
+}
+
+.cmx {
+  color: $ink;
+  font-size: 13px;
+  line-height: 1.5;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  h2,
+  h3,
+  h4,
+  h5,
+  p,
+  dl,
+  dd,
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+  ul {
+    list-style: none;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+    letter-spacing: 0;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+  }
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  :focus-visible {
+    outline: 2px solid #6a9778;
+    outline-offset: 2px;
+  }
+  .cmx-icon {
+    flex: 0 0 auto;
+  }
+  .cmx-muted {
+    color: $muted;
+  }
+}
+
+.cm-dialog.xq-dialog.cmx {
+  width: min(1120px, calc(100vw - 48px));
+  height: $dialog-h;
+  max-height: $dialog-h;
+  background: $bg;
+}
+.cm-picker.xq-dialog.cmx {
+  width: min(440px, calc(100vw - 48px));
+  height: auto;
+  max-height: min(520px, calc(var(--xq-vh, 1vh) * 86));
+  background: #fff;
+}
+
+// ── Header ───────────────────────────────────────────────
+.cmx > .cmx-header.xq-dialog__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  height: $header-h;
+  padding: 0 16px 0 20px;
+  background: #fff;
+  border-bottom: 1px solid $line;
+}
+.cm-picker.cmx > .cmx-header.xq-dialog__header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  height: 56px;
+}
+.cmx-header__team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  .team-crest {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+  }
+  > div {
+    min-width: 0;
+  }
+}
+.cmx .cmx-header .cmx-header__title {
+  overflow: hidden;
+  color: $ink;
+  font-size: 17px;
+  font-weight: 750;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cmx .cmx-header .cmx-header__sub {
+  display: block;
+  margin: 1px 0 0;
+  color: $muted;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.cmx-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #eef3ef;
+}
+.cmx-tab {
+  position: relative;
+  min-width: 84px;
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4f6157;
+  font-size: 13px !important;
+  font-weight: 600;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
+  &:hover:not(:disabled) {
+    color: $green;
+  }
+  &.is-active {
+    background: #fff;
+    color: $green;
+    box-shadow: 0 1px 3px rgba(20, 50, 30, 0.14);
+  }
+}
+.cmx-tab__dot {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d9483b;
+}
+.cmx-close {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f0f4f1;
+  color: #4a5d51;
+  transition: background 0.15s;
+  &:hover {
+    background: #e2ebe4;
+    color: $ink;
+  }
+}
+
+// ── Body & sections ──────────────────────────────────────
+.cm-dialog.xq-dialog.cmx > .cmx-body.xq-dialog__body {
+  position: relative;
+  padding: 16px 20px 20px;
+  background: $bg;
+  scroll-padding-top: 16px;
+  scroll-padding-bottom: 20px;
+}
+.cmx-section {
+  position: relative;
+  padding: 20px 24px 24px;
+  border: 1px solid $line;
+  border-radius: $card-radius;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(20, 50, 30, 0.04);
+  & + & {
+    margin-top: 16px;
+  }
+}
+.cmx-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 34px;
+  margin-bottom: 14px;
+  h3 {
+    color: $ink;
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.3;
+  }
+}
+
+// ── Controls ─────────────────────────────────────────────
+.cmx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: $radius;
+  font-size: 13px !important;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    opacity 0.15s;
+  &:disabled {
+    opacity: 0.45;
+  }
+}
+.cmx-btn--primary {
+  background: $green;
+  color: #fff;
+  &:hover:not(:disabled) {
+    background: $green-hover;
+  }
+}
+.cmx-btn--soft {
+  background: $soft;
+  color: $green-hover;
+  &:hover:not(:disabled) {
+    background: $soft-hover;
+  }
+}
+.cmx-btn--ghost {
+  border-color: $line-strong;
+  background: #fff;
+  color: $ink-2;
+  &:hover:not(:disabled),
+  &.is-active {
+    border-color: #b9c9bd;
+    background: #f6f9f6;
+  }
+}
+.cmx-btn--glass {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+.cmx-btn--sm {
+  height: 32px;
+  padding: 0 12px;
+}
+.cmx-btn--xs {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 7px;
+  font-size: 12px !important;
+}
+.cmx-btn--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: #4a5d51;
+  &:hover:not(:disabled) {
+    background: #eef3ef;
+    color: $green;
+  }
+}
+.cmx-input,
+.cmx-textarea {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid $line-strong;
+  border-radius: $radius;
+  outline: none;
+  background: #fff;
+  color: $ink;
+  font-size: 13px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  &::placeholder {
+    color: #a3aea7;
+  }
+  &:hover {
+    border-color: #b9c9bd;
+  }
+  &:focus {
+    border-color: $green-mid;
+    box-shadow: 0 0 0 3px rgba(47, 125, 85, 0.14);
+  }
+  &.is-invalid {
+    border-color: $danger;
+  }
+}
+.cmx-input--sm {
+  height: 32px;
+}
+.cmx-textarea {
+  display: block;
+  height: auto;
+  min-height: 96px;
+  max-height: 180px;
+  padding: 10px 12px 22px;
+  line-height: 1.65;
+  resize: vertical;
+}
+.cmx-textarea-wrap {
+  position: relative;
+}
+.cmx-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  color: #a3aea7;
+  font-size: 11px;
+  pointer-events: none;
+}
+.cmx-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  border: 1px solid $line-strong;
+  border-radius: $radius;
+  background: #fff;
+  transition: border-color 0.15s;
+  &:hover {
+    border-color: #b9c9bd;
+  }
+  &:focus-within {
+    border-color: $green-mid;
+    box-shadow: 0 0 0 3px rgba(47, 125, 85, 0.14);
+  }
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 100%;
+    min-width: 0;
+    flex: 1;
+    padding: 0 30px 0 12px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: $ink;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .cmx-icon {
+    position: absolute;
+    right: 10px;
+    color: $muted;
+    pointer-events: none;
+  }
+}
+.cmx-select--sm {
+  height: 32px;
+}
+.cmx-select__prefix {
+  padding-left: 12px;
+  color: $muted;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cmx-select__prefix + select {
+  padding-left: 8px;
+}
+.cmx-field {
+  display: grid;
+  gap: 6px;
+  > span:first-child {
+    color: $muted;
+    font-size: 12px;
+  }
+  .cmx-select {
+    width: 100%;
+  }
+}
+.cmx-error {
+  color: $danger;
+  font-size: 12px;
+}
+.cmx-error--block {
+  margin: -4px 0 12px;
+  padding: 8px 12px;
+  border-radius: $radius;
+  background: #fbeceb;
+}
+.cmx-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: #eef2ef;
+  color: #56685d;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cmx-tag--gold {
+  background: #fbf1d6;
+  color: #8a6407;
+}
+.cmx-tag--green {
+  background: $soft;
+  color: $green-hover;
+}
+.cmx-tag--blue {
+  background: #e7eff8;
+  color: #2a5b8c;
+}
+.cmx-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 72px;
+  border: 1px dashed $line-strong;
+  border-radius: 10px;
+  background: #fafcfa;
+  color: $muted;
+  font-size: 13px;
+  .cmx-icon {
+    color: #8fb59c;
+  }
+}
+
+// ── Section 1 · 球队主页 ─────────────────────────────────
+.cmx-section--profile {
+  overflow: visible;
+  padding: 0;
+}
+.cmx-profile__cover {
+  position: relative;
+  background-color: #1d4f33;
+  background-size: cover;
+  background-position: center 38%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  height: 112px;
+  padding: 14px 16px;
+  border-radius: $card-radius $card-radius 0 0;
+  overflow: visible;
+  &::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    content: '';
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.12) 100%);
+  }
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+.cmx-profile__stripe {
+  position: absolute !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  z-index: 1;
+}
+.cmx-profile__colors {
+  display: flex;
+  gap: 8px;
+}
+.cmx-profile__main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 20px;
+  padding: 0 24px;
+}
+.cmx-profile__crest {
+  margin-top: -40px;
+  padding: 6px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(20, 50, 30, 0.14);
+  .team-crest {
+    display: block;
+    width: 88px;
+    height: 88px;
+  }
+}
+.cmx-profile__identity {
+  min-width: 0;
+  padding-top: 14px;
+}
+.cmx-profile__name {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: $ink;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.cmx-profile__short {
+  color: $muted;
+  font-size: 13px;
+  font-weight: 500;
+}
+.cmx-profile__meta {
+  margin-top: 4px;
+  color: #66756c;
+  font-size: 13px;
+  span {
+    margin-left: 6px;
+  }
+}
+.cmx-profile__name-edit {
+  display: flex;
+  gap: 8px;
+  max-width: 460px;
+}
+.cmx-input--title {
+  height: 38px;
+  font-size: 18px;
+  font-weight: 750;
+}
+.cmx-input--short {
+  flex: 0 0 96px;
+  height: 38px;
+}
+.cmx-profile__meta-edit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 460px;
+  margin-top: 8px;
+  > .cmx-input {
+    flex: 1;
+    height: 32px;
+  }
+}
+.cmx-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $muted;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cmx-input--year {
+  width: 64px;
+  height: 32px;
+  padding: 0 8px;
+  text-align: center;
+}
+.cmx-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.cmx-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: $soft;
+  color: $green-hover;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.cmx-pill__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #5e8a70;
+  &:hover {
+    background: rgba(25, 76, 52, 0.12);
+    color: $green;
+  }
+}
+.cmx-pill--add {
+  border: 1px dashed #9fbfaa;
+  background: #fff;
+  color: $green-mid;
+  &:hover {
+    background: #f4faf5;
+  }
+}
+.cmx-pill--input {
+  width: 150px;
+  border-color: $green-mid;
+  outline: none;
+  background: #fff;
+  color: $ink;
+  box-shadow: 0 0 0 3px rgba(47, 125, 85, 0.12);
+}
+.cmx-profile__facts {
+  display: flex;
+  padding-top: 18px;
+  > div {
+    min-width: 76px;
+    padding: 0 16px;
+    text-align: center;
+    border-left: 1px solid $line;
+    &:first-child {
+      border-left: 0;
+    }
+  }
+  dd {
+    color: #234530;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  dt {
+    margin-top: 2px;
+    color: $muted;
+    font-size: 12px;
+  }
+}
+.cmx-profile__intro {
+  margin: 18px 24px 0;
+  padding: 16px 0 22px;
+  border-top: 1px solid #eef2ef;
+  h4 {
+    margin-bottom: 8px;
+    color: $ink-2;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  p {
+    max-width: 820px;
+    color: #45574c;
+    font-size: 13.5px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    &.is-empty {
+      color: #9aa69f;
+    }
+  }
+}
+.cmx-profile__actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 24px;
+  border-top: 1px solid $line;
+  border-radius: 0 0 $card-radius $card-radius;
+  background: rgba(255, 255, 255, 0.96);
+  .cmx-error {
+    margin-right: auto;
+  }
+}
+.cmx-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  > span {
+    color: $muted;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .cmx-input {
+    width: 220px;
+  }
+}
+.cmx-profile.is-editing .cmx-profile__intro {
+  padding-bottom: 16px;
+}
+
+// Colour swatch picker
+.cmx-swatch {
+  position: relative;
+}
+.cmx-swatch__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: $ink-2;
+  font-size: 12px !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.cmx-swatch__chip {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+.cmx-swatch__chip--rainbow {
+  background: conic-gradient(#e94b3c, #f4c95d, #4caf50, #2a7fd4, #8e44ad, #e94b3c);
+}
+.cmx-swatch__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 212px;
+  padding: 12px;
+  border: 1px solid $line;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(20, 40, 25, 0.18);
+}
+.cmx-swatch__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+.cmx-swatch__option {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  &:hover {
+    transform: scale(1.08);
+  }
+  &.is-active {
+    box-shadow: 0 0 0 2px $green-mid;
+  }
+}
+.cmx-swatch__custom {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2ef;
+  color: $ink-2;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  .cmx-swatch__native {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+// Round 10: the native colour input is invisible, so keyboard focus rings its chip instead.
+@media (min-width: 721px) {
+  .cmx-swatch__custom:has(.cmx-swatch__native:focus-visible:not([data-xq-pointer]))
+    .cmx-swatch__chip {
+    box-shadow: 0 0 0 3px rgba(76, 138, 95, 0.3);
+  }
+}
+
+// ── Section 2 · 阵容 ─────────────────────────────────────
+.cmx-section--lineup {
+  display: flex;
+  flex-direction: column;
+  height: calc(#{$dialog-h} - #{$header-h} - 36px);
+  min-height: 430px;
+  padding-bottom: 20px;
+  > .cmx-section__head {
+    flex: 0 0 auto;
+  }
+}
+.cmx-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cmx-toolbar__divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: $line;
+}
+.cmx-toolbar .cmx-btn--primary {
+  margin-left: 4px;
+}
+.cmx-more {
+  position: relative;
+}
+.cmx-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 10px;
+  width: 240px;
+  padding: 14px;
+  border: 1px solid $line;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 36px rgba(20, 40, 25, 0.18);
+}
+.cmx-menu__item {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  margin: 0 -6px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: $ink-2;
+  font-size: 13px !important;
+  text-align: left;
+  &:hover:not(:disabled) {
+    background: #f1f6f2;
+    color: $green;
+  }
+  &:disabled {
+    color: #a3aea7;
+  }
+  &:first-of-type {
+    margin-top: 2px;
+    border-top: 0;
+  }
+}
+.cmx-lineup {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
+  gap: 16px;
+}
+.cmx-lineup__stage {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.cmx-lineup__fit {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+.cmx-pitch {
+  position: relative;
+  width: min(100cqw, calc(100cqh * 105 / 68));
+  aspect-ratio: 105 / 68;
+  border-radius: 10px;
+  overflow: hidden;
+  background: repeating-linear-gradient(90deg, #2f8a52 0 9.09%, #2a7f4b 9.09% 18.18%), #2c844e;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 4px 14px rgba(20, 60, 35, 0.16);
+  user-select: none;
+  touch-action: none;
+  &.is-custom {
+    box-shadow:
+      inset 0 0 0 2px rgba(244, 201, 93, 0.7),
+      0 4px 14px rgba(20, 60, 35, 0.16);
+  }
+}
+.cmx-pitch__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.cmx-pitch__direction {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.cmx-slot {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 76px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: translate(-50%, -26px);
+  touch-action: none;
+  cursor: grab;
+  &:active {
+    cursor: grabbing;
+  }
+}
+.cmx-slot__ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-top: 4px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition:
+    transform 0.12s,
+    background 0.12s,
+    border-color 0.12s;
+}
+.cmx-slot.is-ready .cmx-slot__ring {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.14);
+}
+.cmx-slot.is-target .cmx-slot__ring,
+.cmx-slot.is-target .cmx-slot__avatar {
+  transform: scale(1.14);
+  border-color: #f4c95d;
+  background: rgba(244, 201, 93, 0.24);
+}
+.cmx-slot__avatar {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.28);
+  transition: transform 0.12s;
+  .user-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  em {
+    position: absolute;
+    right: -6px;
+    bottom: -3px;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 4px;
+    border: 1.5px solid #fff;
+    border-radius: 10px;
+    background: $green;
+    color: #fff;
+    font-size: 10.5px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 16px;
+    text-align: center;
+  }
+}
+.cmx-slot.is-selected .cmx-slot__avatar {
+  box-shadow:
+    0 0 0 3px #f4c95d,
+    0 3px 8px rgba(0, 0, 0, 0.28);
+}
+.cmx-slot__name {
+  max-width: 76px;
+  padding: 1px 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(10, 30, 18, 0.62);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 17px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cmx-pitch.is-dragging .cmx-slot:not(.is-filled) .cmx-slot__ring {
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.cmx-lineup__status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  color: $ink-2;
+  font-size: 12px;
+  font-weight: 600;
+  .cmx-muted {
+    font-weight: 400;
+  }
+}
+.cmx-lineup__msg.is-error {
+  color: $danger;
+}
+.cmx-lineup__msg.is-ok {
+  color: $green-mid;
+}
+.cmx-lineup__panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid $line;
+  border-radius: 10px;
+  background: #fafcfa;
+}
+.cmx-lineup__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid $line;
+  strong {
+    font-size: 13px;
+  }
+  span {
+    color: $muted;
+    font-size: 11.5px;
+  }
+}
+.cmx-lineup__groups {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 10px 10px;
+  overscroll-behavior: contain;
+}
+.cmx-chip-group {
+  margin-top: 8px;
+  padding: 6px;
+  border: 1px dashed transparent;
+  border-radius: 9px;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+  &.is-drop {
+    border-color: #8fb59c;
+    background: #eef6f0;
+  }
+  h5 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    color: $ink-2;
+    font-size: 12px;
+    font-weight: 700;
+    span {
+      color: $muted;
+      font-weight: 500;
+    }
+  }
+}
+.cmx-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.cmx-chip-empty {
+  padding: 8px 0 4px;
+  color: #9aa69f;
+  font-size: 12px;
+  text-align: center;
+}
+.cmx-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 42px;
+  padding: 0 8px 0 5px;
+  border: 1px solid $line;
+  border-radius: 9px;
+  background: #fff;
+  text-align: left;
+  touch-action: none;
+  cursor: grab;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
+  &:hover {
+    border-color: #b9c9bd;
+    box-shadow: 0 2px 6px rgba(20, 50, 30, 0.08);
+  }
+  &.is-selected {
+    border-color: $green-mid;
+    box-shadow: 0 0 0 2px rgba(47, 125, 85, 0.2);
+  }
+  .user-avatar {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    overflow: hidden;
+    font-size: 12px;
+  }
+}
+.cmx-chip__text {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+  strong,
+  small {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  strong {
+    color: $ink;
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+  small {
+    color: $muted;
+    font-size: 11px;
+  }
+}
+.cmx-chip__badge {
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: $soft;
+  color: $green-hover;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+.cmx-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: -18px 0 0 -18px;
+  padding: 3px 12px 3px 3px;
+  border-radius: 999px;
+  background: #fff;
+  color: $ink;
+  font-size: 12px;
+  font-weight: 650;
+  box-shadow: 0 8px 22px rgba(10, 30, 18, 0.28);
+  pointer-events: none;
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+}
+
+// ── Section 3 · 大名单 ───────────────────────────────────
+.cmx-status {
+  position: sticky;
+  top: -16px;
+  z-index: 4;
+  box-shadow: 0 0 0 6px #fff;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 20px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid #d9e8dd;
+  border-radius: 10px;
+  background: #f3f9f4;
+}
+.cmx-status__main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.cmx-status__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 132px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: $green;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px #cfe2d4;
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+.cmx-status__meta {
+  display: grid;
+  min-width: 0;
+  line-height: 1.4;
+  strong {
+    overflow: hidden;
+    color: $ink;
+    font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  span {
+    color: #5c6c62;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  b {
+    color: $green;
+    &.is-off {
+      color: $danger;
+    }
+  }
+}
+.cmx-status__hint {
+  color: $muted;
+  font-size: 12px;
+  text-align: right;
+}
+.cmx-status.is-pending {
+  border-color: #efdcae;
+  background: #fdf8ea;
+  .cmx-status__pill {
+    color: #9a6a00;
+    box-shadow: inset 0 0 0 1px #efdcae;
+  }
+}
+.cmx-status.is-warn {
+  border-color: #f0cfcb;
+  background: #fdf3f2;
+  .cmx-status__pill {
+    color: $danger;
+    box-shadow: inset 0 0 0 1px #f0cfcb;
+  }
+}
+.cmx-status.is-done .cmx-status__pill {
+  background: $green;
+  color: #fff;
+  box-shadow: none;
+}
+.cmx-status.is-muted {
+  border-color: $line;
+  background: #f7f9f7;
+  .cmx-status__pill {
+    color: $muted;
+    box-shadow: inset 0 0 0 1px $line;
+  }
+}
+.cmx-squad {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.cmx-squad__side {
+  position: sticky;
+  top: 76px;
+  display: grid;
+  gap: 16px;
+}
+.cmx-card {
+  padding: 16px;
+  border: 1px solid $line;
+  border-radius: 10px;
+  background: #fff;
+}
+.cmx-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $ink;
+    font-size: 14px;
+    font-weight: 700;
+    span {
+      color: $muted;
+      font-size: 12px;
+      font-weight: 500;
+      &.is-alert {
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: #d9483b;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+      }
+    }
+  }
+}
+.cmx-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $muted;
+  font-size: 12px;
+  i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $green-mid;
+  }
+}
+.cmx-roster__list {
+  display: grid;
+}
+.cmx-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 52px 84px 76px 28px;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  & + & {
+    box-shadow: 0 -1px 0 #f0f3f0;
+  }
+  &:hover {
+    background: #f7faf7;
+    box-shadow: none;
+    .cmx-row__remove:not(:disabled) {
+      opacity: 1;
+    }
+  }
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    font-size: 12px;
+  }
+  &.is-out .user-avatar,
+  &.is-out .cmx-row__name strong {
+    opacity: 0.55;
+  }
+}
+.cmx-row__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  strong {
+    overflow: hidden;
+    color: $ink;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+.cmx-number {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 0 0 8px;
+  border: 1px solid $line-strong;
+  border-radius: 7px;
+  background: #fff;
+  color: $muted;
+  font-size: 12px;
+  .cmx-number__input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 6px 0 2px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: $ink;
+    font-weight: 700;
+  }
+  &:focus-within {
+    border-color: $green-mid;
+  }
+  &.is-static {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #4a5d51;
+    font-weight: 700;
+  }
+}
+.cmx-select--chip {
+  height: 28px;
+  border-color: transparent;
+  border-radius: 7px;
+  background: #f0f4f1;
+  select {
+    padding: 0 24px 0 10px;
+    font-size: 12px;
+  }
+  .cmx-icon {
+    right: 8px;
+  }
+  &:hover {
+    border-color: $line-strong;
+    background: #fff;
+  }
+}
+.cmx-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px dashed $line-strong;
+  border-radius: 999px;
+  background: #fff;
+  color: $muted;
+  font-size: 12px !important;
+  font-weight: 600;
+  white-space: nowrap;
+  &.is-on {
+    border: 1px solid transparent;
+    background: $soft;
+    color: $green-hover;
+  }
+  &:hover:not(:disabled):not(.is-static) {
+    border-color: $green-mid;
+  }
+  &.is-static {
+    cursor: default;
+  }
+  &.is-static:not(.is-on) {
+    border-style: solid;
+    border-color: transparent;
+    background: #f3f5f3;
+  }
+}
+.cmx-row__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #9aa69f;
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    background 0.12s,
+    color 0.12s;
+  &:hover:not(:disabled) {
+    background: #fbeceb;
+    color: $danger;
+  }
+  &:disabled {
+    opacity: 0 !important;
+  }
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+.cmx-apps,
+.cmx-hits {
+  display: grid;
+  gap: 4px;
+}
+.cmx-app,
+.cmx-hit {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px;
+  border-radius: 9px;
+  &:hover {
+    background: #f7faf7;
+  }
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+}
+.cmx-app__text,
+.cmx-hit__text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $ink;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  small {
+    overflow: hidden;
+    color: $muted;
+    font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+.cmx-app__actions {
+  display: flex;
+  gap: 6px;
+}
+.cmx-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 4px 0 12px;
+  border: 1px solid $line-strong;
+  border-radius: 10px;
+  background: #fff;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  > .cmx-icon {
+    color: $muted;
+  }
+  .cmx-search__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: none !important;
+    background: transparent;
+    font-size: 13px;
+    &::placeholder {
+      color: #a3aea7;
+    }
+  }
+  &:focus-within {
+    border-color: $green-mid;
+    box-shadow: 0 0 0 3px rgba(47, 125, 85, 0.14);
+  }
+}
+.cmx-invite .cmx-hits {
+  max-height: 292px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.cmx-invite .cmx-hits,
+.cmx-invite .cmx-empty,
+.cmx-invite .cmx-error {
+  margin-top: 10px;
+}
+.cmx-hit__state {
+  color: $muted;
+  font-size: 12px;
+  font-weight: 600;
+  &.is-sent {
+    color: $green-mid;
+  }
+}
+
+// ── Team picker ──────────────────────────────────────────
+.cm-picker.xq-dialog.cmx > .cmx-picker.xq-dialog__body {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+.cmx-picker__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid $line;
+  border-radius: 10px;
+  background: #fff;
+  color: $ink;
+  font-size: 14px !important;
+  text-align: left;
+  .cmx-icon {
+    transform: rotate(-90deg);
+    color: $muted;
+  }
+  &:hover {
+    border-color: #b9c9bd;
+    background: #f6faf6;
+  }
+}
+
+/* Round 5 — round pen button that grows into a labelled pill on hover (same as 我的 个人资料). */
+.cmx-profile__edit {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2f5d3e;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition:
+    width 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 160ms ease;
+  > span {
+    opacity: 0;
+    font-size: 12px;
+    font-weight: 600;
+    transition: opacity 140ms ease;
+  }
+  svg {
+    flex: 0 0 15px;
+  }
+  &:hover,
+  &:focus-visible {
+    width: 104px;
+    background: #fff;
+    > span {
+      opacity: 1;
+      transition-delay: 60ms;
+    }
+  }
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmx-profile__edit,
+  .cmx-profile__edit > span {
+    transition: none;
+  }
+}
+
+/* Round 12/13 — header shows the team's stored 2.80:1 background in full; name and
+   stats sit on a soft white backing over it. Edit mode: 取消/完成 replace the pen top-right,
+   crest and background can be changed in place; no colour picker, no bottom save bar. */
+.cmx-profile__hero {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  /* Round 13: one 2.80:1 frame — the stored (cropped) background fills it exactly, the same
+     frame as the public team banner. No blurred side fill. */
+  aspect-ratio: 2.8;
+  border-radius: $card-radius $card-radius 0 0;
+  background: #1d4f33;
+  isolation: isolate;
+  > .cmx-profile__cover-img,
+  > .cmx-profile__main {
+    grid-area: 1 / 1;
+  }
+}
+.cmx-profile__cover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+.cmx-profile__hero > .cmx-profile__main {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  align-items: center;
+  margin: 12px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 8px 26px rgba(10, 35, 20, 0.16);
+  backdrop-filter: blur(10px) saturate(1.1);
+}
+.cmx-profile__hero .cmx-profile__crest {
+  margin-top: 0;
+  padding: 5px;
+  border: 0;
+  .team-crest {
+    width: 64px;
+    height: 64px;
+  }
+}
+.cmx-profile__hero .cmx-profile__identity {
+  padding-top: 0;
+}
+.cmx-profile__hero .cmx-profile__facts {
+  padding-top: 0;
+  > div {
+    border-left-color: rgba(20, 60, 35, 0.14);
+  }
+}
+.cmx-profile__crest--editable {
+  position: relative;
+  cursor: pointer;
+  &:hover .cmx-profile__crest-hint,
+  &:focus-visible .cmx-profile__crest-hint {
+    opacity: 1;
+  }
+}
+.cmx-profile__crest-hint {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  display: grid;
+  place-items: center;
+  height: 22px;
+  border-radius: 0 0 14px 14px;
+  background: rgba(20, 50, 32, 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.cmx-profile.is-editing .cmx-profile__crest-hint {
+  opacity: 1;
+}
+.cmx-profile__toolbar {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+}
+.cmx-profile__tool {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #2f5d3e;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  &:hover {
+    background: #fff;
+  }
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+}
+.cmx-profile__tool--primary {
+  border-color: $green;
+  background: $green;
+  color: #fff;
+  &:hover {
+    background: $green-hover;
+  }
+}
+.cmx-profile__cover-change {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #2f5d3e;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+.cmx-profile__error {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* Round 12 — the pitch is the 首发 area; everyone else is listed under 替补 on the right. */
+.cmx-pitch__title {
+  position: absolute;
+  top: 7px;
+  left: 12px;
+  z-index: 1;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.cmx-lineup__panel .cmx-chip-group[data-drop-zone='bench'] {
+  min-height: 160px;
+}
+.cmx-lineup__panel .cmx-chip-group[data-drop-zone='bench'] > h5 {
+  display: none;
+}
+.cmx-lineup__bench-count {
+  margin-left: 4px;
+  color: #74827a;
+  font-style: normal;
+  font-weight: 700;
+}

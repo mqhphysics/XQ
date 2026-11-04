@@ -1,0 +1,625 @@
+/*postcss-pxtransform disable*/
+.native-record-board.native-record-board--rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+  color: #1d2b22;
+  box-sizing: border-box;
+}
+.native-record-board--rows button {
+  margin: 0;
+  box-sizing: border-box;
+}
+/* Toolbar */
+.native-record-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 44px;
+  height: 44px;
+}
+.native-record-back.native-record-back,
+.native-record-menu.native-record-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+  line-height: 1;
+}
+.native-record-back > view {
+  width: 22px;
+  height: 22px;
+}
+.native-record-menu.native-record-menu {
+  flex-direction: column;
+  gap: 4px;
+}
+.native-record-menu > view {
+  width: 18px;
+  height: 2px;
+  background: #1f5a36;
+  border-radius: 1px;
+}
+.native-record-teams {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  padding: 3px;
+  border-radius: 20px;
+  background: #e4eadc;
+}
+.native-record-team.native-record-team {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #5b6b5f;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.native-record-team.is-team {
+  background: #1f6b45;
+  color: #fff;
+}
+.native-record-team.is-player {
+  background: #fff;
+  color: #1f6b45;
+}
+/* Seven on-pitch players */
+.native-record-players {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #fff;
+}
+.native-record-players__empty {
+  flex: 1;
+  padding: 18px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #7b8a7e;
+}
+.native-record-player {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 5px 0 4px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+.native-record-player.is-active {
+  background: #e3f0e6;
+  box-shadow: inset 0 0 0 2px #1f6b45;
+}
+.native-record-player.is-pressed {
+  background: #eef4ea;
+}
+.native-record-player__face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* NativePlayerPortrait, resized; doubled class beats the pitch/foldable rules. */
+.native-record-player__face.native-record-player__face .native-pitch-portrait,
+.native-lineup-sort__face.native-lineup-sort__face .native-pitch-portrait {
+  position: relative;
+  width: var(--record-face, 38px);
+  height: var(--record-face, 38px);
+  flex: none;
+}
+.native-record-player__face.native-record-player__face .native-pitch-shirt,
+.native-lineup-sort__face.native-lineup-sort__face .native-pitch-shirt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #fff;
+  font-size: calc(var(--record-face, 38px) * 0.46);
+  font-weight: 800;
+  line-height: 1;
+}
+.native-record-player__face .native-pitch-shirt > text,
+.native-lineup-sort__face .native-pitch-shirt > text {
+  display: block;
+  line-height: 1;
+  text-align: center;
+}
+.native-record-player__face .native-pitch-shirt > image,
+.native-lineup-sort__face .native-pitch-shirt > image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.native-record-player__face .native-pitch-player__number,
+.native-lineup-sort__face .native-pitch-player__number {
+  display: none;
+}
+.native-record-player__number {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: #1f6b45;
+}
+.native-record-player__name {
+  max-width: 100%;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+/* Last three records */
+.native-record-recent {
+  display: flex;
+  flex: 0 0 24px;
+  gap: 6px;
+  height: 24px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.native-record-recent > text {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0 9px;
+  border-radius: 12px;
+  background: #fff;
+  color: #5b6b5f;
+  font-size: 12px;
+  line-height: 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.native-record-recent > text.is-latest {
+  flex-shrink: 0;
+  background: #1f6b45;
+  color: #fff;
+}
+.native-record-recent > text.is-empty {
+  background: transparent;
+  padding: 0 2px;
+  color: #8a988c;
+}
+/* Event rows */
+.native-record-board--rows .native-record-board__rows {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 7px;
+}
+.native-record-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  flex: 1 1 0;
+  min-height: var(--record-row, 54px);
+}
+.native-record-row__label {
+  display: flex;
+  align-items: center;
+  flex: 0 0 40px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #33453a;
+}
+.native-record-row__keys {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+.native-record-key {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  border-radius: 16px;
+  background: #dcebd3;
+  color: #1f5a36;
+  overflow: hidden;
+  line-height: 1;
+  transition: transform 0.08s ease-out;
+}
+.native-record-key__label {
+  font-size: 18px;
+  font-weight: 800;
+}
+.native-record-key__count {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.native-record-key.muted {
+  background: #eef1ea;
+  color: #6a756c;
+}
+.native-record-key.warm {
+  background: #f3e2d0;
+  color: #8a4d1d;
+}
+.native-record-key.gold {
+  background: #f5e6b3;
+  color: #7a5b00;
+}
+.native-record-key.red {
+  background: #f2d3cb;
+  color: #9b2c1c;
+}
+.native-record-key.goal {
+  background: #1f6b45;
+  color: #fff;
+}
+.native-record-key.is-pressed {
+  filter: brightness(0.88);
+  transform: scale(0.97);
+}
+.native-record-key__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: #274f38;
+  pointer-events: none;
+  animation: record-flash 0.4s ease-out both;
+}
+@keyframes record-flash {
+  from {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+.native-record-board.is-reduced .native-record-key__pulse {
+  animation-duration: 0.1s;
+}
+/* 精简: three rows, noticeably bigger targets */
+.native-record-board.is-lite .native-record-row__label {
+  flex-basis: 48px;
+  font-size: 19px;
+}
+.native-record-board.is-lite .native-record-row,
+.native-record-board.is-lite .native-record-row__keys {
+  gap: 8px;
+}
+.native-record-board.is-lite .native-record-key {
+  border-radius: 20px;
+  gap: 8px;
+}
+.native-record-board.is-lite .native-record-key__label {
+  font-size: 26px;
+}
+.native-record-board.is-lite .native-record-key__count {
+  font-size: 18px;
+}
+/* Footer: status | 精简/完整 | undo */
+.native-record-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 52px;
+  min-height: 52px;
+}
+.native-record-status.native-record-status {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: #5b6b5f;
+  font-size: 13px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.native-record-status__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #71986b;
+}
+.native-record-status__dot.is-pending {
+  background: #c28a40;
+}
+.native-record-status.is-error {
+  color: #a4603a;
+}
+.native-record-mode {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 20px;
+  background: #e4eadc;
+}
+.native-record-mode__item {
+  min-width: 44px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 17px;
+  color: #5b6b5f;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 36px;
+  text-align: center;
+}
+.native-record-mode__item.is-active {
+  background: #1f6b45;
+  color: #fff;
+}
+.native-record-undo.native-record-undo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  width: 112px;
+  height: 46px;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 23px;
+  background: #24372b;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+.native-record-undo.native-record-undo[disabled] {
+  background: #24372b;
+  color: #fff;
+  opacity: 0.4;
+}
+/* Long-press substitution */
+.native-record-swap {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px 0 8px;
+}
+.native-record-swap__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 2px 6px;
+  border-radius: 12px;
+  background: #f4f6ef;
+}
+.native-record-swap__item.is-pressed {
+  background: #e3f0e6;
+}
+.native-record-swap__empty {
+  display: block;
+  padding: 24px 0;
+  text-align: center;
+  color: #7b8a7e;
+}
+/* Sort dialog */
+.native-record-modes {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 12px;
+  padding: 3px;
+  border-radius: 20px;
+  background: #e4eadc;
+}
+.native-record-modes__item {
+  flex: 1;
+  height: 38px;
+  border-radius: 17px;
+  background: transparent;
+  color: #7a8c70;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 38px;
+  text-align: center;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.native-record-modes__item.is-active {
+  background: #fff;
+  color: #1f5a36;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(44, 86, 55, 0.14);
+}
+.native-lineup-sort {
+  --record-face: 34px;
+}
+.native-lineup-sort__zone {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 4px 0 6px;
+}
+.native-lineup-sort__zone.is-bench {
+  margin-top: 14px;
+}
+.native-lineup-sort__zone > text:first-child {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1f5a36;
+}
+.native-lineup-sort__zone > text:last-child {
+  font-size: 12px;
+  color: #7b8a7e;
+}
+.native-lineup-sort__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  margin-bottom: 6px;
+  padding-right: 10px;
+  border: 1px solid #e3e9dc;
+  border-radius: 12px;
+  background: #fff;
+  box-sizing: border-box;
+}
+/* Lift/shift motion comes from the shared drag-sort styles; only tint the lifted row. */
+.native-lineup-sort__row.is-drag-lifted {
+  border-color: #1f6b45;
+  border-radius: 12px;
+  background: #f6fbf2;
+}
+.native-drag-handle.native-lineup-sort__handle {
+  flex: 0 0 44px;
+  height: 100%;
+  color: #6a7d6e;
+  font-size: 22px;
+}
+.is-drag-lifted .native-drag-handle.native-lineup-sort__handle {
+  color: #1f6b45;
+}
+.native-lineup-sort__face {
+  display: flex;
+  flex: none;
+}
+.native-lineup-sort__number {
+  flex: 0 0 28px;
+  color: #1f6b45;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+.native-lineup-sort__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.native-lineup-sort__tag,
+.native-lineup-sort__index {
+  flex: none;
+  color: #7b8a7e;
+  font-size: 12px;
+}
+.native-lineup-sort__index {
+  min-width: 16px;
+  color: #a0aca2;
+  text-align: right;
+}
+.native-lineup-sort__hint {
+  display: block;
+  margin-top: 8px;
+  color: #7b8a7e;
+  font-size: 12px;
+}
+
+.native-record-team::after,
+.native-record-menu::after,
+.native-record-back::after,
+.native-record-status::after,
+.native-record-undo::after {
+  border: 0;
+}
+/* Wide screens (foldables, tablets): bigger targets and faces */
+@media (min-width: 600px) {
+  .native-record-board--rows {
+    --record-face: 52px;
+  }
+  .native-record-player__number {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  .native-record-player__name {
+    font-size: 13px;
+  }
+  .native-record-recent {
+    flex-basis: 30px;
+    height: 30px;
+  }
+  .native-record-recent > text {
+    font-size: 13px;
+    line-height: 30px;
+    border-radius: 15px;
+  }
+  .native-record-row__label {
+    flex-basis: 56px;
+    font-size: 15px;
+  }
+  .native-record-key__label {
+    font-size: 18px;
+  }
+  .native-record-key__count {
+    font-size: 13px;
+  }
+  .native-record-board.is-lite .native-record-row__label {
+    flex-basis: 64px;
+    font-size: 18px;
+  }
+  .native-record-board.is-lite .native-record-key__label {
+    font-size: 24px;
+  }
+  .native-record-board.is-lite .native-record-key__count {
+    font-size: 16px;
+  }
+  .native-record-mode__item {
+    min-width: 64px;
+    height: 42px;
+    font-size: 13px;
+    line-height: 42px;
+    border-radius: 20px;
+  }
+  .native-record-undo.native-record-undo {
+    width: 150px;
+    height: 52px;
+    min-height: 52px;
+    border-radius: 26px;
+    font-size: 15px;
+  }
+  .native-record-swap {
+    --record-face: 52px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

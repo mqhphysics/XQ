@@ -1,0 +1,49 @@
+@media (min-width: 721px) {
+  .badge-manager {
+    color: #516657;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .badge-manager > p {
+    margin: 0 0 18px;
+  }
+  .badge-manager__choices {
+    display: grid;
+    gap: 9px;
+  }
+  .badge-manager__choices [data-badge-choice] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 46px;
+    border: 1px solid #e0e8e2;
+    border-radius: 7px;
+    padding: 11px 13px;
+    cursor: pointer;
+    background: #fbfcfb;
+  }
+  .badge-manager__choices .is-selected {
+    background: #edf5ef;
+    border-color: #bdd3c4;
+  }
+  .badge-manager__choices [type='radio'] {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: #246744;
+  }
+  .badge-manager__choices small {
+    margin-left: auto;
+    color: #8b998f;
+    font-size: 11px;
+  }
+  .badge-manager__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .badge-manager .badge-manager__error {
+    color: #a64d44;
+  }
+}

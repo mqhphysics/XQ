@@ -1,36 +1,33 @@
 {
-  "name": "xiaoqiu-weapp",
-  "version": "1.0.0",
+  "name": "xiaoqiu-xq",
+  "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "taro build --type weapp --watch",
-    "build": "taro build --type weapp",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+  "description": "晓球校园足球赛事与社区平台",
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": ">=22.13.0",
+    "pnpm": ">=11.5.2"
   },
-  "dependencies": {
-    "@tarojs/components": "4.2.0",
-    "@tarojs/helper": "4.2.0",
-    "@tarojs/plugin-framework-react": "4.2.0",
-    "@tarojs/plugin-platform-weapp": "4.2.0",
-    "@tarojs/react": "4.2.0",
-    "@tarojs/runtime": "4.2.0",
-    "@tarojs/shared": "4.2.0",
-    "@tarojs/taro": "4.2.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+  "scripts": {
+    "dev:api": "pnpm --filter @xiaoqiu/api dev",
+    "dev:worker": "pnpm --filter @xiaoqiu/worker dev",
+    "dev:weapp": "pnpm --filter @xiaoqiu/weapp dev",
+    "dev:web": "pnpm --filter @xiaoqiu/web dev",
+    "dev:admin": "pnpm --filter @xiaoqiu/admin-web dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint .",
+    "test": "pnpm -r --if-present test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@babel/core": "7.29.7",
-    "@babel/preset-react": "7.29.7",
-    "@babel/preset-typescript": "7.29.7",
-    "@tarojs/cli": "4.2.0",
-    "@tarojs/taro-loader": "4.2.0",
-    "@tarojs/webpack5-runner": "4.2.0",
-    "@types/react": "18.3.28",
-    "@types/react-dom": "18.3.7",
-    "@types/wechat-miniprogram": "latest",
-    "babel-preset-taro": "4.2.0",
-    "sass": "latest",
-    "typescript": "^5.6.3"
+    "@eslint/js": "latest",
+    "eslint": "latest",
+    "globals": "latest",
+    "prettier": "latest",
+    "typescript": "5.9.3",
+    "typescript-eslint": "latest"
   }
 }

@@ -1,0 +1,75 @@
+.self-player-form {
+  display: grid;
+  gap: 20px;
+  color: #536e54;
+  font-size: 13px;
+}
+.self-player-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.self-player-form label {
+  display: grid;
+  gap: 7px;
+}
+.self-player-form [data-self-profile-input] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #dbe5d5;
+  border-radius: 7px;
+  background: #fcfdf9;
+  font: inherit;
+  color: #355339;
+}
+.self-player-form [type='color'] {
+  height: 40px;
+  padding: 5px;
+}
+.self-player-form h3 {
+  font-size: 13px;
+  margin: 2px 0 -7px;
+}
+.self-player-ratings {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.self-player-photo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border-radius: 7px;
+  background: #f4f8ef;
+}
+.self-player-form :focus-visible {
+  outline: 2px solid #315b3d;
+  outline-offset: 2px;
+}
+.own-profile-edit-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  color: #466a47;
+  background: #f1f6ec;
+  border: 1px solid #dce7d4;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.own-profile-edit-button .profile-icon {
+  width: 15px;
+  height: 15px;
+}
+.own-profile-edit-button--floating {
+  position: absolute;
+  top: 20px;
+  right: 72px;
+  z-index: 2;
+}

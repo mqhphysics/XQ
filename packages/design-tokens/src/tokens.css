@@ -1,0 +1,11 @@
+:root {
+  --xq-color-ink: #17211b;
+  --xq-color-field: #183f2a;
+  --xq-color-grass: #2f7d4a;
+  --xq-color-signal: #d24d3f;
+  --xq-color-paper: #f4f6f3;
+  --xq-color-white: #ffffff;
+  --xq-radius-small: 4px;
+  --xq-radius-medium: 6px;
+  --xq-radius-large: 8px;
+}

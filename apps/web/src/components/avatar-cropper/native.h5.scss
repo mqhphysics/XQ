@@ -1,0 +1,216 @@
+@media (min-width: 721px) {
+  .avatar-cropper-panel {
+    font-size: 14px;
+    color: #324c39;
+  }
+  .avatar-cropper-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .avatar-cropper-title {
+    margin: 4px 0 0;
+    font-size: 20px;
+    line-height: 1.4;
+  }
+  .avatar-cropper-choose {
+    display: block;
+    width: 100%;
+    margin: 14px 0 0;
+    cursor: pointer;
+    font: inherit;
+  }
+  .avatar-cropper-actions button {
+    flex: 1;
+    font: inherit;
+    cursor: pointer;
+  }
+  .avatar-cropper-control {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+  }
+  .avatar-cropper-control-label {
+    font-size: 12px;
+    color: #7c8f75;
+  }
+  /* Round 10: custom track + thumb so keyboard focus is a soft ring on the thumb only
+     (no browser focus rectangle; no ring while dragging with the mouse). */
+  .avatar-cropper-slider {
+    display: block;
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    --xq-range-track: linear-gradient(
+      to right,
+      #386747 0,
+      #386747 var(--xq-range-fill, 0%),
+      #dbe5dd var(--xq-range-fill, 0%),
+      #dbe5dd 100%
+    );
+  }
+  .avatar-cropper-slider:focus,
+  .avatar-cropper-slider:focus-visible {
+    outline: none;
+  }
+  .avatar-cropper-slider::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--xq-range-track);
+  }
+  .avatar-cropper-slider::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--xq-range-track);
+  }
+  .avatar-cropper-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -6px;
+    box-sizing: border-box;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #386747;
+    box-shadow: 0 1px 3px rgba(20, 44, 28, 0.32);
+    transition:
+      box-shadow 0.16s ease,
+      transform 0.16s ease;
+  }
+  .avatar-cropper-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #386747;
+    box-shadow: 0 1px 3px rgba(20, 44, 28, 0.32);
+    transition: box-shadow 0.16s ease;
+  }
+  .avatar-cropper-slider:focus-visible:not([data-xq-pointer])::-webkit-slider-thumb {
+    box-shadow:
+      0 1px 3px rgba(20, 44, 28, 0.32),
+      0 0 0 5px rgba(76, 138, 95, 0.24);
+  }
+  .avatar-cropper-slider:focus-visible:not([data-xq-pointer])::-moz-range-thumb {
+    box-shadow:
+      0 1px 3px rgba(20, 44, 28, 0.32),
+      0 0 0 5px rgba(76, 138, 95, 0.24);
+  }
+  .avatar-cropper-slider:disabled::-webkit-slider-thumb {
+    background: #b7c4ba;
+    box-shadow: none;
+  }
+  .avatar-cropper-slider:disabled::-moz-range-thumb {
+    background: #b7c4ba;
+    box-shadow: none;
+  }
+  .avatar-cropper-slider:disabled {
+    --xq-range-track: #e8eee9;
+  }
+
+  /* Round 9: draggable stage, wide cover frame and numeric fields next to sliders. */
+  .avatar-cropper-panel--cover {
+    width: min(640px, 100%);
+  }
+  .avatar-cropper-stage--ready {
+    cursor: grab;
+    user-select: none;
+  }
+  .avatar-cropper-stage--ready.is-dragging {
+    cursor: grabbing;
+  }
+  .avatar-cropper-image {
+    pointer-events: none;
+    user-select: none;
+  }
+  .avatar-cropper-controls {
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .avatar-cropper-control--field {
+    grid-template-columns: 40px minmax(0, 1fr) 92px;
+  }
+  .avatar-cropper-number {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    box-sizing: border-box;
+    padding: 0 10px 0 4px;
+    border: 1px solid #d6e2d8;
+    border-radius: 10px;
+    background: #f7faf7;
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease,
+      background 0.16s ease;
+  }
+  .avatar-cropper-number:focus-within {
+    border-color: #4c8a5f;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(56, 103, 71, 0.14);
+  }
+  .avatar-cropper-number.is-locked {
+    opacity: 0.55;
+  }
+  .avatar-cropper-number .avatar-cropper-number__input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 4px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #1f3427;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    box-shadow: none;
+  }
+  .avatar-cropper-number .avatar-cropper-number__unit {
+    flex: none;
+    color: #7c8f75;
+    font-size: 12px;
+    font-style: normal;
+  }
+}
+
+/* New element (wide crop frame); exists only in the H5 cropper. */
+.avatar-cropper-frame {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+/* Round 12: an image file dragged over the window — the overlay lightens with a green tint and
+   the stage outline highlights; dropping anywhere picks the file. */
+.avatar-cropper-backdrop {
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.avatar-cropper-modal.is-file-over .avatar-cropper-backdrop {
+  background: rgba(62, 132, 86, 0.36);
+  box-shadow: inset 0 0 0 6px rgba(214, 238, 220, 0.85);
+}
+.avatar-cropper-modal.is-file-over .avatar-cropper-stage {
+  outline: 3px dashed #4f9a69;
+  outline-offset: 4px;
+}

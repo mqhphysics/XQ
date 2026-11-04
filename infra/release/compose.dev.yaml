@@ -1,0 +1,26 @@
+# Dev server override: only the edge listens publicly (9988, plain HTTP).
+services:
+  api:
+    ports: !reset []
+    environment:
+      PUBLIC_API_BASE_URL: ${PUBLIC_API_BASE_URL}
+      MEDIA_ASSETS_DIRECTORY: /app/private-data/media/managed
+      POST_MEDIA_DIRECTORY: /app/private-data/media/posts
+      EMAIL_CODE_SECRET: ${EMAIL_CODE_SECRET}
+      # Email login/verification: enabled only when the server .env supplies SMTP credentials.
+      EMAIL_AUTH_ENABLED: ${EMAIL_AUTH_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-smtp.qq.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_SECURE: ${MAIL_SECURE:-true}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-晓球}
+      REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
+  admin-web:
+    ports: !reset []
+  edge:
+    profiles: !reset []
+    image: nginx:1.27.4-alpine
+    environment: !reset {}
+    ports: !override ['0.0.0.0:9988:80']
+    volumes: !override ['./edge.conf:/etc/nginx/conf.d/default.conf:ro']

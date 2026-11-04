@@ -1,0 +1,200 @@
+.settings-dialog {
+  position: fixed;
+  z-index: 140;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20PX;
+}
+
+.settings-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 29, 18, 0.6);
+  backdrop-filter: blur(4PX);
+}
+
+.settings-dialog__panel {
+  position: relative;
+  width: min(560PX, 100%);
+  max-height: min(680PX, 90dvh);
+  overflow-y: auto;
+  background: #fffefa;
+  border: 1PX solid #e1e7dd;
+  border-radius: 20PX;
+  box-shadow: 0 24PX 72PX rgba(6, 23, 12, 0.28);
+}
+
+.settings-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24PX;
+  padding: 28PX 30PX 24PX;
+  border-bottom: 1PX solid #e9eee8;
+}
+
+.settings-dialog__eyebrow,
+.settings-dialog__title,
+.settings-dialog__intro,
+.settings-dialog__section-title,
+.settings-dialog__row-title,
+.settings-dialog__row-description {
+  display: block;
+}
+
+.settings-dialog__eyebrow {
+  color: #9a573a;
+  font-size: 11PX;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.settings-dialog__title {
+  margin-top: 5PX;
+  color: #183f2a;
+  font-size: 28PX;
+  font-weight: 850;
+}
+
+.settings-dialog__intro {
+  margin-top: 5PX;
+  color: #68766b;
+  font-size: 13PX;
+}
+
+.settings-dialog__close {
+  flex: 0 0 auto;
+  width: 38PX;
+  height: 38PX;
+  min-height: 38PX;
+  margin: 0;
+  padding: 0;
+  color: #31543c;
+  background: #eef3ec;
+  border-radius: 50%;
+  font-size: 25PX;
+  line-height: 35PX;
+}
+
+.settings-dialog__close::after,
+.settings-dialog__action::after {
+  border: 0;
+}
+
+.settings-dialog__body {
+  padding: 25PX 30PX 30PX;
+}
+
+.settings-dialog__section-title {
+  margin-bottom: 12PX;
+  color: #1c482e;
+  font-size: 14PX;
+  font-weight: 850;
+}
+
+.settings-dialog__group {
+  overflow: hidden;
+  border: 1PX solid #e1e8df;
+  border-radius: 14PX;
+  background: #fff;
+}
+
+.settings-dialog__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16PX;
+  min-height: 78PX;
+  padding: 16PX 18PX;
+}
+
+.settings-dialog__row + .settings-dialog__row {
+  border-top: 1PX solid #edf1eb;
+}
+
+.settings-dialog__row-copy {
+  min-width: 0;
+}
+
+.settings-dialog__row-title {
+  color: #223a29;
+  font-size: 15PX;
+  font-weight: 750;
+}
+
+.settings-dialog__row-description {
+  margin-top: 5PX;
+  color: #6c796e;
+  font-size: 12PX;
+  line-height: 1.4;
+}
+
+.settings-dialog__action {
+  flex: 0 0 auto;
+  min-width: 92PX;
+  min-height: 36PX;
+  margin: 0;
+  padding: 0 12PX;
+  color: #fff;
+  background: #1d4a30;
+  border-radius: 8PX;
+  font-size: 12PX;
+  font-weight: 750;
+  line-height: 36PX;
+}
+
+.settings-dialog__action[disabled] {
+  color: #89968a;
+  background: #eff2ed;
+  opacity: 1;
+}
+
+.settings-dialog__row-status {
+  color: #89968a;
+  font-size: 12PX;
+}
+
+.settings-dialog__footer {
+  padding: 13PX 30PX;
+  color: #8a958a;
+  background: #f7f9f5;
+  border-top: 1PX solid #e9eee8;
+  font-size: 11PX;
+}
+
+.settings-dialog__close:focus-visible,
+.settings-dialog__action:focus-visible {
+  outline: 3PX solid #d1ae45;
+  outline-offset: 2PX;
+}
+
+@media (max-width: 560px) {
+  .settings-dialog {
+    align-items: end;
+    padding: 0;
+  }
+
+  .settings-dialog__panel {
+    width: 100%;
+    max-height: 90dvh;
+    border-radius: 20PX 20PX 0 0;
+  }
+
+  .settings-dialog__header {
+    padding: 22PX 20PX 20PX;
+  }
+
+  .settings-dialog__body {
+    padding: 20PX;
+  }
+
+  .settings-dialog__footer {
+    padding: 13PX 20PX max(13PX, env(safe-area-inset-bottom));
+  }
+
+  .settings-dialog__close,
+  .settings-dialog__action {
+    min-width: 44PX;
+    min-height: 44PX;
+  }
+}

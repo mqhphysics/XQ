@@ -1,0 +1,45 @@
+.native-image-cropper__viewport {
+  position: relative;
+  width: 100%;
+  margin: 24px 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #20392e;
+}
+.native-image-cropper__viewport > image {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+.native-image-cropper__guides {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 33%,
+      #ffffff55 33% 33.5%,
+      transparent 33.5% 66%,
+      #ffffff55 66% 66.5%,
+      transparent 66.5%
+    ),
+    linear-gradient(
+      transparent 33%,
+      #ffffff55 33% 33.5%,
+      transparent 33.5% 66%,
+      #ffffff55 66% 66.5%,
+      transparent 66.5%
+    );
+}
+.native-image-cropper__viewport.is-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  border-radius: 50%;
+  pointer-events: none;
+}

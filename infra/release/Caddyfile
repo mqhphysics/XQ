@@ -1,0 +1,15 @@
+{
+    email {$ACME_EMAIL}
+}
+
+{$API_DOMAIN} {
+    # API JSON parser permits up to 26 MB for encoded photo albums.
+    request_body {
+        max_size 30MB
+    }
+    reverse_proxy api:3000
+}
+
+{$ADMIN_DOMAIN} {
+    reverse_proxy admin-web:80
+}

@@ -1,0 +1,49 @@
+@media (min-width: 721px) {
+  .player-identity-preference {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 0;
+    border-top: 1px solid #e7ece3;
+  }
+  .player-identity-preference strong {
+    color: #294c35;
+    font-size: 14px;
+  }
+  .player-identity-preference p {
+    margin: 6px 0 0;
+    color: #7a867b;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .player-identity-preference [role='switch'] {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 20px;
+    background: #d5ddd2;
+    padding: 3px;
+    cursor: pointer;
+  }
+  .player-identity-preference [role='switch'][aria-checked='true'] {
+    background: #305e40;
+  }
+  .player-identity-preference [role='switch'] span {
+    display: block;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 150ms ease-out;
+  }
+  .player-identity-preference [role='switch'][aria-checked='true'] span {
+    transform: translateX(18px);
+  }
+  .player-identity-preference [role='switch']:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
