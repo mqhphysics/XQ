@@ -16,9 +16,6 @@ export function NativeWebsiteLink() {
         <Text>晓球网站：</Text>
         <Text className="native-website-link__url">xiaoqiu-beta.pages.dev</Text>
       </Button>
-      <Button className="native-website-link__copy" onClick={copy}>
-        复制
-      </Button>
     </View>
   )
 }

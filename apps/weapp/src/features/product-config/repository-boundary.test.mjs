@@ -339,6 +339,50 @@ test('an old response cannot clear a replacement account or return capabilities 
   await assert.rejects(current.capabilities.getCapabilities(), /重新验证会话/)
 })
 
+test('concurrent capability consumers share one request and receive separate objects without caching roles', async () => {
+  const { state, capabilities } = fixture({ web: false, session: fictionalSession() })
+  const data = {
+    schemaVersion: 1,
+    organizationId: 'test-org',
+    actions: { report: { enabled: true } },
+  }
+  let release
+  state.respond = () =>
+    new Promise((resolve) => {
+      release = resolve
+    })
+  const first = capabilities.getCapabilities(),
+    second = capabilities.getCapabilities()
+  assert.equal(state.requests.length, 1)
+  release({ statusCode: 200, data })
+  const [a, b] = await Promise.all([first, second])
+  a.actions.report.enabled = false
+  assert.equal(b.actions.report.enabled, true)
+  state.respond = () => ({ statusCode: 200, data })
+  await capabilities.getCapabilities()
+  assert.equal(state.requests.length, 2, 'A later role read still reaches the server')
+})
+
+test('capability request sharing separates replacement accounts and clears failures for retry', async () => {
+  const { state, capabilities } = fixture({ web: false, session: fictionalSession('old') })
+  const releases = []
+  state.respond = () => new Promise((resolve) => releases.push(resolve))
+  const old = assert.rejects(capabilities.getCapabilities(), /重新验证会话/)
+  state.session = fictionalSession('new', 'new-org')
+  const current = capabilities.getCapabilities()
+  releases[0]({ statusCode: 200, data: { schemaVersion: 1, organizationId: 'test-org' } })
+  await old
+  const peer = capabilities.getCapabilities()
+  assert.equal(state.requests.length, 2, 'Completing the old request must not release the new one')
+  releases[1]({ statusCode: 200, data: { schemaVersion: 1, organizationId: 'new-org' } })
+  await Promise.all([current, peer])
+  state.respond = () => ({ statusCode: 500, data: {} })
+  await assert.rejects(capabilities.getCapabilities())
+  state.respond = () => ({ statusCode: 200, data: { schemaVersion: 1, organizationId: 'new-org' } })
+  await capabilities.getCapabilities()
+  assert.equal(state.requests.length, 4)
+})
+
 test('shared repository H5 guards leave the existing WeChat anonymous request branch unchanged', async () => {
   const { state, product, readonly } = fixture({ web: false, enabled: false, needsAccount: true })
   await product.getPublishedTournaments()

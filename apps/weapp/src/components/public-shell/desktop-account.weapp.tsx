@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { UserAvatar } from '../product-ui'
 import { VerificationBadge } from '../verification-badge'
 import { EditProfile } from '../../pages/me/desktop-profile.weapp'
-import { productRepository } from '../../features/product/product.repository'
+import { peekNativeProduct, productRepository } from '../../features/product/product.repository'
 import { readSession } from '../../features/product/session'
 import { refreshNativeCurrentUser } from '../../features/product/current-user.weapp'
 import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
@@ -23,6 +23,8 @@ import type { DesktopAccountProps } from './desktop-account'
 import './native-account.weapp.scss'
 import { NativeWebsiteLink } from '../native-ui/website-link.weapp'
 import { useNativeBackLayer } from '../../features/native-navigation/leave-guard.weapp'
+import { useNativeViewport } from '../../features/native-navigation/viewport.weapp'
+import { nativeWideWindow } from '../../features/native-navigation/viewport.logic.weapp'
 import {
   NativeSwipeDrawer,
   type NativeSwipeDrawerHandle,
@@ -30,6 +32,12 @@ import {
 
 export function useDesktopAccount() {
   return true
+}
+type AccountData = {
+  owner: string
+  player: PlayerDetailResponse | null
+  teams: TeamPreferencesResponse | null
+  failure: string
 }
 function AccountBackdrop({ src, fallback }: { src: string; fallback: string }) {
   const [failed, setFailed] = useState(false)
@@ -58,9 +66,19 @@ export function DesktopAccount({
   }, open)
   const [edit, setEdit] = useState(false)
   const [current, setCurrent] = useState<AuthUser | null>(user)
-  const [player, setPlayer] = useState<PlayerDetailResponse | null>(null)
-  const [teams, setTeams] = useState<TeamPreferencesResponse | null>(null)
-  const [failure, setFailure] = useState('')
+  const [data, setData] = useState<AccountData>({
+    owner: '',
+    player: null,
+    teams: null,
+    failure: '',
+  })
+  const [scrollable, setScrollable] = useState(false)
+  const info = useNativeViewport()
+  const owner = current ? `${current.organizationId}:${current.id}` : ''
+  const snapshot = data.owner === owner ? data : null
+  const player = snapshot?.player?.id === current?.linkedPlayer?.id ? snapshot?.player : null
+  const teams = snapshot?.teams
+  const failure = snapshot?.failure
   useEffect(() => {
     setCurrent(user)
   }, [user])
@@ -79,27 +97,59 @@ export function DesktopAccount({
   useEffect(() => {
     if (!open || !current) return
     let active = true
-    const identity = current.id
-    setFailure('')
-    void Promise.all([
-      productRepository.getTeamPreferences(),
-      current.linkedPlayer
-        ? productRepository.getPlayer(current.linkedPlayer.id)
-        : Promise.resolve(null),
-    ])
-      .then(([preferences, profile]) => {
-        if (active && readSession()?.user.id === identity) {
-          setTeams(preferences)
-          setPlayer(profile)
-        }
-      })
-      .catch((reason) => {
-        if (active) setFailure(reason instanceof Error ? reason.message : '角色信息读取失败')
-      })
+    const update = (patch: Partial<AccountData>) => {
+      const user = readSession()?.user
+      if (active && user && `${user.organizationId}:${user.id}` === owner)
+        setData((previous) => (previous.owner === owner ? { ...previous, ...patch } : previous))
+    }
+    const failed = (reason: unknown) =>
+      update({ failure: reason instanceof Error ? reason.message : '角色信息读取失败' })
+    setData({
+      owner,
+      teams: peekNativeProduct<TeamPreferencesResponse>('/me/team-preferences') || null,
+      player: current.linkedPlayer
+        ? peekNativeProduct<PlayerDetailResponse>(
+            `/public/players/${encodeURIComponent(current.linkedPlayer.id)}`,
+          ) || null
+        : null,
+      failure: '',
+    })
+    void productRepository
+      .getTeamPreferences()
+      .then((teams) => update({ teams }))
+      .catch(failed)
+    if (current.linkedPlayer)
+      void productRepository
+        .getPlayer(current.linkedPlayer.id)
+        .then((player) => update({ player }))
+        .catch(failed)
     return () => {
       active = false
     }
-  }, [open, current?.id, current?.linkedPlayer?.id])
+  }, [open, owner, current?.linkedPlayer?.id])
+  useEffect(() => {
+    if (!open || !current) return
+    let active = true
+    const timer = setTimeout(() => {
+      const query = Taro.createSelectorQuery()
+      for (const selector of [
+        '.native-account-body',
+        '.native-account-mask >>> .native-account-body',
+        '.native-account-content',
+        '.native-account-mask >>> .native-account-content',
+      ])
+        query.select(selector).boundingClientRect()
+      query.exec((rects: Array<{ height: number } | null>) => {
+        const body = rects.slice(0, 2).find((r) => r?.height)
+        const content = rects.slice(2).find((r) => r?.height)
+        if (active && body && content) setScrollable(content.height > body.height + 1)
+      })
+    }, 60)
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [open, current, data, info.windowHeight, info.windowWidth])
   useEffect(() => {
     if (!open) return
     return holdNativeOverlay()
@@ -108,11 +158,12 @@ export function DesktopAccount({
     afterClose.current = action
     close()
   }
-  const status = Taro.getWindowInfo().statusBarHeight ?? 20
+  const status = info.statusBarHeight ?? 20
   const menu = Taro.getMenuButtonBoundingClientRect()
+  const unit = nativeWideWindow(info) ? 0.5 : info.windowWidth / 750
   const mailShift = Math.max(
-    16,
-    Taro.getWindowInfo().windowWidth * 0.77 - (menu.left || Taro.getWindowInfo().windowWidth) + 12,
+    0,
+    info.windowWidth * 0.77 - 26 * unit - (menu.left || info.windowWidth) + 8,
   )
   const roles = [...new Set(current?.roles.map((role) => role.role) ?? [])]
   return (
@@ -142,6 +193,7 @@ export function DesktopAccount({
           }}
           onClose={() => {
             setOpen(false)
+            setScrollable(false)
             const action = afterClose.current
             afterClose.current = null
             if (action) Taro.nextTick(action)
@@ -168,140 +220,143 @@ export function DesktopAccount({
             )}
           </View>
           {current ? (
-            <>
-              <ScrollView scrollY className="native-account-half" showScrollbar={false}>
-                <View className="native-account-personal">
-                  <AccountBackdrop
-                    src={personalBackgroundUrl(current.coverUrl)}
-                    fallback={personalBackgroundUrl(null)}
-                  />
-                  <View className="native-account-personal-content">
-                    <View
-                      className="native-account-identity"
-                      role="button"
-                      aria-label="进入我的"
-                      onClick={() => select(onProfile)}
-                    >
-                      <UserAvatar
-                        name={current.displayName}
-                        avatarUrl={current.avatarUrl}
-                        size="large"
-                      />
-                      <View>
+            <ScrollView
+              className="native-account-body"
+              scrollY={scrollable}
+              enhanced
+              bounces={false}
+              showScrollbar={false}
+            >
+              <View className="native-account-content">
+                <View className="native-account-basic">
+                  <View className="native-account-personal">
+                    <AccountBackdrop
+                      src={personalBackgroundUrl(current.coverUrl)}
+                      fallback={personalBackgroundUrl(null)}
+                    />
+                    <View className="native-account-personal-content">
+                      <View
+                        className="native-account-identity"
+                        role="button"
+                        aria-label="进入我的"
+                        onClick={() => select(onProfile)}
+                      >
+                        <UserAvatar
+                          name={current.displayName}
+                          avatarUrl={current.avatarUrl}
+                          size="large"
+                        />
                         <View>
-                          <Text>{current.displayName}</Text>
-                          <VerificationBadge
-                            level={current.verificationLevel}
-                            roles={current.roles}
-                          />
+                          <View>
+                            <Text>{current.displayName}</Text>
+                            <VerificationBadge
+                              level={current.verificationLevel}
+                              roles={current.roles}
+                            />
+                          </View>
+                          <Text>@{current.username}</Text>
                         </View>
-                        <Text>@{current.username}</Text>
                       </View>
                     </View>
                   </View>
+                  <View className="native-account-section-title">
+                    <Text>基本信息</Text>
+                    <Button
+                      className="native-button native-button--quiet"
+                      onClick={() => {
+                        select(() => setEdit(true))
+                      }}
+                    >
+                      编辑
+                    </Button>
+                  </View>
+                  <View className="native-account-info">
+                    <Text>姓名</Text>
+                    <Text>{current.realName || '未填写'}</Text>
+                    <Text>学号</Text>
+                    <Text>{current.studentId || '未填写'}</Text>
+                    <Text>邮箱</Text>
+                    <Text>{current.email || '未绑定'}</Text>
+                    <Text>简介</Text>
+                    <Text>{current.bio || '未填写'}</Text>
+                  </View>
                 </View>
-                <View className="native-account-section-title">
-                  <Text>基本信息</Text>
-                  <Button
-                    className="native-button native-button--quiet"
-                    onClick={() => {
-                      select(() => setEdit(true))
-                    }}
-                  >
-                    编辑
-                  </Button>
-                </View>
-                <View className="native-account-info">
-                  <Text>姓名</Text>
-                  <Text>{current.realName || '未填写'}</Text>
-                  <Text>学号</Text>
-                  <Text>{current.studentId || '未填写'}</Text>
-                  <Text>邮箱</Text>
-                  <Text>{current.email || '未绑定'}</Text>
-                  <Text>简介</Text>
-                  <Text>{current.bio || '未填写'}</Text>
-                </View>
-              </ScrollView>
-              <ScrollView
-                scrollY
-                className="native-account-half native-account-half--roles"
-                showScrollbar={false}
-              >
-                <Text className="native-account-role-heading">我的身份</Text>
-                {player && (
-                  <Button
-                    className="native-account-role-card native-account-role-card--player"
-                    onClick={() =>
-                      select(() => {
-                        void openPlayer(player.id)
-                      })
-                    }
-                  >
-                    <View className="native-account-role-cover">
-                      <AccountBackdrop
-                        src={playerBackgroundUrl(player.coverUrl)}
-                        fallback={playerBackgroundUrl(null)}
-                      />
-                      <View className="native-account-role-cover__copy">
-                        <Text>球员 · {player.team?.name ?? '暂无所属球队'}</Text>
+                <View className="native-account-roles">
+                  <Text className="native-account-role-heading">我的身份</Text>
+                  {player && (
+                    <Button
+                      className="native-account-role-card native-account-role-card--player"
+                      onClick={() =>
+                        select(() => {
+                          void openPlayer(player.id)
+                        })
+                      }
+                    >
+                      <View className="native-account-role-cover">
+                        <AccountBackdrop
+                          src={playerBackgroundUrl(player.coverUrl)}
+                          fallback={playerBackgroundUrl(null)}
+                        />
+                        <View className="native-account-role-cover__copy">
+                          <Text>球员 · {player.team?.name ?? '暂无所属球队'}</Text>
+                          <Text>
+                            {positionLabel(player.position)}
+                            {player.shirtNumber ? ` · ${player.shirtNumber}号` : ''}
+                          </Text>
+                        </View>
+                      </View>
+                      <View className="native-account-player-stats">
+                        {(
+                          [
+                            ['出场', player.stats.appearances],
+                            ['进球', player.stats.goals],
+                            ['助攻', player.stats.assists],
+                          ] as const
+                        ).map(([label, value]) => (
+                          <View key={label}>
+                            <Text>{value}</Text>
+                            <Text>{label}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </Button>
+                  )}
+                  {roles
+                    .filter((role) => role !== 'PLAYER' && role !== 'STUDENT')
+                    .map((role) => (
+                      <View className="native-account-role-card" key={role}>
+                        <Text>{roleLabel(role)}</Text>
                         <Text>
-                          {positionLabel(player.position)}
-                          {player.shirtNumber ? ` · ${player.shirtNumber}号` : ''}
+                          {role === 'TEAM_CAPTAIN' || role === 'TEAM_COACH'
+                            ? '球队人员与报名管理'
+                            : role === 'MATCH_REPORTER'
+                              ? '授权比赛的信息录入与战报'
+                              : role === 'PLATFORM_ADMIN' ||
+                                  role === 'ORGANIZATION_ADMIN' ||
+                                  role === 'TOURNAMENT_ADMIN'
+                                ? '授权范围内的赛事与内容管理'
+                                : '校园足球账号'}
                         </Text>
                       </View>
+                    ))}
+                  {!player && roles.every((role) => ['STUDENT', 'PLAYER'].includes(role)) && (
+                    <View className="native-account-role-card">
+                      <Text>{roles.includes('PLAYER') ? '球员' : '学生'}</Text>
+                      <Text>{current.linkedPlayer?.displayName || '校园足球账号'}</Text>
                     </View>
-                    <View className="native-account-player-stats">
-                      {(
-                        [
-                          ['出场', player.stats.appearances],
-                          ['进球', player.stats.goals],
-                          ['助攻', player.stats.assists],
-                        ] as const
-                      ).map(([label, value]) => (
-                        <View key={label}>
-                          <Text>{value}</Text>
-                          <Text>{label}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </Button>
-                )}
-                {roles
-                  .filter((role) => role !== 'PLAYER' && role !== 'STUDENT')
-                  .map((role) => (
-                    <View className="native-account-role-card" key={role}>
-                      <Text>{roleLabel(role)}</Text>
-                      <Text>
-                        {role === 'TEAM_CAPTAIN' || role === 'TEAM_COACH'
-                          ? '球队人员与报名管理'
-                          : role === 'MATCH_REPORTER'
-                            ? '授权比赛的信息录入与战报'
-                            : role === 'PLATFORM_ADMIN' ||
-                                role === 'ORGANIZATION_ADMIN' ||
-                                role === 'TOURNAMENT_ADMIN'
-                              ? '授权范围内的赛事与内容管理'
-                              : '校园足球账号'}
+                  )}
+                  {teams && (
+                    <View className="native-account-team">
+                      <Text className="native-account-team__label">我的主队 · </Text>
+                      <Text className="native-account-team__name">
+                        {teams.primaryTeam?.name ?? '尚未选择'}
                       </Text>
                     </View>
-                  ))}
-                {!player && roles.every((role) => ['STUDENT', 'PLAYER'].includes(role)) && (
-                  <View className="native-account-role-card">
-                    <Text>{roles.includes('PLAYER') ? '球员' : '学生'}</Text>
-                    <Text>{current.linkedPlayer?.displayName || '校园足球账号'}</Text>
-                  </View>
-                )}
-                {teams && (
-                  <View className="native-account-team">
-                    <Text>我的主队</Text>
-                    <Text>
-                      {teams.primaryTeam?.name ?? '尚未选择'} · 关注 {teams.followedTeams.length}{' '}
-                      支球队
-                    </Text>
-                  </View>
-                )}
-                {failure && <Text className="native-error">{failure}</Text>}
-              </ScrollView>
-            </>
+                  )}
+                  {failure && <Text className="native-error">{failure}</Text>}
+                </View>
+              </View>
+            </ScrollView>
           ) : (
             <View className="native-account-guest">
               <Text>登录晓球，关注球队与比赛</Text>

@@ -1,7 +1,6 @@
 .native-website-link {
   display: flex;
   align-items: center;
-  gap: 12px;
   width: 100%;
   margin: 26px 0 18px;
   font-size: 26px;
@@ -30,19 +29,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: #2e6848;
-}
-.native-website-link .native-website-link__copy {
-  flex: none;
-  min-width: 76px;
-  min-height: 64px;
-  margin: 0;
-  padding: 0 14px;
-  border: 2px solid #dce5d8;
-  border-radius: 12px;
-  background: #f8faf6;
-  color: #31543e;
-  font-size: inherit;
-  line-height: 60px;
 }
 .native-website-link button::after {
   border: 0;

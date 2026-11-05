@@ -21,6 +21,7 @@ import { openPost } from '../../features/product/post-navigation'
 import type { PlayerDetailResponse } from '../../features/product/product.types'
 import { NativeSelfPlayerDialog } from '../me/identities.weapp'
 import { NativePlayerFace } from '../../components/native-ui/player-face.weapp'
+import { NativePlayerRadar } from '../../components/native-ui/player-radar.weapp'
 import { useNativeCurrentUser } from '../../features/product/current-user.weapp'
 import { ownsNativePlayer } from '../../features/product/native-profile.logic.weapp'
 import {
@@ -189,6 +190,7 @@ export default function NativePlayerScreen({
                     <Text>{value ?? '—'}</Text>
                   </View>
                 ))}
+                <NativePlayerRadar abilities={player.abilities} active={tab === 0} />
               </>,
               <>
                 <NativeFacts
