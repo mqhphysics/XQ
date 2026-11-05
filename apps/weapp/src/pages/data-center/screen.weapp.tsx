@@ -12,6 +12,7 @@ import {
 } from '../../components/native-ui/competition.weapp'
 import { NativeKnockout } from '../../components/native-ui/knockout.weapp'
 import { hasReachedKnockout } from '../../components/native-ui/mobile-cup.logic.weapp'
+import { cupQualifyingPlaces } from '../../components/native-ui/cup-preview.logic'
 import { TeamCrest } from '../../components/product-ui'
 import { openPlayer } from '../../features/product/player-navigation'
 import { openTeam } from '../../features/product/team-navigation'
@@ -147,7 +148,7 @@ function NativeDataContent({
               aria-selected={tab === index}
               onClick={() => setTab(index)}
             >
-              {title}
+              {index === 0 && showKnockout ? '对阵' : title}
             </Button>
           ))}
         </View>
@@ -208,6 +209,7 @@ function NativeDataContent({
   )
 }
 function Groups({ data }: { data: CompetitionDataResponse }) {
+  const qualifyingPlaces = cupQualifyingPlaces(data)
   const [detail, setDetail] = useState<StandingRow | null>(null)
   const teams = new Map<string, TeamSummary>()
   data.schedule.forEach((match) => {
@@ -239,7 +241,7 @@ function Groups({ data }: { data: CompetitionDataResponse }) {
               hoverStartTime={0}
               hoverStayTime={60}
               key={row.teamId}
-              className={`native-standing${index < 2 ? ' native-standing--qualified' : ''}`}
+              className={`native-standing${index < qualifyingPlaces ? ' native-standing--qualified' : ''}`}
               onClick={() => setDetail(row)}
             >
               <Text
@@ -261,7 +263,9 @@ function Groups({ data }: { data: CompetitionDataResponse }) {
           ))}
         </View>
       ))}
-      <Text className="native-note native-data-footnote">小组前两名晋级 · 胜 3 分，平 1 分</Text>
+      <Text className="native-note native-data-footnote">
+        {qualifyingPlaces === 1 ? '小组第一名晋级' : '小组前两名晋级'} · 胜 3 分，平 1 分
+      </Text>
       {detail && (
         <NativeDialog
           title={detail.teamName}

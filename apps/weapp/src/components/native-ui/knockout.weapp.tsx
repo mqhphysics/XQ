@@ -4,42 +4,72 @@ import { openMatch } from '../../features/product/match-navigation'
 import { formatTime } from '../../features/product/product.format'
 import type { CompetitionDataResponse, MatchSummary } from '../../features/product/product.types'
 import { knockoutMatchTime, matchWinnerId } from '../../pages/data-center/knockout-display.logic'
-import { mobileCupNodes, mobileCupRounds } from './mobile-cup.logic.weapp'
+import { mobileCupNodes, mobileFourCupNodes, mobileCupRounds } from './mobile-cup.logic.weapp'
+import type { CupMatchView } from './cup-preview.logic'
 import './knockout.weapp.scss'
 
 export function NativeKnockout({ data }: { data: CompetitionDataResponse }) {
-  const { rounds, thirdPlace, eightTeam } = mobileCupRounds(data)
+  const { rounds, thirdPlace, eightTeam, qualified, preview } = mobileCupRounds(data)
+  const fourTeam =
+    rounds.length === 2 && rounds[0]?.matches.length === 2 && rounds[1]?.matches.length === 1
+  const nodes = eightTeam ? mobileCupNodes : mobileFourCupNodes
   if (!rounds.length && !thirdPlace) return <Text className="native-note">淘汰赛对阵尚未发布</Text>
   return (
     <View className="native-cup">
-      <Text className="native-section-title">淘汰赛</Text>
-      {eightTeam ? (
-        <View className="native-cup-bracket">
-          {[
-            { title: '八强', top: 0 },
-            { title: '半决赛', top: 160 },
-            { title: '决赛', top: 308 },
-            { title: '半决赛', top: 468 },
-            { title: '八强', top: 628 },
-          ].map((stage, index) => (
-            <Text key={index} className="native-cup-stage" style={`top:calc(${stage.top}*var(--u));`}>
+      <Text className="native-section-title">{preview ? '淘汰赛对阵预览' : '淘汰赛'}</Text>
+      {preview && qualified.some((q) => q.rank === null) && (
+        <View className="native-cup-qualified">
+          <Text>已出线 · 名次待定</Text>
+          {qualified
+            .filter((q) => q.rank === null)
+            .map((q) => (
+              <View key={q.team.id}>
+                <TeamCrest team={q.team} interactive={false} size="small" />
+                <Text>
+                  {q.group}组 · {q.team.shortName || q.team.name}
+                </Text>
+              </View>
+            ))}
+        </View>
+      )}
+      {eightTeam || fourTeam ? (
+        <View className={`native-cup-bracket${fourTeam ? ' native-cup-bracket--four' : ''}`}>
+          {(eightTeam
+            ? [
+                { title: '八强', top: 0 },
+                { title: '半决赛', top: 160 },
+                { title: '决赛', top: 308 },
+                { title: '半决赛', top: 468 },
+                { title: '八强', top: 628 },
+              ]
+            : [
+                { title: '半决赛', top: 0 },
+                { title: '决赛', top: 160 },
+                { title: '半决赛', top: 332 },
+              ]
+          ).map((stage, index) => (
+            <Text
+              key={index}
+              className="native-cup-stage"
+              style={`top:calc(${stage.top}*var(--u));`}
+            >
               {stage.title}
             </Text>
           ))}
-          <Branch top={168} bottom={200} join={184} />
+          {eightTeam ? <Branch top={168} bottom={200} join={184} /> : null}
           <View
             className="native-cup-line native-cup-line--vertical"
-            style="left:50%;top:calc(328*var(--u));height:calc(20*var(--u));"
+            style={`left:50%;top:calc(${eightTeam ? 328 : 168}*var(--u));height:calc(${eightTeam ? 20 : 32}*var(--u));`}
           />
           <View
             className="native-cup-line native-cup-line--vertical"
-            style="left:50%;top:calc(488*var(--u));height:calc(20*var(--u));"
+            style={`left:50%;top:calc(${eightTeam ? 488 : 340}*var(--u));height:calc(${eightTeam ? 20 : 32}*var(--u));`}
           />
-          <Branch top={636} bottom={668} join={652} reverse />
-          {mobileCupNodes.map((node) => (
+          {eightTeam ? <Branch top={636} bottom={668} join={652} reverse /> : null}
+          {nodes.map((node) => (
             <View
               key={`${node.round}-${node.match}`}
-              className={`native-cup-node${node.round === 2 ? ' native-cup-node--final' : ''}`}
+              className={`native-cup-node${node.round === rounds.length - 1 ? ' native-cup-node--final' : ''}`}
               style={`left:${node.left}%;top:calc(${node.top}*var(--u));width:${node.width}%;height:calc(${node.height}*var(--u));`}
             >
               <CupMatch match={rounds[node.round]!.matches[node.match]!} />
@@ -104,13 +134,16 @@ function Branch({
     </>
   )
 }
-function CupMatch({ match }: { match: MatchSummary }) {
+function CupMatch({ match }: { match: CupMatchView }) {
   const scored = match.homeScore !== null && match.awayScore !== null
   return (
     <Button
       className="native-cup-match"
+      disabled={Boolean(match.preview)}
       aria-label={`${match.title}，${match.homeTeam?.name ?? match.homePlaceholder ?? '待定'}对${match.awayTeam?.name ?? match.awayPlaceholder ?? '待定'}`}
-      onClick={() => void openMatch(match.id, match.tournamentId)}
+      onClick={() => {
+        if (!match.preview) void openMatch(match.id, match.tournamentId)
+      }}
     >
       <View className="native-cup-match__teams">
         <CupTeam match={match} side="home" />
@@ -124,7 +157,7 @@ function CupMatch({ match }: { match: MatchSummary }) {
         <CupTeam match={match} side="away" />
       </View>
       <Text className="native-cup-match__time">
-        {knockoutMatchTime(match.scheduledStartAt, !scored)}
+        {match.preview ? '赛程待发布' : knockoutMatchTime(match.scheduledStartAt, !scored)}
       </Text>
     </Button>
   )

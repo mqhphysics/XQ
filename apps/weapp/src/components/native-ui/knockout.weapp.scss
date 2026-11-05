@@ -6,6 +6,37 @@
   width: 100%;
   height: 816px;
 }
+.native-cup-bracket--four {
+  height: 520px;
+}
+.native-cup-node,
+.native-cup-match,
+.native-cup-line,
+.native-cup-team__unknown {
+  box-sizing: border-box;
+}
+.native-cup-qualified {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  color: #406447;
+  font-size: 25px;
+}
+.native-cup-qualified > text {
+  width: 100%;
+}
+.native-cup-qualified > view {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.native-cup-qualified .team-crest {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+}
 .native-cup-stage {
   position: absolute;
   left: 0;
@@ -136,7 +167,8 @@
 }
 .native-cup-list-match {
   height: 118px;
-  margin-bottom: 14px;
+  width: 80%;
+  margin: 0 auto 14px;
 }
 .native-cup-list-match .native-cup-match__teams {
   grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
@@ -164,7 +196,7 @@
   flex: 1;
   min-width: 0;
   height: 152px;
-  margin: 0;
+  margin: 0 auto;
 }
 .native-cup-third .native-cup-team {
   flex-direction: column;

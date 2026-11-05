@@ -183,7 +183,7 @@ export function NativeReporterMatches({
       {!loading && !error && !matches.length && (
         <Text className="native-note">暂无可记录的比赛</Text>
       )}
-      {(expanded ? matches : matches.slice(0, 2)).map((match) => (
+      {(expanded ? matches : matches.slice(0, 3)).map((match) => (
         <Button
           key={match.id}
           className={`native-reporter-match is-${reporterMatchKind(match)}`}
@@ -208,7 +208,7 @@ export function NativeReporterMatches({
           </Text>
         </Button>
       ))}
-      {matches.length > 2 && (
+      {matches.length > 3 && (
         <Button className="native-reporter-expand" onClick={() => setExpanded((value) => !value)}>
           {expanded ? '收起' : `展开全部（${matches.length} 场）`}
         </Button>

@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { CompetitionDataResponse, MatchSummary } from '../../features/product/product.types.ts'
-import { hasReachedKnockout, mobileCupNodes, mobileCupRounds } from './mobile-cup.logic.weapp.ts'
+import {
+  hasReachedKnockout,
+  mobileCupNodes,
+  mobileFourCupNodes,
+  mobileCupRounds,
+} from './mobile-cup.logic.weapp.ts'
 
 function match(
   code: string,
@@ -41,9 +46,14 @@ function cup(): CompetitionDataResponse {
     ],
   }
 }
-test('a pre-created bracket stays hidden until group play finishes or knockout actually starts', () => {
+test('an unassigned bracket waits for qualification, but a known participant appears during group play', () => {
   const data = cup()
   assert.equal(hasReachedKnockout(data), false)
+  data.bracket[0]!.matches[0]!.homeTeam = { id: 'known', name: '已确定出线' } as NonNullable<
+    MatchSummary['homeTeam']
+  >
+  assert.equal(hasReachedKnockout(data), true)
+  data.bracket[0]!.matches[0]!.homeTeam = null
   data.schedule[1]!.status = 'CONFIRMED'
   assert.equal(hasReachedKnockout(data), true)
   data.schedule[1]!.status = 'SCHEDULED'
@@ -51,6 +61,19 @@ test('a pre-created bracket stays hidden until group play finishes or knockout a
   assert.equal(hasReachedKnockout(data), true)
   data.bracket = []
   assert.equal(hasReachedKnockout(data), false)
+})
+
+test('four-team bracket is symmetric around its final and its vertical gaps meet card edges', () => {
+  const [upper, final, lower] = mobileFourCupNodes
+  assert.equal(upper.left + upper.width / 2, 50)
+  assert.equal(final.left + final.width / 2, 50)
+  assert.equal(lower.left + lower.width / 2, 50)
+  assert.equal(
+    (upper.top + upper.height / 2 + lower.top + lower.height / 2) / 2,
+    final.top + final.height / 2,
+  )
+  assert.equal(final.top - upper.top - upper.height, 32)
+  assert.equal(lower.top - final.top - final.height, 32)
 })
 test('a cup without a group stage shows its published bracket without inventing group progress', () => {
   const data = cup()
