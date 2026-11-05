@@ -264,8 +264,7 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
     setBusy(true)
     try {
       const before = await productRepository.getTeamPreferences()
-      const primary = mode === 'primary' ? data.team.id : before.primaryTeam?.id
-      if (!primary) throw new Error('请先选择一支主队')
+      const primary = mode === 'primary' ? data.team.id : before.primaryTeam?.id || null
       const ids = before.followedTeams.map((team) => team.id)
       const followed =
         mode === 'follow'

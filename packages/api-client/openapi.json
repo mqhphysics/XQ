@@ -4660,7 +4660,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOverviewResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9831,7 +9838,9 @@
         "properties": {
           "primaryTeamId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true,
+            "description": "null 表示取消主队，保留传入的其他关注球队"
           },
           "followedTeamIds": {
             "maxItems": 12,
@@ -11294,6 +11303,12 @@
             "type": "string",
             "nullable": true
           },
+          "blockingReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "officialResult": {
             "$ref": "#/components/schemas/OfficialReportResultDto"
           }
@@ -11388,6 +11403,75 @@
           "expectedVersion",
           "action",
           "reason"
+        ]
+      },
+      "ReportOverviewItemDto": {
+        "type": "object",
+        "properties": {
+          "matchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reportStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "RETURNED",
+              "CONFIRMED"
+            ]
+          },
+          "reportVersion": {
+            "type": "number"
+          },
+          "reportedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "homeScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "awayScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "recorded": {
+            "type": "boolean",
+            "description": "比分与进球事件、球员、时间对应完整；助攻选填"
+          }
+        },
+        "required": [
+          "matchId",
+          "reportStatus",
+          "reportVersion",
+          "reportedAt",
+          "homeScore",
+          "awayScore",
+          "recorded"
+        ]
+      },
+      "ReportOverviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "completionRuleVersion": {
+            "type": "number",
+            "enum": [
+              1
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportOverviewItemDto"
+            }
+          }
+        },
+        "required": [
+          "completionRuleVersion",
+          "items"
         ]
       },
       "SeasonResponseDto": {

@@ -13,7 +13,7 @@ export function NativeKnockout({ data }: { data: CompetitionDataResponse }) {
   const fourTeam =
     rounds.length === 2 && rounds[0]?.matches.length === 2 && rounds[1]?.matches.length === 1
   const nodes = eightTeam ? mobileCupNodes : mobileFourCupNodes
-  const stages = (eightTeam ? [0, 2, 3, 4, 5] : [0, 1, 2]).map((index) => {
+  const stages = (eightTeam ? [0, 2, 3, 4, 5] : [0, 1]).map((index) => {
     const node = nodes[index]!
     return {
       title:
@@ -40,15 +40,23 @@ export function NativeKnockout({ data }: { data: CompetitionDataResponse }) {
             </Text>
           ))}
           <View className="native-cup-canvas">
-            {eightTeam && <Branch top={128} bottom={160} join={144} />}
-            <View
-              className="native-cup-line native-cup-line--vertical"
-              style={`left:50%;top:calc(${eightTeam ? 288 : 128}*var(--u));height:calc(${eightTeam ? 20 : 32}*var(--u));`}
-            />
-            <View
-              className="native-cup-line native-cup-line--vertical"
-              style={`left:50%;top:calc(${eightTeam ? 448 : 300}*var(--u));height:calc(${eightTeam ? 20 : 32}*var(--u));`}
-            />
+            {eightTeam ? (
+              <Branch top={128} bottom={160} join={144} />
+            ) : (
+              <Branch top={128} bottom={192} join={160} />
+            )}
+            {eightTeam && (
+              <>
+                <View
+                  className="native-cup-line native-cup-line--vertical"
+                  style="left:50%;top:calc(288*var(--u));height:calc(20*var(--u));"
+                />
+                <View
+                  className="native-cup-line native-cup-line--vertical"
+                  style="left:50%;top:calc(448*var(--u));height:calc(20*var(--u));"
+                />
+              </>
+            )}
             {eightTeam && <Branch top={596} bottom={628} join={612} reverse />}
             {nodes.map((node) => (
               <View

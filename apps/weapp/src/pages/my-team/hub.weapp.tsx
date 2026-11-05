@@ -41,6 +41,7 @@ export default function NativeTeamHub() {
     [loading, setLoading] = useState(true),
     [manage, setManage] = useState(false)
   const request = useRef(0)
+  const clearingPrimary = useRef(false)
   useEffect(() => {
     const open = (requestedOwner?: string) => {
       const user = readSession()?.user,
@@ -135,7 +136,11 @@ export default function NativeTeamHub() {
       ![next.primaryTeam, ...next.followedTeams].some((t) => t?.id === previous.id)
         ? next.primaryTeam
           ? { kind: 'team', id: next.primaryTeam.id }
-          : null
+          : next.followedTeams[0]
+            ? { kind: 'team', id: next.followedTeams[0].id }
+            : players[0]
+              ? { kind: 'player', id: players[0].id }
+              : null
         : previous || (next.primaryTeam ? { kind: 'team', id: next.primaryTeam.id } : null),
     )
   }
@@ -148,6 +153,36 @@ export default function NativeTeamHub() {
           : null
         : previous || (next[0] ? { kind: 'player', id: next[0].id } : null),
     )
+  }
+  const clearPrimary = async () => {
+    if (clearingPrimary.current || !readSession()) return
+    clearingPrimary.current = true
+    try {
+      const before = await productRepository.getTeamPreferences(tournamentId || undefined)
+      changedPrefs(
+        await productRepository.updateTeamPreferences(
+          null,
+          before.followedTeams.map((t) => t.id),
+        ),
+      )
+      void Taro.showToast({ title: '主队已取消', icon: 'none' })
+    } catch (issue) {
+      void Taro.showToast({
+        title: issue instanceof Error ? issue.message : '取消失败，请重试',
+        icon: 'none',
+      })
+    } finally {
+      clearingPrimary.current = false
+    }
+  }
+  const primaryMenu = async () => {
+    try {
+      const result = await Taro.showActionSheet({ itemList: ['取消主队'] })
+      if (result.tapIndex === 0) await clearPrimary()
+    } catch (issue) {
+      if (!/cancel/i.test(String((issue as { errMsg?: string })?.errMsg)))
+        void Taro.showToast({ title: '操作失败，请重试', icon: 'none' })
+    }
   }
   return (
     <PublicShell active="team" tournamentId={tournamentId}>
@@ -179,6 +214,10 @@ export default function NativeTeamHub() {
                       key={primaryTeam.id}
                       className={`native-hub-chip${selected?.kind === 'team' && selected.id === primaryTeam.id ? ' is-selected' : ''}`}
                       onClick={() => setSelected({ kind: 'team', id: primaryTeam.id })}
+                      onLongPress={(event) => {
+                        event.stopPropagation()
+                        void primaryMenu()
+                      }}
                     >
                       <TeamCrest team={primaryTeam} interactive={false} size="small" />
                       <Text className="native-hub-chip__name">
@@ -267,6 +306,7 @@ export default function NativeTeamHub() {
             players={players}
             followed={followed}
             onReorder={reorder}
+            onClearPrimary={clearPrimary}
             onClose={() => setManage(false)}
             onPrefs={changedPrefs}
             onPlayers={changedPlayers}
@@ -282,6 +322,7 @@ function FollowManager({
   players,
   followed,
   onReorder,
+  onClearPrimary,
   onClose,
   onPrefs,
   onPlayers,
@@ -291,6 +332,7 @@ function FollowManager({
   players: PlayerFollowItem[]
   followed: FollowedRow[]
   onReorder: (next: HubOrderKey[]) => void
+  onClearPrimary: () => Promise<void>
   onClose: () => void
   onPrefs: (next: TeamPreferencesResponse) => void
   onPlayers: (next: PlayerFollowItem[]) => void
@@ -325,7 +367,7 @@ function FollowManager({
       const before = await productRepository.getTeamPreferences(home.tournament.id),
         ids = before.followedTeams.map((t) => t.id),
         isFollowed = ids.includes(team.id),
-        nextPrimary = primary || !before.primaryTeam ? team.id : before.primaryTeam.id
+        nextPrimary = primary ? team.id : before.primaryTeam?.id || null
       /* The previous 主队 stays followed when another team becomes 主队. */
       const nextFollowed = primary
         ? [...ids, ...(before.primaryTeam ? [before.primaryTeam.id] : [])]
@@ -450,7 +492,13 @@ function FollowManager({
             <View className="native-hub-pin" aria-hidden="true" />
             <TeamCrest team={primaryTeam} size="small" interactive={false} />
             <Text>{primaryTeam.name}</Text>
-            <Text className="native-hub-primary-badge">主队</Text>
+            <Button
+              className="native-button native-button--quiet"
+              disabled={busy}
+              onClick={() => void run(onClearPrimary)}
+            >
+              取消主队
+            </Button>
           </View>
         </>
       )}

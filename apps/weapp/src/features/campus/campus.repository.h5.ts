@@ -64,6 +64,7 @@ export interface ReporterQuality {
     id: string
     kind: string
     delta: number
+    scoreBefore: number
     scoreAfter: number
     reason: string
     createdAt: string
@@ -95,7 +96,7 @@ export const campusRepository = {
       action,
       ...(playerId ? { playerId } : {}),
     }),
-  quality: () => productRequest<ReporterQuality>('/me/reporter-quality'),
+  quality: () => productRequest<ReporterQuality>('/me/reporter-quality', { refresh: true }),
   reinstate: (reason: string) => post('/me/reporter-reinstatements', { reason }),
   appeal: (id: string, reason: string, expectedVersion: number) =>
     post(`/me/reporter-corrections/${id}/appeal`, { reason, expectedVersion }),

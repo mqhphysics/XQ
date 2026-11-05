@@ -1,0 +1,60 @@
+.native-match-report-entry.native-button {
+  width: 100%;
+  margin: 16px 0;
+}
+.native-report-score-row,
+.native-report-penalty {
+  display: flex;
+  gap: 20px;
+}
+.native-report-score-row > view {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.native-report-score-row .native-field {
+  margin-top: 14px;
+  text-align: center;
+}
+.native-report-penalty > input {
+  flex: 1;
+  min-width: 0;
+}
+.native-report-event {
+  margin: 20px 0;
+  padding: 20px;
+  border: 2px solid #dce5d8;
+  border-radius: 16px;
+  background: #fbfcf8;
+}
+.native-report-event-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.native-report-event-heading > text {
+  flex: 1;
+  min-width: 0;
+}
+.native-report-event-heading > picker {
+  flex: 0 0 170px;
+}
+.native-report-event-clock {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.native-report-event-clock > input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.native-report-form .native-report-event .native-select {
+  width: 100%;
+  max-width: none;
+  margin: 12px 0 0;
+}

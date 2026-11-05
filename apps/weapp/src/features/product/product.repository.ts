@@ -71,8 +71,12 @@ export class ProductApiError extends Error {
 }
 
 export const productRepository = {
-  getMatchCheckin: (id: string) => request<MatchCheckin>('/public/matches/' + encodeURIComponent(id) + '/check-in', { refresh: true }),
-  checkInMatch: (id: string) => request<MatchCheckin>('/matches/' + encodeURIComponent(id) + '/check-in', { method: 'PUT' }),
+  getMatchCheckin: (id: string) =>
+    request<MatchCheckin>('/public/matches/' + encodeURIComponent(id) + '/check-in', {
+      refresh: true,
+    }),
+  checkInMatch: (id: string) =>
+    request<MatchCheckin>('/matches/' + encodeURIComponent(id) + '/check-in', { method: 'PUT' }),
   getPublishedTournaments: () => request<{ items: Array<{ id: string }> }>('/public/tournaments'),
 
   getHome: (tournamentId?: string) =>
@@ -193,7 +197,7 @@ export const productRepository = {
       `/me/team-preferences${tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : ''}`,
     ),
 
-  updateTeamPreferences: (primaryTeamId: string, followedTeamIds: string[]) =>
+  updateTeamPreferences: (primaryTeamId: string | null, followedTeamIds: string[]) =>
     request<TeamPreferencesResponse>('/me/team-preferences', {
       method: 'PUT',
       data: { primaryTeamId, followedTeamIds },

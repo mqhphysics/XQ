@@ -15,6 +15,7 @@ import {
   Max,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator'
 
@@ -42,9 +43,15 @@ export class SearchQueryDto {
 }
 
 export class UpdateTeamPreferencesDto {
-  @ApiProperty({ type: String, format: 'uuid' })
+  @ApiProperty({
+    type: String,
+    format: 'uuid',
+    nullable: true,
+    description: 'null 表示取消主队，保留传入的其他关注球队',
+  })
+  @ValidateIf((_object, value) => value !== null)
   @IsUUID()
-  primaryTeamId!: string
+  primaryTeamId!: string | null
 
   @ApiProperty({ type: [String], maxItems: 12 })
   @IsArray()

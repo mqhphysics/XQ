@@ -63,17 +63,13 @@ test('an unassigned bracket waits for qualification, but a known participant app
   assert.equal(hasReachedKnockout(data), false)
 })
 
-test('four-team bracket is symmetric around its final and its vertical gaps meet card edges', () => {
+test('four-team semifinals share the upper row and feed a centered lower final', () => {
   const [upper, final, lower] = mobileFourCupNodes
-  assert.equal(upper.left + upper.width / 2, 50)
+  assert.equal(upper.top, lower.top)
+  assert.equal((upper.left + upper.width / 2 + lower.left + lower.width / 2) / 2, 50)
   assert.equal(final.left + final.width / 2, 50)
-  assert.equal(lower.left + lower.width / 2, 50)
-  assert.equal(
-    (upper.top + upper.height / 2 + lower.top + lower.height / 2) / 2,
-    final.top + final.height / 2,
-  )
-  assert.equal(final.top - upper.top - upper.height, 32)
-  assert.equal(lower.top - final.top - final.height, 32)
+  assert.equal(final.top - upper.top - upper.height, 64)
+  assert.equal(final.top + final.height - 40, 332)
 })
 test('a cup without a group stage shows its published bracket without inventing group progress', () => {
   const data = cup()

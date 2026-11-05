@@ -140,6 +140,8 @@ export type { ReportEventDto } from './models/ReportEventDto';
 export type { ReportFieldsDto } from './models/ReportFieldsDto';
 export type { ReportHistoryQueryDto } from './models/ReportHistoryQueryDto';
 export type { ReportHistoryResponseDto } from './models/ReportHistoryResponseDto';
+export type { ReportOverviewItemDto } from './models/ReportOverviewItemDto';
+export type { ReportOverviewResponseDto } from './models/ReportOverviewResponseDto';
 export type { ReportPermissionsDto } from './models/ReportPermissionsDto';
 export type { ReportPlayerViewDto } from './models/ReportPlayerViewDto';
 export type { ReportRevisionViewDto } from './models/ReportRevisionViewDto';

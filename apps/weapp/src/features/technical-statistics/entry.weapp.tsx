@@ -9,6 +9,9 @@ import { campusRepository } from '../campus/campus.repository.h5'
 import { realTournaments } from '../product/competition-scope.weapp'
 import { openMatch } from '../product/match-navigation'
 import { formatDate, formatTime } from '../product/product.format'
+import { technicalApi } from './repository.weapp'
+import { NativeMatchReportEntry } from '../match-report/editor.weapp'
+import type { MatchExperienceResponse } from '../product/product.types'
 import type { AccountCapabilities } from '../../../../../packages/contracts/src/product-config'
 import './technical.weapp.scss'
 import {
@@ -20,9 +23,13 @@ import {
 export function NativeTechnicalEntry({
   matchId,
   tournamentId,
+  match,
+  onUpdated,
 }: {
   matchId: string
   tournamentId: string
+  match: MatchExperienceResponse
+  onUpdated: (match: MatchExperienceResponse) => void
 }) {
   const user = useNativeCurrentUser(),
     [allowed, setAllowed] = useState(false)
@@ -48,19 +55,23 @@ export function NativeTechnicalEntry({
     }
   }, [user?.id, user?.organizationId, matchId, tournamentId])
   return allowed ? (
-    <Button
-      className="native-technical-entry"
-      onClick={() =>
-        void openNativeDetail(
-          `/pages/readonly-match-detail/index?matchId=${encodeURIComponent(matchId)}&technical=1`,
-        )
-      }
-    >
-      ＋ 技术统计
-    </Button>
+    <>
+      <NativeMatchReportEntry match={match} onUpdated={onUpdated} />
+      <Button
+        className="native-technical-entry"
+        onClick={() =>
+          void openNativeDetail(
+            `/pages/readonly-match-detail/index?matchId=${encodeURIComponent(matchId)}&technical=1`,
+          )
+        }
+      >
+        ＋ 技术统计
+      </Button>
+    </>
   ) : null
 }
 type EntryMatch = {
+  recordingComplete?: boolean
   id: string
   tournamentId?: string
   scheduledStartAt: string | null
@@ -127,19 +138,34 @@ export function NativeReporterMatches({
     setError('')
     setMatches([])
     setExpanded(false)
-    void request<{ matches: EntryMatch[] }>(
-      `/public/tournaments/${encodeURIComponent(selected)}/schedule`,
-    )
-      .then((data) => {
+    void Promise.all([
+      request<{ matches: EntryMatch[] }>(
+        `/public/tournaments/${encodeURIComponent(selected)}/schedule`,
+      ),
+      technicalApi.overview(selected),
+    ])
+      .then(([data, overview]) => {
+        const recorded = new Map(overview.items.map((item) => [item.matchId, item]))
         if (alive)
           setMatches(
             sortReporterMatches(
-              data.matches.filter((match) =>
-                canReportMatch(caps.actions['matchReports.write'], caps.organizationId, {
-                  id: match.id,
-                  tournamentId: selected,
+              data.matches
+                .filter((match) =>
+                  canReportMatch(caps.actions['matchReports.write'], caps.organizationId, {
+                    id: match.id,
+                    tournamentId: selected,
+                  }),
+                )
+                .map((match) => {
+                  const entry = recorded.get(match.id)
+                  return {
+                    ...match,
+                    homeScore: entry?.homeScore ?? match.homeScore,
+                    awayScore: entry?.awayScore ?? match.awayScore,
+                    recordingComplete:
+                      overview.completionRuleVersion === 1 && entry?.recorded === true,
+                  }
                 }),
-              ),
             ),
           )
       })

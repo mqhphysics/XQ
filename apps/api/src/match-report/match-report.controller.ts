@@ -28,6 +28,7 @@ import {
   WriteMatchReportDto,
   BeginMatchReportDto,
   RequestMatchReportChangeDto,
+  ReportOverviewResponseDto,
 } from './match-report.dto'
 import { MatchReportService } from './match-report.service'
 
@@ -107,6 +108,7 @@ export class MatchReportOverviewController {
   constructor(@Inject(MatchReportService) private readonly reports: MatchReportService) {}
 
   @Get('overview')
+  @ApiOkResponse({ type: ReportOverviewResponseDto })
   @ApiOperation({ summary: '比赛录入列表：授权比赛的录入状态与已录比分' })
   overview(
     @Headers('authorization') authorization: string | undefined,

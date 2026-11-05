@@ -3,18 +3,21 @@ export type ReporterMatchState = {
   scheduledStartAt: string | null
   homeScore: number | null
   awayScore: number | null
+  recordingComplete?: boolean
 }
 export function reporterMatchKind(match: ReporterMatchState) {
   if (match.status === 'LIVE') return 'live'
   if (['FINISHED', 'CONFIRMED'].includes(match.status))
-    return match.homeScore !== null && match.awayScore !== null ? 'recorded' : 'pending'
+    return match.homeScore !== null && match.awayScore !== null && match.recordingComplete === true
+      ? 'recorded'
+      : 'pending'
   if (['SCHEDULED', 'CHECK_IN', 'POSTPONED'].includes(match.status)) return 'upcoming'
   return 'inactive'
 }
 export function reporterMatchLabel(match: ReporterMatchState) {
   return {
     live: '进行中',
-    pending: '已结束 · 待补比分',
+    pending: '已结束 · 待录入',
     upcoming: match.status === 'POSTPONED' ? '已延期' : '未开始',
     recorded: '已录入',
     inactive: '已取消',

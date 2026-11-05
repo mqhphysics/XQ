@@ -38,9 +38,9 @@ export function mobileCupRounds(data: CompetitionDataResponse) {
 }
 
 export const mobileFourCupNodes = [
-  { round: 0, match: 0, left: 20, top: 40, width: 60, height: 128 },
-  { round: 1, match: 0, left: 18, top: 200, width: 64, height: 140 },
-  { round: 0, match: 1, left: 20, top: 372, width: 60, height: 128 },
+  { round: 0, match: 0, left: 0, top: 40, width: 48, height: 128 },
+  { round: 1, match: 0, left: 18, top: 232, width: 64, height: 140 },
+  { round: 0, match: 1, left: 52, top: 40, width: 48, height: 128 },
 ] as const
 
 export const mobileCupNodes = [

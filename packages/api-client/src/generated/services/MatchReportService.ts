@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { BeginMatchReportDto } from '../models/BeginMatchReportDto';
 import type { ReportHistoryResponseDto } from '../models/ReportHistoryResponseDto';
+import type { ReportOverviewResponseDto } from '../models/ReportOverviewResponseDto';
 import type { ReportWorkspaceResponseDto } from '../models/ReportWorkspaceResponseDto';
 import type { RequestMatchReportChangeDto } from '../models/RequestMatchReportChangeDto';
 import type { WriteMatchReportDto } from '../models/WriteMatchReportDto';
@@ -117,12 +118,12 @@ export class MatchReportService {
     /**
      * 比赛录入列表：授权比赛的录入状态与已录比分
      * @param tournamentId
-     * @returns any
+     * @returns ReportOverviewResponseDto
      * @throws ApiError
      */
     public static matchReportOverviewControllerOverview(
         tournamentId: string,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<ReportOverviewResponseDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/match-reports/overview',

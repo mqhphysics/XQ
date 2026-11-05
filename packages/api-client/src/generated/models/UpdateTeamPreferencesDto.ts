@@ -3,7 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UpdateTeamPreferencesDto = {
-    primaryTeamId: string;
+    /**
+     * null 表示取消主队，保留传入的其他关注球队
+     */
+    primaryTeamId: string | null;
     followedTeamIds: Array<string>;
 };
-

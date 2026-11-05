@@ -161,7 +161,12 @@ function NativeMatchContent({
         </Text>
         {match.statusReason && <Text className="native-match-reason">{match.statusReason}</Text>}
       </View>
-      <NativeTechnicalEntry matchId={match.id} tournamentId={match.tournamentId} />
+      <NativeTechnicalEntry
+        matchId={match.id}
+        tournamentId={match.tournamentId}
+        match={match}
+        onUpdated={onUpdated}
+      />
       <View className="native-match-tabs" role="tablist">
         {(
           [

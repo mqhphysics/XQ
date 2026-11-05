@@ -12,6 +12,7 @@ import { PrismaService } from '../database/prisma.service'
 import { Prisma, type MatchReportRevision } from '../generated/prisma/client'
 import { parseResultsRules } from '../results/parse-rules'
 import { reportingWindow } from './reporting-window'
+import { recordingComplete, recordingScore } from '@xiaoqiu/contracts'
 import type {
   ReportFieldsDto,
   ReportHistoryQueryDto,
@@ -231,6 +232,22 @@ export class MatchReportService {
           },
           include: MATCH_INCLUDE,
         })
+        const legacyEvents = await tx.matchEvent.findMany({
+          where: {
+            organizationId: session.organizationId,
+            matchId: { in: matches.map((m) => m.id) },
+            type: { in: ['GOAL', 'OWN_GOAL'] },
+          },
+          select: {
+            matchId: true,
+            teamId: true,
+            type: true,
+            playerId: true,
+            minute: true,
+            stoppageMinute: true,
+            relatedPlayerId: true,
+          },
+        })
         const items = []
         for (const match of matches) {
           const privilege = await this.privilege(tx, session, match)
@@ -240,25 +257,54 @@ export class MatchReportService {
             orderBy: { version: 'desc' },
             select: { status: true, version: true, fields: true, createdAt: true },
           })
-          const fields = (latest?.fields ?? {}) as { homeScore?: unknown; awayScore?: unknown }
-          const reported = (value: unknown) =>
-            value === null || value === undefined || value === '' || !Number.isFinite(Number(value))
-              ? null
-              : Number(value)
-          const homeScore = latest ? reported(fields.homeScore) : match.homeScore
-          const awayScore = latest ? reported(fields.awayScore) : match.awayScore
+          const fields = (latest?.fields ?? {}) as {
+            homeScore?: unknown
+            awayScore?: unknown
+            events?: unknown
+            outcome?: unknown
+            _liveReport?: unknown
+            _detailsIncomplete?: unknown
+          }
+          const homeScore = latest ? recordingScore(fields.homeScore) : match.homeScore
+          const awayScore = latest ? recordingScore(fields.awayScore) : match.awayScore
+          const goals = latest
+            ? Array.isArray(fields.events)
+              ? fields.events
+              : []
+            : legacyEvents
+                .filter((e) => e.matchId === match.id)
+                .map((e) => ({
+                  kind: e.type,
+                  side:
+                    e.teamId === match.homeTeamId
+                      ? 'HOME'
+                      : e.teamId === match.awayTeamId
+                        ? 'AWAY'
+                        : null,
+                  playerId: e.playerId,
+                  relatedPlayerId: e.relatedPlayerId,
+                  minute: e.minute,
+                  addedMinute: e.stoppageMinute,
+                }))
+          const adjudicated =
+            latest?.status === 'CONFIRMED' &&
+            ['HOME_FORFEIT', 'AWAY_FORFEIT', 'ABANDONED'].includes(String(fields.outcome))
           items.push({
             matchId: match.id,
             reportStatus: latest?.status ?? null,
             reportVersion: latest?.version ?? 0,
             reportedAt: latest?.createdAt.toISOString() ?? null,
-            homeScore: homeScore ?? match.homeScore,
-            awayScore: awayScore ?? match.awayScore,
+            homeScore,
+            awayScore,
             recorded:
-              (homeScore ?? match.homeScore) !== null && (awayScore ?? match.awayScore) !== null,
+              homeScore !== null &&
+              awayScore !== null &&
+              fields._liveReport !== true &&
+              fields._detailsIncomplete !== true &&
+              (adjudicated || recordingComplete(homeScore, awayScore, goals)),
           })
         }
-        return { items }
+        return { completionRuleVersion: 1 as const, items }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead, timeout: 15000 },
     )

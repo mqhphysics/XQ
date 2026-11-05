@@ -1624,7 +1624,9 @@ export class ExperienceService {
 
   async updateTeamPreferences(authorization: string | undefined, input: UpdateTeamPreferencesDto) {
     const session = await this.authService.requireSession(authorization)
-    const requestedIds = [...new Set([input.primaryTeamId, ...input.followedTeamIds])]
+    const requestedIds = [
+      ...new Set([...(input.primaryTeamId ? [input.primaryTeamId] : []), ...input.followedTeamIds]),
+    ]
     const teams = await this.prisma.team.findMany({
       where: { organizationId: session.organizationId, id: { in: requestedIds } },
     })
@@ -1639,14 +1641,15 @@ export class ExperienceService {
       await tx.userTeamPreference.deleteMany({
         where: { organizationId: session.organizationId, userId: session.userId },
       })
-      await tx.userTeamPreference.createMany({
-        data: requestedIds.map((teamId) => ({
-          organizationId: session.organizationId,
-          userId: session.userId,
-          teamId,
-          isPrimary: teamId === input.primaryTeamId,
-        })),
-      })
+      if (requestedIds.length)
+        await tx.userTeamPreference.createMany({
+          data: requestedIds.map((teamId) => ({
+            organizationId: session.organizationId,
+            userId: session.userId,
+            teamId,
+            isPrimary: teamId === input.primaryTeamId,
+          })),
+        })
     })
     return this.getTeamPreferences(authorization)
   }

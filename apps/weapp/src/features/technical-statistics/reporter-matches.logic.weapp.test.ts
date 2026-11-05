@@ -11,7 +11,14 @@ const item = (
   date: string,
   homeScore: number | null = null,
   awayScore: number | null = null,
-) => ({ id, status, scheduledStartAt: date, homeScore, awayScore })
+) => ({
+  id,
+  status,
+  scheduledStartAt: date,
+  homeScore,
+  awayScore,
+  recordingComplete: id === 'done',
+})
 test('live games come first, followed by missing results, upcoming games, and completed recorded games', () => {
   const matches = [
     item('done', 'FINISHED', '2026-10-27', 0, 0),
@@ -26,6 +33,7 @@ test('live games come first, followed by missing results, upcoming games, and co
   )
   assert.equal(reporterMatchKind(matches[0]!), 'recorded')
   assert.equal(reporterMatchKind(matches[4]!), 'live')
-  assert.equal(reporterMatchLabel(matches[3]!), '已结束 · 待补比分')
+  assert.equal(reporterMatchLabel(matches[3]!), '已结束 · 待录入')
+  assert.equal(reporterMatchKind({ ...matches[0]!, recordingComplete: false }), 'pending')
   assert.equal(matches[0]!.id, 'done')
 })

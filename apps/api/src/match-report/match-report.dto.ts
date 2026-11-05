@@ -234,9 +234,28 @@ export class ReportWorkspaceResponseDto {
   @ApiProperty({ type: ReportRevisionViewDto, nullable: true })
   latest!: ReportRevisionViewDto | null
   @ApiProperty({ type: String, nullable: true }) reviewNote!: string | null
+  @ApiPropertyOptional({ type: [String] }) blockingReasons?: string[]
   @ApiProperty({ type: OfficialReportResultDto }) officialResult!: OfficialReportResultDto
 }
 export class ReportHistoryResponseDto {
   @ApiProperty({ type: [ReportRevisionViewDto] }) items!: ReportRevisionViewDto[]
   @ApiProperty({ type: Number, nullable: true }) nextBeforeVersion!: number | null
+}
+export class ReportOverviewItemDto {
+  @ApiProperty({ format: 'uuid' }) matchId!: string
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    enum: ['DRAFT', 'SUBMITTED', 'RETURNED', 'CONFIRMED'],
+  })
+  reportStatus!: string | null
+  @ApiProperty() reportVersion!: number
+  @ApiProperty({ type: String, nullable: true, format: 'date-time' }) reportedAt!: string | null
+  @ApiProperty({ type: Number, nullable: true }) homeScore!: number | null
+  @ApiProperty({ type: Number, nullable: true }) awayScore!: number | null
+  @ApiProperty({ description: '比分与进球事件、球员、时间对应完整；助攻选填' }) recorded!: boolean
+}
+export class ReportOverviewResponseDto {
+  @ApiProperty({ enum: [1] }) completionRuleVersion!: 1
+  @ApiProperty({ type: [ReportOverviewItemDto] }) items!: ReportOverviewItemDto[]
 }

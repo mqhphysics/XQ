@@ -193,6 +193,65 @@ test(
       assert.equal(quality.status, 200, JSON.stringify(quality.body))
       assert.equal(quality.body.profile.score, 100)
       assert.equal(quality.body.recordedMatchCount, 0)
+      const homeTeam = await prisma.team.create({
+        data: { organizationId: org.id, teamCode: 'home-' + suffix, name: 'FICTIONAL_TEST 主队' },
+      })
+      const away = await prisma.team.create({
+        data: {
+          organizationId: org.id,
+          teamCode: 'away-' + suffix,
+          name: 'FICTIONAL_TEST 关注球队',
+        },
+      })
+      const prefs = (data: object) =>
+        request(server).put('/api/me/team-preferences').set('Authorization', auth[0]!).send(data)
+      await prefs({ primaryTeamId: homeTeam.id, followedTeamIds: [away.id] }).expect(200)
+      const cleared = await prefs({ primaryTeamId: null, followedTeamIds: [away.id] }).expect(200)
+      assert.equal(cleared.body.primaryTeam, null)
+      assert.deepEqual(
+        cleared.body.followedTeams.map((t: { id: string }) => t.id),
+        [away.id],
+      )
+      const reread = await request(server)
+        .get('/api/me/team-preferences')
+        .set('Authorization', auth[0]!)
+        .expect(200)
+      assert.equal(reread.body.primaryTeam, null)
+      await prefs({ followedTeamIds: [] }).expect(400)
+      await prefs({ primaryTeamId: homeTeam.id, followedTeamIds: [] }).expect(200)
+      await prisma.match.update({
+        where: { id: match.id },
+        data: { homeTeamId: homeTeam.id, awayTeamId: away.id, homeScore: 1, awayScore: 0 },
+      })
+      const overview = async () => {
+        const response = await request(server)
+          .get('/api/match-reports/overview?tournamentId=' + tournament.id)
+          .set('Authorization', auth[0]!)
+          .expect(200)
+        assert.equal(response.body.completionRuleVersion, 1)
+        return response.body.items.find((m: { matchId: string }) => m.matchId === match.id)
+      }
+      assert.equal((await overview()).recorded, false, 'A score without goal facts remains pending')
+      const goal = await prisma.matchEvent.create({
+        data: {
+          organizationId: org.id,
+          matchId: match.id,
+          teamId: homeTeam.id,
+          type: 'GOAL',
+          minute: 12,
+        },
+      })
+      assert.equal((await overview()).recorded, false, 'An anonymous scorer remains pending')
+      await prisma.matchEvent.update({ where: { id: goal.id }, data: { playerId: player.id } })
+      assert.equal(
+        (await overview()).recorded,
+        true,
+        'A scorer and time matching the score completes recording; assist is optional',
+      )
+      await prisma.matchEvent.update({ where: { id: goal.id }, data: { type: 'OWN_GOAL' } })
+      assert.equal((await overview()).recorded, false, 'Own goals credit the other side')
+      await prisma.matchEvent.update({ where: { id: goal.id }, data: { teamId: away.id } })
+      assert.equal((await overview()).recorded, true)
       await prisma.post.createMany({
         data: Array.from({ length: 21 }, (_, index) => ({
           organizationId: org.id,

@@ -40,6 +40,18 @@ export interface TechnicalWorkspace {
   }>
 }
 export const technicalApi = {
+  overview: (tournamentId: string) =>
+    request<{
+      completionRuleVersion?: number
+      items: Array<{
+        matchId: string
+        recorded: boolean
+        homeScore: number | null
+        awayScore: number | null
+      }>
+    }>(`/match-reports/overview?tournamentId=${encodeURIComponent(tournamentId)}`, {
+      refresh: true,
+    }),
   load: (id: string) =>
     request<TechnicalWorkspace>(
       `/matches/${encodeURIComponent(id)}/technical-statistics?schemaVersion=2`,

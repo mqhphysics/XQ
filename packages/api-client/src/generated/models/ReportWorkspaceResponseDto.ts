@@ -26,6 +26,6 @@ export type ReportWorkspaceResponseDto = {
     permissions: ReportPermissionsDto;
     latest: ReportRevisionViewDto | null;
     reviewNote: string | null;
+    blockingReasons?: Array<string>;
     officialResult: OfficialReportResultDto;
 };
-

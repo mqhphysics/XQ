@@ -598,7 +598,7 @@
 }
 .native-reporter-matches > .native-reporter-match > .native-reporter-match__state {
   flex: none;
-  max-width: 32%;
+  white-space: nowrap;
   font-size: 26px;
   font-weight: 650;
 }

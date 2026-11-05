@@ -21,6 +21,8 @@ import { openPlayer } from '../../features/product/player-navigation'
 import './profile.weapp.scss'
 import { NativePlayerFace } from '../../components/native-ui/player-face.weapp'
 import { positionLabel } from '../../features/product/product.format.weapp'
+import { useNativePreferences } from '../../components/native-ui/preferences.weapp'
+import { qualityChanges, type QualitySeen } from './reporter-quality.logic'
 
 export function NativeMyIdentities({
   user,
@@ -433,6 +435,11 @@ function NativeReporterQuality() {
   const [data, setData] = useState<ReporterQuality | null>(null),
     [error, setError] = useState(''),
     [rules, setRules] = useState(false)
+  const [displayScore, setDisplayScore] = useState<number | null>(null),
+    [scoreDelta, setScoreDelta] = useState<number | null>(null)
+  const { reduceMotion } = useNativePreferences()
+  const actor = readSession()?.user
+  const seenKey = actor ? `xiaoqiu.reporter-score-seen.v1:${actor.organizationId}:${actor.id}` : ''
   const load = () => {
     setError('')
     void campusRepository
@@ -441,6 +448,68 @@ function NativeReporterQuality() {
       .catch((issue: Error) => setError(issue.message))
   }
   useEffect(load, [])
+  useEffect(() => {
+    if (!data?.profile || !seenKey) return
+    const profile = data.profile
+    let seen: QualitySeen | null = null
+    try {
+      seen = Taro.getStorageSync<QualitySeen>(seenKey) || null
+    } catch {
+      /* Optional local presentation state. */
+    }
+    const changes = qualityChanges(profile, data.entries, seen)
+    const timers = new Set<ReturnType<typeof setTimeout>>()
+    let stopped = false
+    const later = (work: () => void, ms: number) => {
+      const timer = setTimeout(() => {
+        timers.delete(timer)
+        if (!stopped) work()
+      }, ms)
+      timers.add(timer)
+    }
+    const finish = () => {
+      setDisplayScore(profile.score)
+      setScoreDelta(null)
+      try {
+        Taro.setStorageSync(seenKey, {
+          profileId: profile.id,
+          entryId: data.entries[0]?.id || null,
+          score: profile.score,
+        } satisfies QualitySeen)
+      } catch {
+        /* Score authority remains the API. */
+      }
+    }
+    const play = (index: number) => {
+      const change = changes[index]
+      if (!change) return finish()
+      setDisplayScore(change.from)
+      setScoreDelta(change.delta)
+      later(() => {
+        const steps = reduceMotion ? 1 : 12
+        const tick = (step: number) => {
+          const fraction = step / steps
+          setDisplayScore(
+            Math.round(change.from + (change.to - change.from) * (1 - (1 - fraction) ** 3)),
+          )
+          if (step < steps) later(() => tick(step + 1), 30)
+          else
+            later(() => {
+              setScoreDelta(null)
+              later(() => play(index + 1), 30)
+            }, 100)
+        }
+        tick(1)
+      }, 650)
+    }
+    setScoreDelta(null)
+    if (changes.length) play(0)
+    else finish()
+    return () => {
+      stopped = true
+      timers.forEach(clearTimeout)
+    }
+  }, [data, seenKey, reduceMotion])
   const labels: Record<string, string> = {
     ACTIVE: '正常记录',
     PROBATION: '复训考察中',
@@ -463,12 +532,21 @@ function NativeReporterQuality() {
       {data?.profile && (
         <>
           <View className="native-reporter-scoreboard">
-            <View>
+            <View className="native-reporter-score-column">
               <Text>我的质量分</Text>
               <Text className="native-reporter-score-value">
-                {data.profile.score}
+                {displayScore ?? data.profile.score}
                 <Text> / 100</Text>
               </Text>
+              {scoreDelta !== null && (
+                <Text
+                  key={`${scoreDelta}:${displayScore === null ? 'initial' : 'score'}`}
+                  className={`native-reporter-score-delta ${scoreDelta > 0 ? 'is-gain' : 'is-loss'}${reduceMotion ? ' is-reduced' : ''}`}
+                >
+                  {scoreDelta > 0 ? '+' : '−'}
+                  {Math.abs(scoreDelta)}
+                </Text>
+              )}
             </View>
             <View>
               <Text>已录入</Text>
@@ -488,7 +566,14 @@ function NativeReporterQuality() {
           {rules && (
             <NativeDialog title="评分说明" onClose={() => setRules(false)}>
               <View className="native-quality-rule is-gain">
-                <Text>连续 {data.rules.qualifiedMatchesForReward} 场合格</Text>
+                <Text>
+                  连续 {data.rules.qualifiedMatchesForReward} 场合格（
+                  {Math.min(
+                    data.profile.consecutiveQualified,
+                    data.rules.qualifiedMatchesForReward,
+                  )}
+                  /{data.rules.qualifiedMatchesForReward}）
+                </Text>
                 <Text>+{data.rules.reward} 分</Text>
               </View>
               <View className="native-quality-rule is-loss">
