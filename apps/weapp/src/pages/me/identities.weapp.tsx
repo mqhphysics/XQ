@@ -315,8 +315,10 @@ function NativeSelfPlayer({
         <>
           <NativePlayerMedia
             playerId={playerId}
+            tournamentId={tournamentId}
             name={data.displayName}
             avatarUrl={detail?.avatarUrl}
+            portraitUrl={detail?.portraitUrl}
             coverUrl={detail?.coverUrl}
             onSaved={mediaSaved}
             onEditingChange={setPhotoBusy}

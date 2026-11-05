@@ -21,6 +21,7 @@ import type {
 } from '../../features/product/product.types'
 import type { DesktopAccountProps } from './desktop-account'
 import './native-account.weapp.scss'
+import { NativeWebsiteLink } from '../native-ui/website-link.weapp'
 import { useNativeBackLayer } from '../../features/native-navigation/leave-guard.weapp'
 import {
   NativeSwipeDrawer,
@@ -316,6 +317,7 @@ export function DesktopAccount({
               </Button>
             </View>
           )}
+          <NativeWebsiteLink />
           <View className="native-account-bottom">
             {current && (
               <Button className="native-button" onClick={() => select(onLogout)}>

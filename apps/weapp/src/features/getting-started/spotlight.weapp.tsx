@@ -516,12 +516,7 @@ export function NativeGuidePrompt({
     cardWidth = Math.min(w - 64, 400)
   return (
     <RootPortal>
-      <View
-        className="native-guide native-guide--prompt"
-        style={`height:${window.windowHeight}px;`}
-        catchMove
-        onClick={() => once(onStart)}
-      >
+      <View className="native-guide native-guide--prompt" catchMove onClick={() => once(onStart)}>
         {/* A light veil only: the loaded home page stays visible behind the question. */}
         <View className="native-guide__mask native-guide__mask--light is-full" style="inset:0;" />
         <View

@@ -15,6 +15,7 @@ import type {
   TeamPreferencesResponse,
 } from '../../features/product/product.types'
 import { isPendingMatch } from './profile.logic'
+import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
 
 /*
  * Wide windows only: the website's lower profile row (desktop-profile.h5.tsx) — the 我的贡献 / 我的录入
@@ -54,7 +55,8 @@ export function useWideProfileData(
     if (person.status === 'rejected') issues.posts = message(person.reason, '动态读取失败')
     if (competition.status === 'rejected')
       issues.schedule = message(competition.reason, '赛程读取失败')
-    if (favorites.status === 'rejected') issues.favorites = message(favorites.reason, '收藏读取失败')
+    if (favorites.status === 'rejected')
+      issues.favorites = message(favorites.reason, '收藏读取失败')
     setData({
       posts: person.status === 'fulfilled' ? person.value.posts : null,
       schedule: competition.status === 'fulfilled' ? competition.value.schedule : null,
@@ -73,9 +75,10 @@ export function useWideProfileData(
     }
   }, [load])
   const watched = new Set(
-    [preferences?.primaryTeam?.id, ...(preferences?.followedTeams.map((team) => team.id) ?? [])].filter(
-      Boolean,
-    ),
+    [
+      preferences?.primaryTeam?.id,
+      ...(preferences?.followedTeams.map((team) => team.id) ?? []),
+    ].filter(Boolean),
   )
   const followedMatches = (data.schedule ?? []).filter(
     (match) =>
@@ -104,18 +107,33 @@ export function WideProfileContribution({
   const schedule = data.schedule ?? []
   const cells: Array<[string, string]> = reporter
     ? [
-        ['已完赛', count(schedule.filter((match) => match.homeScore !== null).length, errors.schedule)],
-        ['待进行', count(schedule.filter((match) => match.homeScore === null).length, errors.schedule)],
+        [
+          '已完赛',
+          count(schedule.filter((match) => match.homeScore !== null).length, errors.schedule),
+        ],
+        [
+          '待进行',
+          count(schedule.filter((match) => match.homeScore === null).length, errors.schedule),
+        ],
         ['我的动态', count(posts.length, errors.posts)],
         ['关注比赛', count(followedMatches.length, errors.schedule)],
       ]
     : [
         ['关注比赛', count(followedMatches.length, errors.schedule)],
         ['我的动态', count(posts.length, errors.posts)],
-        ['获赞', count(posts.reduce((sum, post) => sum + (post.likeCount ?? 0), 0), errors.posts)],
+        [
+          '获赞',
+          count(
+            posts.reduce((sum, post) => sum + (post.likeCount ?? 0), 0),
+            errors.posts,
+          ),
+        ],
         [
           '收到评论',
-          count(posts.reduce((sum, post) => sum + (post.commentCount ?? 0), 0), errors.posts),
+          count(
+            posts.reduce((sum, post) => sum + (post.commentCount ?? 0), 0),
+            errors.posts,
+          ),
         ],
       ]
   return (
@@ -173,6 +191,7 @@ export function WideProfileStream({
     )
     .sort((a, b) => (b.scheduledStartAt ?? '').localeCompare(a.scheduledStartAt ?? ''))
   const posts = (tab === 'posts' ? data.posts : data.favorites) ?? []
+  const canPublish = nativeWriteEnabled('publishPosts')
   return (
     <View className="native-profile-stream">
       <View className="native-profile-tabs" role="tablist" aria-label="个人内容">
@@ -186,23 +205,32 @@ export function WideProfileStream({
             {item.label}
           </Button>
         ))}
-        <Button
-          className="native-profile-tabs__add"
-          aria-label={tab === 'posts' ? '发布动态' : tab === 'matches' ? '关注更多比赛' : '添加收藏'}
-          onClick={() =>
-            tab === 'posts'
-              ? onCompose()
-              : void switchNativeSection(tab === 'matches' ? 'schedule' : 'home')
-          }
-        >
-          +
-        </Button>
+        {(tab !== 'posts' || canPublish) && (
+          <Button
+            className="native-profile-tabs__add"
+            aria-label={
+              tab === 'posts' ? '发布动态' : tab === 'matches' ? '关注更多比赛' : '添加收藏'
+            }
+            onClick={() =>
+              tab === 'posts'
+                ? onCompose()
+                : void switchNativeSection(tab === 'matches' ? 'schedule' : 'home')
+            }
+          >
+            +
+          </Button>
+        )}
       </View>
       <View className="native-profile-stream__panel" role="tabpanel">
         {loading ? (
           <DataState kind="loading" title="正在读取个人内容" />
         ) : error ? (
-          <DataState kind="error" title="内容读取失败" description={error} onRetry={() => void load()} />
+          <DataState
+            kind="error"
+            title="内容读取失败"
+            description={error}
+            onRetry={() => void load()}
+          />
         ) : tab === 'matches' ? (
           <>
             <View className="native-profile-filters">
@@ -243,10 +271,12 @@ export function WideProfileStream({
             {!posts.length &&
               (tab === 'posts' ? (
                 <Empty
-                  title="你的球场故事，从这里开始"
-                  note="还没有本赛季的公开动态，分享一张照片或一段观赛感受吧。"
-                  action="发布第一条动态"
-                  onAction={onCompose}
+                  title={canPublish ? '你的球场故事，从这里开始' : '还没有本赛季的公开动态'}
+                  note={
+                    canPublish ? '分享一张照片或一段观赛感受吧。' : '可到首页查看官方公告与战报。'
+                  }
+                  action={canPublish ? '发布第一条动态' : '去首页看看'}
+                  onAction={canPublish ? onCompose : () => void switchNativeSection('home')}
                 />
               ) : (
                 <Empty

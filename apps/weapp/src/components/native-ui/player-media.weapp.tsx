@@ -14,15 +14,19 @@ import './player-media.weapp.scss'
 
 export function NativePlayerMedia({
   playerId,
+  tournamentId,
   name,
   avatarUrl,
+  portraitUrl,
   coverUrl,
   onSaved,
   onEditingChange,
 }: {
   playerId: string
+  tournamentId?: string | undefined
   name: string
   avatarUrl?: string | null | undefined
+  portraitUrl?: string | null | undefined
   coverUrl?: string | null | undefined
   onSaved: () => Promise<void>
   onEditingChange: (editing: boolean) => void
@@ -41,7 +45,16 @@ export function NativePlayerMedia({
         <View className="native-player-media__item" id="native-guide-player-avatar">
           <Text>球员头像</Text>
           <View className="native-player-media__preview">
-            <NativePlayerFace name={name} avatarUrl={preview.avatar || null} large />
+            <NativePlayerFace
+              playerId={playerId}
+              {...(tournamentId ? { tournamentId } : {})}
+              name={name}
+              avatarUrl={preview.avatar || null}
+              portraitUrl={portraitUrl || null}
+              preferProvided
+              loadPortrait
+              large
+            />
           </View>
           <Button className="native-button" onClick={() => setKind('avatar')}>
             更换头像

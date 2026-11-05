@@ -5,7 +5,7 @@ import { NativeSocialPage } from '../../components/native-social/page-frame.weap
 import { UserAvatar } from '../../components/product-ui'
 import { DataState } from '../../components/public-ui'
 import {
-  messageCategories,
+  messageCategories as sharedMessageCategories,
   notificationCategory,
   type MessageCategory,
 } from '../../components/messaging-drawer/message-categories.h5'
@@ -22,6 +22,7 @@ import {
 import { NativeRefreshIndicator } from '../../features/product/native-refresh.weapp'
 import './index.weapp.scss'
 type Notice = NotificationResponse['items'][number]
+const messageCategories = sharedMessageCategories.filter((item) => item.id !== 'messages')
 export interface NativeMessagesParams {
   notificationId?: string | undefined
   conversationId?: string | undefined
@@ -84,7 +85,7 @@ export default function NativeMessagesScreen(supplied: NativeMessagesParams = {}
   useEffect(() => {
     if (!active || !visible) return
     void load()
-    const timer = setInterval(() => void load(true), 20000)
+    const timer = setInterval(() => void load(true), 60000)
     return () => {
       clearInterval(timer)
       sequence.current++

@@ -2,6 +2,7 @@ import { Button, Image, Input, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
+import { NativeWebsiteLink } from '../../components/native-ui/website-link.weapp'
 import { openNativeComposer } from '../../features/native-social/routing.weapp'
 import { useWideProfileData, WideProfileContribution, WideProfileStream } from './wide-profile.weapp'
 import { TeamCrest, UserAvatar } from '../../components/product-ui'
@@ -391,6 +392,7 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
       ) : (
         functionGrid
       )}
+      <NativeWebsiteLink />
       {teamChoices.length > 0 && (
         <NativeDialog title="选择要管理的球队" onClose={() => setTeamChoices([])}>
           {teamChoices.map((team) => (

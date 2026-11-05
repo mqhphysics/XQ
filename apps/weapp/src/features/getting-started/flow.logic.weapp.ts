@@ -94,7 +94,7 @@ export function guideSteps(
       section: 'home',
       selector: '#native-guide-account, .public-account',
       title: '左上角是你的账户',
-      body: '点头像打开账户菜单：消息与私信、问题反馈和设置都在这里。',
+      body: '点头像打开账户菜单：查看消息、管理资料或提交反馈。',
       action: 'next',
     },
     {

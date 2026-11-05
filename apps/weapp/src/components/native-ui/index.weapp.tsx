@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { NativeDialogProps } from './index'
 import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
 import { registerDialogScroll } from '../../features/native-navigation/dialog-scroll.weapp'
+import { useDialogViewport } from './dialog-viewport.weapp'
 import {
   confirmNativeDiscard,
   useNativeBackLayer,
@@ -35,11 +36,8 @@ export function NativeDialog({
   })
   const contentId = `native-dialog-content-${useId().replace(/[^a-z0-9]/gi, '')}`
   const info = Taro.getWindowInfo()
-  const baseline = useRef(info.windowHeight)
-  const [windowHeight, setWindowHeight] = useState(info.windowHeight)
-  const [keyboard, setKeyboard] = useState(0)
+  const viewport = useDialogViewport(info)
   const [contentHeight, setContentHeight] = useState<number | null>(null)
-  const viewport = keyboard ? Math.min(windowHeight, baseline.current - keyboard) : windowHeight
   const maximum = Math.max(100, Math.min(460, viewport - 160))
   const height =
     bodyHeight !== undefined
@@ -47,27 +45,6 @@ export function NativeDialog({
       : compact
         ? Math.min(contentHeight ?? 240, maximum)
         : Math.min(maximum, viewport * 0.57)
-  useEffect(() => {
-    let keyboardHeight = 0
-    const measure = () => {
-      const next = Taro.getWindowInfo().windowHeight
-      if (!keyboardHeight) baseline.current = next
-      setWindowHeight(next)
-    }
-    const timer = setTimeout(measure, 60)
-    Taro.onWindowResize(measure)
-    const changed = (event: { height: number }) => {
-      keyboardHeight = event.height
-      setKeyboard(event.height)
-    }
-    Taro.onKeyboardHeightChange(changed)
-    return () => {
-      clearTimeout(timer)
-      Taro.offWindowResize(measure)
-      Taro.offKeyboardHeightChange(changed)
-      void Taro.hideKeyboard().catch(() => {})
-    }
-  }, [])
   useEffect(() => {
     if (!compact || bodyHeight !== undefined || fullScreen) return
     let active = true
@@ -180,51 +157,52 @@ export function NativeDialog({
     <RootPortal>
       <View
         className={`native-dialog-mask${fullScreen ? ' native-dialog-mask--fullscreen' : ''}`}
-        style={`height:${Math.max(1, viewport)}px;`}
         catchMove
         onClick={() => {
           if (!busy) void requestClose()
         }}
       >
-        <View
-          className={`native-dialog ${className}${fullScreen ? ' native-dialog--fullscreen' : ''}`}
-          style={fullScreen ? `padding-top:${info.statusBarHeight || 0}px;` : ''}
-          role="dialog"
-          aria-label={title}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <View className="native-dialog__head">
-            <Text>{title}</Text>
-            <Button
-              className="native-dialog__close"
-              aria-label="关闭弹窗"
-              disabled={busy}
-              onClick={() => void requestClose()}
-            >
-              ×
-            </Button>
+        <View className="native-dialog-layout" style={fullScreen ? '' : `height:${viewport}px;`}>
+          <View
+            className={`native-dialog ${className}${fullScreen ? ' native-dialog--fullscreen' : ''}`}
+            style={fullScreen ? `padding-top:${info.statusBarHeight || 0}px;` : ''}
+            role="dialog"
+            aria-label={title}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <View className="native-dialog__head">
+              <Text>{title}</Text>
+              <Button
+                className="native-dialog__close"
+                aria-label="关闭弹窗"
+                disabled={busy}
+                onClick={() => void requestClose()}
+              >
+                ×
+              </Button>
+            </View>
+            {fullScreen ? (
+              <View className="native-dialog__fullscreen-body">{children}</View>
+            ) : (
+              <ScrollView
+                id={scrollId}
+                className="native-dialog__body native-dialog__scroll"
+                scrollY
+                showScrollbar={false}
+                {...(focusTop !== null ? { scrollTop: focusTop } : {})}
+                scrollWithAnimation={!dragScrolling}
+                onScroll={(event) => {
+                  if (!dragScrollingRef.current) scrollPosition.current = event.detail.scrollTop
+                }}
+                style={`height:${height}px;`}
+              >
+                <View id={contentId} className="native-dialog__content">
+                  {children}
+                </View>
+              </ScrollView>
+            )}
+            {footer && <View className="native-dialog__footer">{footer}</View>}
           </View>
-          {fullScreen ? (
-            <View className="native-dialog__fullscreen-body">{children}</View>
-          ) : (
-            <ScrollView
-              id={scrollId}
-              className="native-dialog__body native-dialog__scroll"
-              scrollY
-              showScrollbar={false}
-              {...(focusTop !== null ? { scrollTop: focusTop } : {})}
-              scrollWithAnimation={!dragScrolling}
-              onScroll={(event) => {
-                if (!dragScrollingRef.current) scrollPosition.current = event.detail.scrollTop
-              }}
-              style={`height:${height}px;`}
-            >
-              <View id={contentId} className="native-dialog__content">
-                {children}
-              </View>
-            </ScrollView>
-          )}
-          {footer && <View className="native-dialog__footer">{footer}</View>}
         </View>
       </View>
     </RootPortal>

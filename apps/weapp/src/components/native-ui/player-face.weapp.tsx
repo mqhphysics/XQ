@@ -14,6 +14,7 @@ export function NativePlayerFace({
   name,
   avatarUrl,
   portraitUrl,
+  preferProvided = false,
   loadPortrait = false,
   large = false,
   small = false,
@@ -24,6 +25,7 @@ export function NativePlayerFace({
   name: string
   avatarUrl?: string | null
   portraitUrl?: string | null
+  preferProvided?: boolean
   loadPortrait?: boolean
   large?: boolean
   small?: boolean
@@ -37,13 +39,15 @@ export function NativePlayerFace({
   const user = useStoredSessionUser()
   const currentAvatar =
     playerId && user?.linkedPlayer?.id === playerId ? user.linkedPlayer.avatarUrl : null
-  const provided = nativePlayerPhotos(currentAvatar, avatarUrl, portraitUrl),
+  const provided = preferProvided
+      ? nativePlayerPhotos(avatarUrl, portraitUrl, currentAvatar)
+      : nativePlayerPhotos(currentAvatar, avatarUrl, portraitUrl),
     providedKey = provided.join('|'),
     exhausted = failed >= provided.length
   useEffect(() => {
     setFailed(0)
     setMedia(null)
-  }, [playerId, avatarUrl, portraitUrl, currentAvatar])
+  }, [playerId, avatarUrl, portraitUrl, currentAvatar, preferProvided])
   useEffect(() => {
     let active = true
     if (loadPortrait && playerId && exhausted)
@@ -57,13 +61,9 @@ export function NativePlayerFace({
       active = false
     }
   }, [playerId, tournamentId, providedKey, exhausted, loadPortrait])
-  const sources = nativePlayerPhotos(
-    currentAvatar,
-    avatarUrl,
-    portraitUrl,
-    media?.avatarUrl,
-    media?.portraitUrl,
-  ).map((source) => resolveMediaUrl(source)!)
+  const sources = nativePlayerPhotos(...provided, media?.avatarUrl, media?.portraitUrl).map(
+    (source) => resolveMediaUrl(source)!,
+  )
   return (
     <View
       className={`native-player-face${large ? ' native-player-face--large' : small ? ' native-player-face--small' : ''}${fill ? ' native-player-face--fill' : ''}`}

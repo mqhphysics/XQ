@@ -1,5 +1,5 @@
 import { NativeContentPager } from '../../components/native-navigation/content-pager.weapp'
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Button, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance } from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNativeRefreshTask } from '../../features/product/native-refresh.weapp'
@@ -14,11 +14,7 @@ import {
   NativeStats,
 } from '../../components/native-navigation/profile-parts.weapp'
 import { useNativeRouteState } from '../../features/native-navigation/index.weapp'
-import {
-  productRepository,
-  resolveMediaUrl,
-  peekNativeProduct,
-} from '../../features/product/product.repository'
+import { productRepository, peekNativeProduct } from '../../features/product/product.repository'
 import { footLabel, positionLabel } from '../../features/product/product.format'
 import { openTeam } from '../../features/product/team-navigation'
 import { openPost } from '../../features/product/post-navigation'
@@ -101,14 +97,15 @@ export default function NativePlayerScreen({
         <View className="native-player-detail">
           <NativeProfileCover player src={player.coverUrl} compact={compact}>
             <View className="native-profile-portrait">
-              {player.avatarUrl || player.portraitUrl ? (
-                <Image
-                  src={resolveMediaUrl(player.avatarUrl || player.portraitUrl)!}
-                  mode="aspectFill"
-                />
-              ) : (
-                <NativePlayerFace name={player.displayName} avatarUrl={player.avatarUrl} large />
-              )}
+              <NativePlayerFace
+                playerId={player.id}
+                tournamentId={tournamentId}
+                name={player.displayName}
+                avatarUrl={player.avatarUrl}
+                portraitUrl={player.portraitUrl}
+                preferProvided
+                fill
+              />
             </View>
             <View className="native-profile-cover__copy">
               <Text>{player.displayName}</Text>
