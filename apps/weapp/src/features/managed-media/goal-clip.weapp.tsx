@@ -38,7 +38,7 @@ export function NativeGoalClip({
     void prepareMatchGif(asset)
       .then((path) => {
         if (current) {
-          setLoaded(false)
+          setFailed(false)
           setSource(path)
         }
       })
@@ -53,6 +53,8 @@ export function NativeGoalClip({
   const open = async () => {
     if (opening.current) return
     if (failed) {
+      setSource('')
+      setLoaded(false)
       setFailed(false)
       setAttempt((v) => v + 1)
       return
@@ -63,7 +65,7 @@ export function NativeGoalClip({
     }
     opening.current = true
     try {
-      const path = source || (await prepareMatchGif(asset))
+      const path = await prepareMatchGif(asset)
       if (alive.current) {
         setSource(path)
         onPlay(path)

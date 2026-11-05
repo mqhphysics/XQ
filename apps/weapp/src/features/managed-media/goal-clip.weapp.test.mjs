@@ -10,6 +10,7 @@ const compiled = ts.transpileModule(
   { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } },
 ).outputText
 function harness(status = 'APPROVED') {
+  let detailActive = true
   let cursor = 0,
     effectCursor = 0,
     loads = 0,
@@ -25,7 +26,7 @@ function harness(status = 'APPROVED') {
   const modules = {
     '@tarojs/components': { Button: 'button', Image: 'image', Text: 'text' },
     react: {
-      useContext: () => true,
+      useContext: () => detailActive,
       useState(initial) {
         const i = cursor++
         if (!(i in cells)) cells[i] = initial
@@ -96,6 +97,9 @@ function harness(status = 'APPROVED') {
       resolveLoad('local/full-loop.gif')
       await new Promise((r) => setImmediate(r))
     },
+    detail: (value) => {
+      detailActive = value
+    },
     loads: () => loads,
     plays,
   }
@@ -136,4 +140,19 @@ test('pending private clips keep their existing authorized click path', () => {
   result.props.onClick()
   assert.equal(h.plays.length, 1)
   assert.equal(h.plays[0], undefined)
+})
+
+test('returning to a retained detail does not overlay a poster after the cached image has loaded', async () => {
+  const h = harness()
+  h.render(true)
+  await h.ready()
+  let image = images(h.render(true)).find((i) => i.props.src === 'local/full-loop.gif')
+  image.props.onLoad()
+  h.detail(false)
+  h.render(true)
+  h.detail(true)
+  image = images(h.render(true)).find((i) => i.props.src === 'local/full-loop.gif')
+  image.props.onLoad()
+  await new Promise((r) => setImmediate(r))
+  assert.equal(images(h.render(true)).length, 1)
 })
