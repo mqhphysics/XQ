@@ -183,8 +183,8 @@ test(
           organizationId: org.id,
           userId: users[0]!.id,
           role: 'MATCH_REPORTER',
-          scopeType: 'ORGANIZATION',
-          scopeId: org.id,
+          scopeType: 'TOURNAMENT',
+          scopeId: tournament.id,
         },
       })
       const quality = await request(server)
@@ -252,6 +252,14 @@ test(
       assert.equal((await overview()).recorded, false, 'Own goals credit the other side')
       await prisma.matchEvent.update({ where: { id: goal.id }, data: { teamId: away.id } })
       assert.equal((await overview()).recorded, true)
+      const dashboard = await request(server)
+        .get(`/api/public/teams/${homeTeam.id}/dashboard?tournamentId=${tournament.id}`)
+        .set('x-organization-id', org.id)
+        .expect(200)
+      assert.ok(
+        dashboard.body.recentMatches.some((item: { id: string }) => item.id === match.id),
+        'Preserve the live visibility fix for finished matches without a report revision',
+      )
       await prisma.post.createMany({
         data: Array.from({ length: 21 }, (_, index) => ({
           organizationId: org.id,

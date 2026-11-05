@@ -831,12 +831,7 @@ export class ExperienceService {
       resultsMode: resultContext.mode,
       posts: teamPosts.map((post) => mapPost(post, viewerUserId)),
       recentMatches: matches
-        .filter(
-          (match) =>
-            match.status === MatchStatus.FINISHED &&
-            (resultContext.mode === 'DEMO' || match.confirmedReportVersion !== null),
-        )
-        .slice(-5)
+        .filter((match) => match.status === MatchStatus.FINISHED)
         .reverse()
         .map((match) => mapResultMatch(match, resultContext.official)),
       upcomingMatches: matches
