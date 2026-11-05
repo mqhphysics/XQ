@@ -3,7 +3,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { NativeDetailActiveContext } from '../native-navigation/detail-context.weapp'
 import { useNativePreferences } from '../../components/native-ui/preferences.weapp'
 import { resolveMediaUrl } from '../product/product.repository'
-import { matchGifUrl } from './match-gif.weapp'
+import { prepareMatchGif } from './gif-cache.weapp'
 import { measureNativeContent } from '../../components/native-navigation/content-pager.weapp'
 import type { MediaAsset } from './repository.h5'
 
@@ -16,68 +16,80 @@ export function NativeGoalClip({
   active: boolean
   onPlay: (source?: string) => void
 }) {
-  const detailActive = useContext(NativeDetailActiveContext)
-  const { autoplayGif } = useNativePreferences()
-  const gif = asset.mimeType !== 'video/mp4'
-  const publicGif = gif && asset.status !== 'PENDING'
-  const playing = publicGif && active && detailActive && autoplayGif
-  const [loaded, setLoaded] = useState(false),
+  const detailActive = useContext(NativeDetailActiveContext),
+    { autoplayGif } = useNativePreferences()
+  const publicGif = asset.mimeType !== 'video/mp4' && asset.status !== 'PENDING'
+  const [source, setSource] = useState(''),
+    [loaded, setLoaded] = useState(false),
     [failed, setFailed] = useState(false),
     [attempt, setAttempt] = useState(0)
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
-    retries = useRef(0)
+  const alive = useRef(true),
+    opening = useRef(false)
   useEffect(
     () => () => {
-      if (timer.current) clearTimeout(timer.current)
+      alive.current = false
     },
     [],
   )
-  const base = publicGif ? matchGifUrl(asset) : ''
-  const source = attempt ? `${base}&retry=${attempt}` : base
-  const retry = () => {
+  useEffect(() => {
+    if (!publicGif || !detailActive) return
+    let current = true
     setFailed(false)
-    setLoaded(false)
-    setAttempt((value) => value + 1)
+    void prepareMatchGif(asset)
+      .then((path) => {
+        if (current) {
+          setLoaded(false)
+          setSource(path)
+        }
+      })
+      .catch(() => {
+        if (current) setFailed(true)
+      })
+    return () => {
+      current = false
+    }
+  }, [asset.id, asset.version, asset.bytes, publicGif, detailActive, attempt])
+  const playing = publicGif && active && detailActive && autoplayGif && !!source && !failed
+  const open = async () => {
+    if (opening.current) return
+    if (failed) {
+      setFailed(false)
+      setAttempt((v) => v + 1)
+      return
+    }
+    if (!publicGif) {
+      onPlay()
+      return
+    }
+    opening.current = true
+    try {
+      const path = source || (await prepareMatchGif(asset))
+      if (alive.current) {
+        setSource(path)
+        onPlay(path)
+      }
+    } catch {
+      if (alive.current) setFailed(true)
+    } finally {
+      opening.current = false
+    }
   }
   return (
-    <Button
-      className="native-event-media"
-      aria-label="播放比赛片段"
-      onClick={() => {
-        if (failed) {
-          retries.current = 0
-          retry()
-        } else onPlay(publicGif ? source : undefined)
-      }}
-    >
-      {/* Warm the native image cache on match entry; release inactive animation views after loading. */}
-      {publicGif && detailActive && (active || !loaded) && !failed && (
+    <Button className="native-event-media" aria-label="播放比赛片段" onClick={() => void open()}>
+      {playing && (
         <Image
-          key={`${playing ? 'playing' : 'preload'}:${source}`}
-          className={playing ? '' : 'native-event-media__preload'}
+          key={source}
           src={source}
           mode="widthFix"
           lazyLoad={false}
           onLoad={() => {
-            if (timer.current) clearTimeout(timer.current)
-            timer.current = undefined
-            retries.current = 0
             setLoaded(true)
-            setFailed(false)
             measureNativeContent()
           }}
-          onError={() => {
-            if (timer.current) return
-            if (retries.current++ < 2)
-              timer.current = setTimeout(() => {
-                timer.current = undefined
-                retry()
-              }, 500)
-            else setFailed(true)
-          }}
+          onError={() => setFailed(true)}
         />
       )}
-      {(!playing || !loaded || failed) && (
+      {(!playing || !loaded) && (
         <Image
           src={resolveMediaUrl(asset.posterUrl || asset.contentUrl)!}
           mode="widthFix"
@@ -86,7 +98,15 @@ export function NativeGoalClip({
         />
       )}
       <Text>
-        {failed ? '点击重试' : !gif ? '▶ 视频' : playing ? (loaded ? 'GIF' : '加载中') : '▶ GIF'}
+        {failed
+          ? '点击重试'
+          : asset.mimeType === 'video/mp4'
+            ? '▶ 视频'
+            : publicGif && !source
+              ? '加载中'
+              : playing
+                ? 'GIF'
+                : '▶ GIF'}
       </Text>
     </Button>
   )

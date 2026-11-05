@@ -1,5 +1,5 @@
 import { NativeContentPager } from '../../components/native-navigation/content-pager.weapp'
-import { Button, Picker, Text, Textarea, View } from '@tarojs/components'
+import { Button, Input, Picker, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance } from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNativeRefreshTask } from '../../features/product/native-refresh.weapp'
@@ -360,7 +360,7 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
         <NativeDialog
           title="申请加入球队"
           className="native-dialog--team-join"
-          bodyHeight={230}
+          bodyHeight={150}
           busy={busy}
           onClose={() => setJoin(false)}
           footer={
@@ -374,22 +374,25 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
           }
         >
           <View className="native-team-join-form">
-            <Text className="native-label">位置</Text>
-            <Picker
-              range={positions.map(positionLabel)}
-              value={position}
-              onChange={(event) => setPosition(Number(event.detail.value))}
-            >
-              <View className="native-select native-team-join-position">
-                <Text>{positionLabel(positions[position]!)}</Text>
-                <View className="native-select__chevron" />
-              </View>
-            </Picker>
-            <Textarea
+            <View className="native-team-join-position-row">
+              <Text className="native-label">位置</Text>
+              <Picker
+                range={positions.map(positionLabel)}
+                value={position}
+                onChange={(event) => setPosition(Number(event.detail.value))}
+              >
+                <View className="native-select native-team-join-position">
+                  <Text>{positionLabel(positions[position]!)}</Text>
+                  <View className="native-select__chevron" />
+                </View>
+              </Picker>
+            </View>
+            <Input
               className="native-field native-team-join-message"
               value={message}
               maxlength={500}
               placeholder="给队长留言（选填）"
+              placeholderStyle="text-align:center;"
               onInput={(event) => setMessage(event.detail.value)}
             />
           </View>

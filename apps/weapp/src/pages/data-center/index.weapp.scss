@@ -45,6 +45,16 @@ page .public-app--section-data .public-footer {
 .native-data-scroll {
   height: 100%;
 }
+.native-data-swiper--cup {
+  width: calc(100% + 56px);
+  margin-left: -28px;
+}
+.native-data-after-cup,
+.native-data-scroll--inset {
+  box-sizing: border-box;
+  padding-left: 28px;
+  padding-right: 28px;
+}
 .native-data-panel {
   padding-bottom: 30px;
 }

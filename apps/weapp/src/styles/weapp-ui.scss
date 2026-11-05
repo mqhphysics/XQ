@@ -283,22 +283,38 @@ page .public-app.public-app .home-search-entry__action {
 }
 .native-team-join-form {
   width: 100%;
-  padding: 8px 0;
+  padding: 8px 0 16px;
 }
-.native-team-join-position.native-select {
+.native-team-join-position-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.native-team-join-position-row > .native-label {
+  flex: none;
+  margin: 0;
+}
+.native-team-join-position-row > picker {
+  flex: 1;
+  min-width: 0;
+}
+.native-team-join-form .native-team-join-position.native-select {
   position: relative;
   justify-content: center;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 .native-team-join-position .native-select__chevron {
   position: absolute;
   right: 22px;
 }
-.native-team-join-message.native-field {
+.native-team-join-form input.native-team-join-message.native-field {
   width: 100%;
-  height: 150px;
-  min-height: 150px;
-  margin-top: 28px;
-  padding: 22px;
+  height: 88px;
+  min-height: 88px;
+  margin: 32px 0 0;
+  padding: 0 22px;
   text-align: center;
   border-bottom-color: #9ab095;
 }

@@ -124,8 +124,8 @@ export class ManagedMediaController {
     response.setHeader('Vary', 'Authorization')
     response.setHeader('X-Content-Type-Options', 'nosniff')
     response.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
-    if (media.mimeType.startsWith('video/')) {
-      // Video elements (Safari in particular) need byte ranges to play and seek.
+    if (media.mimeType.startsWith('video/') || media.mimeType === 'image/gif') {
+      // Video seeking and size-bounded WeChat GIF downloads use the same byte-range contract.
       response.setHeader('Accept-Ranges', 'bytes')
       const total = media.body.length
       const parsed = /^bytes=(\d*)-(\d*)$/.exec(range?.trim() ?? '')

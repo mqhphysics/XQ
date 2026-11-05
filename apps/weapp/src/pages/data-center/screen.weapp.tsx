@@ -155,7 +155,7 @@ function NativeDataContent({
       </View>
       <Swiper
         id="native-guide-data-board"
-        className="native-data-swiper"
+        className={`native-data-swiper${showKnockout ? ' native-data-swiper--cup' : ''}`}
         current={tab}
         duration={280}
         easingFunction="easeOutCubic"
@@ -170,16 +170,18 @@ function NativeDataContent({
             showScrollbar={false}
           >
             {showKnockout && <NativeKnockout data={data} />}
-            {showKnockout && data.groups.length > 0 && (
-              <Text className="native-section-title">小组赛积分</Text>
-            )}
-            {(!showKnockout || data.groups.length > 0) && <Groups data={data} />}
+            <View className={showKnockout ? 'native-data-after-cup' : ''}>
+              {showKnockout && data.groups.length > 0 && (
+                <Text className="native-section-title">小组赛积分</Text>
+              )}
+              {(!showKnockout || data.groups.length > 0) && <Groups data={data} />}
+            </View>
           </NativeRefreshScroll>
         </SwiperItem>
         <SwiperItem>
           <NativeRefreshScroll
             id="native-data-scorers"
-            className="native-data-scroll"
+            className={`native-data-scroll${showKnockout ? ' native-data-scroll--inset' : ''}`}
             scrollY
             showScrollbar={false}
           >
@@ -193,7 +195,7 @@ function NativeDataContent({
         <SwiperItem>
           <NativeRefreshScroll
             id="native-data-assists"
-            className="native-data-scroll"
+            className={`native-data-scroll${showKnockout ? ' native-data-scroll--inset' : ''}`}
             scrollY
             showScrollbar={false}
           >

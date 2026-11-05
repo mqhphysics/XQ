@@ -11,7 +11,7 @@ import { DataState } from '../../components/public-ui'
 import { MatchStatus, TeamCrest } from '../../components/product-ui'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { NativeGoalClip } from '../../features/managed-media/goal-clip.weapp'
-import { matchGifUrl } from '../../features/managed-media/match-gif.weapp'
+import { prepareMatchGif } from '../../features/managed-media/gif-cache.weapp'
 import {
   productRepository,
   resolveMediaUrl,
@@ -243,7 +243,7 @@ function NativeEvents({ match, active }: { match: MatchExperienceResponse; activ
           ? await ownMediaImage(asset.contentUrl)
           : asset.mimeType === 'video/mp4'
             ? resolveMediaUrl(asset.contentUrl)!
-            : cachedSource || matchGifUrl(asset)
+            : cachedSource || (await prepareMatchGif(asset))
       setPlaying({
         source,
         title: `${minuteLabel(event)} ${eventLabel(event.type)}`,
@@ -385,7 +385,7 @@ function NativeMatchPlayback({
             key={attempt}
             className="native-match-media-player"
             src={
-              attempt
+              attempt && !playing.source.startsWith(Taro.env.USER_DATA_PATH!)
                 ? `${playing.source}${playing.source.includes('?') ? '&' : '?'}retry=${attempt}`
                 : playing.source
             }

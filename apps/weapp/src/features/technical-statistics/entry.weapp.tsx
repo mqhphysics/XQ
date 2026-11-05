@@ -209,8 +209,13 @@ export function NativeReporterMatches({
         </Button>
       ))}
       {matches.length > 3 && (
-        <Button className="native-reporter-expand" onClick={() => setExpanded((value) => !value)}>
-          {expanded ? '收起' : `展开全部（${matches.length} 场）`}
+        <Button
+          className="native-button native-reporter-expand"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <Text>{expanded ? '收起' : `展开全部（${matches.length} 场）`}</Text>
+          <View className={`native-reporter-expand__chevron${expanded ? ' is-expanded' : ''}`} />
         </Button>
       )}
     </View>

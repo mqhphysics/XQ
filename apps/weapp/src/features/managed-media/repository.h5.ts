@@ -19,6 +19,9 @@ export interface MediaAsset {
   posterUrl: string
   mimeType?: 'image/gif' | 'image/webp' | 'video/mp4'
   bytes: number
+  frames?: number
+  width?: number
+  height?: number
   durationMs: number
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   /** Shown immediately (post-moderation) and not yet checked by a reviewer. */

@@ -5,29 +5,49 @@ import vm from 'node:vm'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url),
   ts = require('typescript')
-const source = fs.readFileSync(new URL('./goal-clip.weapp.tsx', import.meta.url), 'utf8')
-const compiled = ts.transpileModule(source, {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
-}).outputText
-function harness() {
-  let cursor = 0
-  const state = []
+const compiled = ts.transpileModule(
+  fs.readFileSync(new URL('./goal-clip.weapp.tsx', import.meta.url), 'utf8'),
+  { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } },
+).outputText
+function harness(status = 'APPROVED') {
+  let cursor = 0,
+    effectCursor = 0,
+    loads = 0,
+    resolveLoad
+  const cells = [],
+    effects = [],
+    pendingEffects = [],
+    plays = []
+  const download = new Promise((resolve) => {
+    resolveLoad = resolve
+  })
   const jsx = (type, props) => ({ type, props })
   const modules = {
     '@tarojs/components': { Button: 'button', Image: 'image', Text: 'text' },
     react: {
       useContext: () => true,
-      useEffect() {},
-      useRef: (value) => ({ current: value }),
-      useState: (initial) => {
-        const index = cursor++
-        if (!(index in state)) state[index] = initial
+      useState(initial) {
+        const i = cursor++
+        if (!(i in cells)) cells[i] = initial
         return [
-          state[index],
-          (value) => {
-            state[index] = typeof value === 'function' ? value(state[index]) : value
+          cells[i],
+          (v) => {
+            cells[i] = typeof v === 'function' ? v(cells[i]) : v
           },
         ]
+      },
+      useRef(initial) {
+        const i = cursor++
+        return (cells[i] ||= { current: initial })
+      },
+      useEffect(fn, deps) {
+        const i = effectCursor++,
+          old = effects[i]
+        if (!old || deps.some((v, j) => v !== old.deps[j]))
+          pendingEffects.push(() => {
+            old?.cleanup?.()
+            effects[i] = { deps, cleanup: fn() }
+          })
       },
     },
     'react/jsx-runtime': { jsx, jsxs: jsx },
@@ -35,45 +55,85 @@ function harness() {
     '../../components/native-ui/preferences.weapp': {
       useNativePreferences: () => ({ autoplayGif: true }),
     },
-    '../product/product.repository': { resolveMediaUrl: (value) => value },
-    './match-gif.weapp': { matchGifUrl: () => '/original.gif?v=3' },
+    '../product/product.repository': { resolveMediaUrl: (v) => v },
+    './gif-cache.weapp': {
+      prepareMatchGif: () => {
+        loads++
+        return download
+      },
+    },
     '../../components/native-navigation/content-pager.weapp': { measureNativeContent() {} },
   }
   const exports = {}
   vm.runInNewContext(compiled, {
     exports,
-    require: (name) => {
-      if (!(name in modules)) throw Error(name)
-      return modules[name]
+    require: (n) => {
+      if (!(n in modules)) throw Error(n)
+      return modules[n]
     },
   })
-  return (active, status = 'APPROVED') => {
-    cursor = 0
-    return exports.NativeGoalClip({
-      active,
-      onPlay() {},
-      asset: { status, mimeType: 'image/gif', posterUrl: '/poster.webp' },
-    })
+  return {
+    render(active) {
+      cursor = 0
+      effectCursor = 0
+      const out = exports.NativeGoalClip({
+        active,
+        onPlay: (v) => plays.push(v),
+        asset: {
+          id: 'clip',
+          version: 3,
+          bytes: 4000000,
+          durationMs: 14340,
+          status,
+          mimeType: 'image/gif',
+          posterUrl: '/poster.webp',
+        },
+      })
+      pendingEffects.splice(0).forEach((f) => f())
+      return out
+    },
+    ready: async () => {
+      resolveLoad('local/full-loop.gif')
+      await new Promise((r) => setImmediate(r))
+    },
+    loads: () => loads,
+    plays,
   }
 }
-const images = (node) =>
-  (node.props.children || []).flat().filter((item) => item && item.type === 'image')
-test('a match preloads the original GIF and activation plays without a scroll observation', () => {
-  const render = harness(),
-    background = images(render(false))
-  const preload = background.find((image) => image.props.src.startsWith('/original.gif'))
-  assert.ok(preload)
-  assert.equal(preload.props.lazyLoad, false)
-  const initial = images(render(true)).find((image) => image.props.src.startsWith('/original.gif'))
-  assert.equal(initial.props.className, '', 'visible GIF must render before its load event')
-  preload.props.onLoad()
-  const visible = images(render(true)).find((image) => image.props.src.startsWith('/original.gif'))
-  assert.ok(visible)
-  assert.equal(visible.props.className, '')
-  assert.equal(visible.props.mode, 'widthFix')
+const images = (n) => (n.props.children || []).flat().filter((x) => x && x.type === 'image')
+test('a preview waits for a complete local file, then keeps a stable animation source through renders', async () => {
+  const h = harness()
+  let result = h.render(false)
+  assert.equal(h.loads(), 1)
+  assert.equal(images(result).length, 1)
+  assert.equal(images(result)[0].props.src, '/poster.webp')
+  result = h.render(true)
+  assert.equal(images(result).length, 1)
+  await result.props.onClick()
+  assert.equal(h.plays.length, 0)
+  await h.ready()
+  result = h.render(true)
+  const animation = images(result).find((i) => i.props.src === 'local/full-loop.gif')
+  assert.ok(animation)
+  animation.props.onLoad()
+  const again = images(h.render(true)).find((i) => i.props.src === 'local/full-loop.gif')
+  assert.equal(again.props.src, animation.props.src)
+  assert.equal(again.props.mode, 'widthFix')
+  assert.equal(h.plays[0], 'local/full-loop.gif')
+  h.render(false)
+  h.render(true)
+  assert.equal(
+    h.loads(),
+    2,
+    'preload and click share the cache promise; re-render does not download',
+  )
 })
-test('private pending media keeps the poster and authorized click path', () => {
-  const result = images(harness()(true, 'PENDING'))
-  assert.equal(result.length, 1)
-  assert.equal(result[0].props.src, '/poster.webp')
+test('pending private clips keep their existing authorized click path', () => {
+  const h = harness('PENDING'),
+    result = h.render(true)
+  assert.equal(h.loads(), 0)
+  assert.equal(images(result)[0].props.src, '/poster.webp')
+  result.props.onClick()
+  assert.equal(h.plays.length, 1)
+  assert.equal(h.plays[0], undefined)
 })

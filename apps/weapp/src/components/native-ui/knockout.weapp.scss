@@ -1,13 +1,24 @@
 .native-cup {
-  margin-bottom: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 12px 20px 24px 0;
+  background: #f7f8f4;
 }
 .native-cup-bracket {
   position: relative;
   width: 100%;
-  height: 816px;
+  height: 756px;
 }
 .native-cup-bracket--four {
-  height: 520px;
+  height: 460px;
+}
+.native-cup-canvas {
+  position: absolute;
+  left: 88px;
+  right: 0;
+  top: 0;
+  height: 100%;
 }
 .native-cup-node,
 .native-cup-match,
@@ -15,36 +26,16 @@
 .native-cup-team__unknown {
   box-sizing: border-box;
 }
-.native-cup-qualified {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 20px;
-  color: #406447;
-  font-size: 25px;
-}
-.native-cup-qualified > text {
-  width: 100%;
-}
-.native-cup-qualified > view {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.native-cup-qualified .team-crest {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
-}
 .native-cup-stage {
   position: absolute;
-  left: 0;
-  width: 21%;
-  color: #87977c;
+  left: 8px;
+  width: 72px;
+  color: #70836a;
   font-size: 24px;
   height: 32px;
   line-height: 32px;
+  transform: translateY(-50%);
+  white-space: nowrap;
 }
 .native-cup-node {
   position: absolute;
@@ -58,7 +49,7 @@
 .native-cup-line {
   position: absolute;
   z-index: 0;
-  background: #c2d0b5;
+  background: #b4c6a5;
 }
 .native-cup-line--vertical {
   width: 2px;
@@ -69,9 +60,8 @@
 }
 .native-cup-match.native-cup-match {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -79,7 +69,7 @@
   padding: 6px 8px;
   overflow: hidden;
   color: #2c4b35;
-  background: #f7f8f4;
+  background: #fff;
   border-radius: 12px;
   line-height: 1.2;
 }
@@ -95,6 +85,9 @@
   align-items: center;
   gap: 6px;
   width: 100%;
+}
+.native-cup-match__center {
+  text-align: center;
 }
 .native-cup-team {
   display: flex;
@@ -136,12 +129,15 @@
   opacity: 0.65;
 }
 .native-cup-match__score {
+  display: block;
   color: #31533c;
   font-size: 29px;
   font-weight: 850;
   white-space: nowrap;
 }
 .native-cup-match__time {
+  display: block;
+  margin-top: 8px;
   color: #849477;
   font-size: 24px;
   line-height: 1.2;
@@ -159,51 +155,40 @@
   font-size: 32px;
 }
 .native-cup-list-stage {
-  display: block;
-  margin: 12px 0;
-  color: #849476;
-  font-size: 26px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  width: 88px;
+  flex: 0 0 88px;
+  margin: 0;
+  padding-left: 8px;
+  color: #70836a;
+  font-size: 24px;
+  line-height: 32px;
+}
+.native-cup-round-list > view {
+  display: flex;
+  align-items: center;
+}
+.native-cup-list-column {
+  flex: 1;
+  min-width: 0;
 }
 .native-cup-list-match {
-  height: 118px;
-  width: 80%;
-  margin: 0 auto 14px;
-}
-.native-cup-list-match .native-cup-match__teams {
-  grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
-}
-.native-cup-list-match .native-cup-team {
-  flex-direction: row;
-  gap: 10px;
-}
-.native-cup-list-match .native-cup-team > text {
-  text-align: left;
+  height: 128px;
+  width: 100%;
+  margin: 0 0 14px;
 }
 .native-cup-third {
-  display: block;
-  gap: 12px;
+  display: flex;
+  align-items: center;
   border-top: 2px solid #e1e7d9;
-  padding-top: 4px;
-}
-.native-cup-third > .native-cup-list-stage {
-  flex: 0 0 82px;
-  margin: 10px 0 8px;
-  line-height: 32px;
-  font-size: 24px;
+  padding-top: 20px;
 }
 .native-cup-third > .native-cup-list-match {
   flex: 1;
   min-width: 0;
-  height: 152px;
-  margin: 0 auto;
-}
-.native-cup-third .native-cup-team {
-  flex-direction: column;
-  gap: 6px;
-}
-.native-cup-third .native-cup-team > text {
-  text-align: center;
+  height: 128px;
+  margin: 0;
 }
 .native-cup-third .native-cup-match__teams {
   grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr);
