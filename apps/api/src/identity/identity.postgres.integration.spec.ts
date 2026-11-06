@@ -227,7 +227,7 @@ test(
         }).expect(201)
         const me = await get('auth/me', coach.token).expect(200)
         assert.equal(me.body.linkedPlayer.id, player.id)
-        assert.equal(me.body.verificationLevel, 'PLAYER_CONFIRMED')
+        assert.equal(me.body.verificationLevel, 'STAFF_VERIFIED')
         assert.ok(me.body.roles.some((r: { role: string }) => r.role === 'TEAM_COACH'))
         await post('me/identity/applications', sameName.token, {
           kind: 'PLAYER',
@@ -249,7 +249,7 @@ test(
         await post(`messages/direct/${admin.user.id}`, coach.token, {
           body: '教练不能发送私信',
           clientMessageId: randomUUID(),
-        }).expect(403)
+        }).expect(410)
       },
     )
 
@@ -599,7 +599,7 @@ test(
         const applicant = await studentAccount('new-player')
         const application = await post('me/identity/applications', applicant.token, {
           kind: 'PLAYER',
-          message: '申请成为球员',
+          message: '申请成为本校正式球员',
         }).expect(201)
         await post(`admin/identity/applications/${application.body.id}/review`, admin.token, {
           decision: 'APPROVED',
