@@ -19,6 +19,7 @@ export function workflowRequest<T>(
     body?: unknown
     headers?: Record<string, string>
     signal?: AbortSignal
+    timeoutMs?: number
   } = {},
 ): Promise<T> {
   return requestAdmin<T>(requireAdminApi(), context, path, options)

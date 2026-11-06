@@ -1,7 +1,8 @@
+import { SheetRecognition } from './SheetRecognition'
 import { useRef, useState } from 'react'
 import { CommandStatus, useWorkflowCommand, useWorkflowRead, workflowRequest } from './client'
 import type { ReportWorkspace, WorkflowProps } from './types'
-import { parseMatchSheet, sheetPrompt, type SheetPreview } from './sheet-import.logic'
+import { parseMatchSheet, type SheetPreview } from './sheet-import.logic'
 import { initializeSheetLineups } from './sheet-lineup.logic'
 import { DataState } from '../adminCenter/shared'
 import './sheet-import.css'
@@ -35,7 +36,7 @@ export function AdminSheetImport({ context, tournamentId }: WorkflowProps) {
         <div>
           <h2>四官表录入</h2>
           <p className="mc-muted">
-            选择比赛，把识别后的JSON粘贴进来，核对预览后保存。已有赛果走原有修改审核流程。
+            选择比赛，上传四官表图片，核对并编辑识别结果后保存。已有赛果走原有修改审核流程。
           </p>
         </div>
       </div>
@@ -79,14 +80,10 @@ export function AdminSheetImport({ context, tournamentId }: WorkflowProps) {
 export function SheetEditor({
   context,
   matchId,
-  tournamentId = '',
-  genericPrompt = false,
   scheduledStartAt,
 }: {
   context: WorkflowProps['context']
   matchId: string
-  tournamentId?: string
-  genericPrompt?: boolean
   scheduledStartAt?: string | null
 }) {
   const data = useWorkflowRead<EditorWorkspace>(context, `/matches/${matchId}/report`)
@@ -94,67 +91,8 @@ export function SheetEditor({
     [preview, setPreview] = useState<SheetPreview | null>(null),
     [error, setError] = useState(''),
     [reason, setReason] = useState('按签字四官表核对比赛记录'),
-    [copied, setCopied] = useState(false),
     [lineupBusy, setLineupBusy] = useState(false),
     [lineupMessage, setLineupMessage] = useState('')
-  const [images, setImages] = useState<string[]>([]),
-    [bulletin, setBulletin] = useState<{ title: string; body: string } | null>(null),
-    [publishNews, setPublishNews] = useState(true),
-    [newsMessage, setNewsMessage] = useState(''),
-    [newsPending, setNewsPending] = useState(false)
-  const pendingNews = useRef<{ preview: SheetPreview; version: number } | null>(null)
-  const sendNews = async (checked: SheetPreview, version: number) => {
-    if (!checked.bulletin || !tournamentId || !context.canManageOrganization || !publishNews) return
-    pendingNews.current = { preview: checked, version }
-    setNewsPending(true)
-    try {
-      await workflowRequest(context, '/admin/center/posts', {
-        method: 'POST',
-        headers: { 'Idempotency-Key': 'sheet-news-' + matchId + '-' + version },
-        body: {
-          tournamentId,
-          type: 'OFFICIAL',
-          status: 'PUBLISHED',
-          title: checked.bulletin.title,
-          body: checked.bulletin.body,
-          imageDataUrls: images,
-          reason: '核对四官表后发布比赛快报',
-        },
-      })
-      pendingNews.current = null
-      setNewsMessage('比赛记录和快报均已保存。')
-    } catch (cause) {
-      setNewsMessage(
-        '比赛记录已保存，快报尚未发布：' + (cause instanceof Error ? cause.message : '请重试'),
-      )
-    } finally {
-      setNewsPending(false)
-    }
-  }
-  const chooseImages = async (files: FileList | null) => {
-    if (!files) return
-    try {
-      const list = [...files]
-      if (images.length + list.length > 9) throw Error('最多9张照片')
-      const urls = await Promise.all(
-        list.map(
-          (file) =>
-            new Promise<string>((resolve, reject) => {
-              if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type) || file.size > 4 * 1024 * 1024)
-                return reject(Error('请选择4MB以内的图片'))
-              const reader = new FileReader()
-              reader.onload = () => resolve(String(reader.result))
-              reader.onerror = () => reject(Error('图片读取失败'))
-              reader.readAsDataURL(file)
-            }),
-        ),
-      )
-      setImages((value) => [...value, ...urls])
-      setError('')
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '图片读取失败')
-    }
-  }
   const previewRef = useRef<SheetPreview | null>(null),
     base = useRef<{ version: number; action: string } | null>(null)
   previewRef.current = preview
@@ -194,8 +132,6 @@ export function SheetEditor({
         lineupJob.current = { workspace, starters: checked.starters }
         void saveLineups()
       }
-      if (checked && fresh.confirmedReportVersion === fresh.reportVersion)
-        void sendNews(checked, fresh.reportVersion)
       setPreview(null)
       previewRef.current = null
       data.refresh()
@@ -255,7 +191,6 @@ export function SheetEditor({
           throw Error('识别日期与所选比赛不一致，请核对比赛卡片。')
       }
       setPreview(next)
-      setBulletin(next.bulletin ?? null)
       setError('')
       base.current = { version: workspace.reportVersion, action: `sheet-${crypto.randomUUID()}` }
     } catch (cause) {
@@ -272,48 +207,18 @@ export function SheetEditor({
   }
   return (
     <div className="sheet-import">
-      {!genericPrompt && (
-        <div className="mc-toolbar">
-          <p className="mc-muted">
-            {workspace.homeTeam.name} 对 {workspace.awayTeam.name} · 当前版本{' '}
-            {workspace.reportVersion}
-          </p>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => {
-              void navigator.clipboard.writeText(sheetPrompt(workspace)).then(
-                () => setCopied(true),
-                () => setError('未能复制提示词，请允许浏览器访问剪贴板。'),
-              )
-            }}
-          >
-            {copied ? '提示词已复制' : '复制给GPT的识别提示词'}
-          </button>
-        </div>
-      )}
       {blocked && (
         <p className="mc-alert">
           {workspace.blockingReasons?.join('；') ||
             '需要本场编辑权限、规程和双方锁定名单，补齐后即可录入。'}
         </p>
       )}
-      <label className="mc-field">
-        <span>识别结果JSON</span>
-        <textarea
-          rows={8}
-          spellCheck={false}
-          maxLength={100000}
-          value={text}
-          disabled={locked}
-          placeholder="粘贴识别结果，再点击核对预览"
-          onChange={(e) => {
-            setText(e.target.value)
-            setPreview(null)
-            setError('')
-          }}
-        />
-      </label>
+      <SheetRecognition
+        context={context}
+        matchId={matchId}
+        disabled={locked || blocked}
+        onChange={(value) => { setText(value); setPreview(null); setError('') }}
+      />
       <button
         type="button"
         className="secondary-button"
@@ -326,115 +231,6 @@ export function SheetEditor({
         <p className="mc-alert" role="alert">
           {error}
         </p>
-      )}
-      <label className="mc-field">
-        <span>导入识别JSON文件</span>
-        <input
-          type="file"
-          accept=".json,application/json"
-          multiple
-          onChange={(event) => {
-            const files = [...(event.target.files ?? [])]
-            void Promise.all(files.map((file) => file.text()))
-              .then((texts) => {
-                if (texts.length === 1) setText(texts[0]!)
-                else
-                  setText(
-                    JSON.stringify(
-                      texts.flatMap((text) => {
-                        const value = JSON.parse(text)
-                        return Array.isArray(value) ? value : [value]
-                      }),
-                      null,
-                      2,
-                    ),
-                  )
-                setPreview(null)
-              })
-              .catch(() => setError('文件无法读取，请检查JSON是否完整'))
-          }}
-        />
-      </label>
-      <div
-        className="intake-photo-drop"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault()
-          void chooseImages(event.dataTransfer.files)
-        }}
-      >
-        <label>
-          快报配图（公开）：拖入比赛照片，或选择图片
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            multiple
-            onChange={(event) => void chooseImages(event.target.files)}
-          />
-        </label>
-        <div className="gov-upload-preview">
-          {images.map((url, index) => (
-            <button
-              type="button"
-              key={index}
-              onClick={() => setImages((values) => values.filter((_, i) => i !== index))}
-              aria-label="移除照片"
-            >
-              <img src={url} alt="比赛照片" />
-            </button>
-          ))}
-        </div>
-      </div>
-      {bulletin && (
-        <section className="intake-bulletin">
-          <h3>比赛快报</h3>
-          <input
-            aria-label="快报标题"
-            value={bulletin.title}
-            maxLength={180}
-            onChange={(event) => {
-              const next = { ...bulletin, title: event.target.value }
-              setBulletin(next)
-              if (preview) {
-                preview.bulletin = next
-                previewRef.current = preview
-              }
-            }}
-          />
-          <textarea
-            aria-label="快报正文"
-            value={bulletin.body}
-            maxLength={2000}
-            onChange={(event) => {
-              const next = { ...bulletin, body: event.target.value }
-              setBulletin(next)
-              if (preview) {
-                preview.bulletin = next
-                previewRef.current = preview
-              }
-            }}
-          />
-          {context.canManageOrganization && (
-            <label>
-              <input
-                type="checkbox"
-                checked={publishNews}
-                onChange={(event) => setPublishNews(event.target.checked)}
-              />
-              保存比赛记录后同时发布快报
-            </label>
-          )}
-        </section>
-      )}
-      {newsMessage && <p role="status">{newsMessage}</p>}
-      {pendingNews.current && (
-        <button
-          type="button"
-          disabled={newsPending}
-          onClick={() => void sendNews(pendingNews.current!.preview, pendingNews.current!.version)}
-        >
-          {newsPending ? '正在发布…' : '重试发布快报'}
-        </button>
       )}
       {preview && (
         <div className="mc-panel sheet-import-preview">

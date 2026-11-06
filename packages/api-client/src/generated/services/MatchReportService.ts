@@ -3,6 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BeginMatchReportDto } from '../models/BeginMatchReportDto';
+import type { RecognizeMatchSheetDto } from '../models/RecognizeMatchSheetDto';
+import type { RecognizeMatchSheetResponseDto } from '../models/RecognizeMatchSheetResponseDto';
 import type { ReportHistoryResponseDto } from '../models/ReportHistoryResponseDto';
 import type { ReportOverviewResponseDto } from '../models/ReportOverviewResponseDto';
 import type { ReportWorkspaceResponseDto } from '../models/ReportWorkspaceResponseDto';
@@ -130,6 +132,27 @@ export class MatchReportService {
             query: {
                 'tournamentId': tournamentId,
             },
+        });
+    }
+    /**
+     * 使用当前组织的AI连接识别四官表，仅返回待核对字段，不保存或发布
+     * @param matchId
+     * @param requestBody
+     * @returns RecognizeMatchSheetResponseDto
+     * @throws ApiError
+     */
+    public static sheetRecognitionControllerRecognize(
+        matchId: string,
+        requestBody: RecognizeMatchSheetDto,
+    ): CancelablePromise<RecognizeMatchSheetResponseDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/matches/{matchId}/report/recognize-sheet',
+            path: {
+                'matchId': matchId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }
