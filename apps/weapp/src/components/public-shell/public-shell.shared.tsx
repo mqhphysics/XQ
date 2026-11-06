@@ -298,9 +298,19 @@ export function PublicShell({
     closeMenu()
     primaryTeamCache.clear()
     try {
-      await productRepository.logout()
-    } finally {
+      const result = await productRepository.logout()
       await Taro.reLaunch({ url: '/pages/login/index' })
+      if (!result.revoked)
+        await Taro.showToast({
+          title: '已退出本机，服务器会话暂未确认撤销',
+          icon: 'none',
+          duration: 3500,
+        })
+    } catch (issue) {
+      await Taro.showToast({
+        title: issue instanceof Error ? issue.message : '退出未完成，请重试',
+        icon: 'none',
+      })
     }
   }
   const openFeedback = async () => {

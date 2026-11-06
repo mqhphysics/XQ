@@ -4,6 +4,10 @@ import { useRef, useState } from 'react'
 import type { ReportTargetType } from '../../features/product/product.types'
 import { createClientActionId, productRepository } from '../../features/product/product.repository'
 import { NativeDialog } from '../native-ui/index.weapp'
+import {
+  resolveSubmissionAttempt,
+  type SubmissionAttempt,
+} from '../../features/product/submission-attempt'
 export function ReportModal({
   targetId,
   targetType,
@@ -21,7 +25,7 @@ export function ReportModal({
     [details, setDetails] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false)
-  const key = useRef(createClientActionId('report')),
+  const attempt = useRef<SubmissionAttempt | null>(null),
     lock = useRef(false)
   const submit = async () => {
     if (lock.current || reason.trim().length < 2) return
@@ -29,12 +33,30 @@ export function ReportModal({
     setBusy(true)
     setError('')
     try {
+      const payload = { targetType, targetId, reason: reason.trim(), details: details.trim() }
+      const next = await resolveSubmissionAttempt(
+        attempt.current,
+        payload,
+        () => createClientActionId('report'),
+        async () =>
+          (
+            await Taro.showModal({
+              title: '作为新反馈提交？',
+              content:
+                '上一份反馈可能已经收到。内容已修改，继续将提交一份新反馈；也可先查看反馈记录。',
+              confirmText: '提交新反馈',
+              cancelText: '先核对',
+            })
+          ).confirm,
+      )
+      if (!next) return
+      attempt.current = next
       await productRepository.createReport(
-        targetType,
-        reason.trim(),
-        details.trim(),
-        key.current,
-        targetId,
+        payload.targetType,
+        payload.reason,
+        payload.details,
+        next.key,
+        payload.targetId,
       )
       void Taro.showToast({ title: '已提交给管理员', icon: 'success' })
       onClose()
@@ -73,6 +95,7 @@ export function ReportModal({
       <Input
         className="native-field"
         maxlength={120}
+        disabled={busy}
         value={reason}
         placeholder="简要说明遇到的问题"
         onInput={(event) => setReason(event.detail.value)}
@@ -81,6 +104,7 @@ export function ReportModal({
       <Textarea
         className="native-field"
         maxlength={1000}
+        disabled={busy}
         value={details}
         placeholder="选填"
         onInput={(event) => setDetails(event.detail.value)}

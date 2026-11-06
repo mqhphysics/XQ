@@ -406,3 +406,27 @@ test('native read telemetry records events without invalidating freshly cached v
   await product.getHome()
   assert.equal(state.requests.filter((x) => x.method === 'GET' || !x.method).length, 1)
 })
+
+test('native logout clears the local session and reports whether remote revocation was confirmed', async () => {
+  for (const status of [204, 401, 503, 'offline']) {
+    const f = fixture({ web: false, session: fictionalSession() })
+    f.state.respond = () => {
+      if (status === 'offline') throw new Error('offline')
+      return { statusCode: status, data: {} }
+    }
+    const result = await f.product.logout()
+    assert.equal(f.state.session, null)
+    assert.equal(result.revoked, status === 204 || status === 401)
+    assert.equal(f.state.requests.length, 1)
+  }
+})
+
+test('an old logout response cannot clear a newly signed-in account', async () => {
+  const f = fixture({ web: false, session: fictionalSession('old-token') })
+  f.state.respond = () => {
+    f.state.session = fictionalSession('new-token')
+    return { statusCode: 204, data: {} }
+  }
+  await assert.rejects(f.product.logout(), /账号已切换/)
+  assert.equal(f.state.session.accessToken, 'new-token')
+})

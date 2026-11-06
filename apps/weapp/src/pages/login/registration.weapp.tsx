@@ -13,6 +13,10 @@ import {
 } from '../../components/email-code/countdown.weapp'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import {
+  resolveSubmissionAttempt,
+  type SubmissionAttempt,
+} from '../../features/product/submission-attempt'
+import {
   missingRegistrationMessage,
   nativeRegistrationPayload,
   registrationErrors,
@@ -302,23 +306,25 @@ export function NativeRegistrationForm() {
   )
 }
 
-function RegistrationHelp({
+export function RegistrationHelp({
+  title = '注册问题反馈',
   value,
   onClose,
 }: {
+  title?: string
   value: NativeRegistrationValues
   onClose: () => void
 }) {
   const [details, setDetails] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false)
-  const key = useRef(
-      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-        const value = Math.floor(Math.random() * 16)
-        return (char === 'x' ? value : (value & 3) | 8).toString(16)
-      }),
-    ),
+  const attempt = useRef<SubmissionAttempt | null>(null),
     lock = useRef(false)
+  const newKey = () =>
+    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+      const value = Math.floor(Math.random() * 16)
+      return (char === 'x' ? value : (value & 3) | 8).toString(16)
+    })
   const submit = async () => {
     if (lock.current) return
     if (details.trim().length < 2) {
@@ -329,15 +335,31 @@ function RegistrationHelp({
     setBusy(true)
     setError('')
     try {
-      const result = await nativeRegistration.feedback({
-        clientRequestId: key.current,
+      const payload = {
         ...(value.realName.trim() ? { realName: value.realName.trim() } : {}),
         ...(value.studentId.trim() ? { studentNumber: value.studentId.trim() } : {}),
         ...(value.email.trim() && !registrationErrors(value).email
           ? { contactEmail: value.email.trim() }
           : {}),
         details: details.trim(),
-      })
+      }
+      const next = await resolveSubmissionAttempt(
+        attempt.current,
+        payload,
+        newKey,
+        async () =>
+          (
+            await Taro.showModal({
+              title: '作为新申请提交？',
+              content: '上一份申请可能已经收到。内容已修改，继续将提交一份新申请。',
+              confirmText: '提交新申请',
+              cancelText: '先核对',
+            })
+          ).confirm,
+      )
+      if (!next) return
+      attempt.current = next
+      const result = await nativeRegistration.feedback({ ...payload, clientRequestId: next.key })
       await Taro.showModal({ title: '反馈已提交', content: result.message, showCancel: false })
       onClose()
     } catch (issue) {
@@ -349,7 +371,7 @@ function RegistrationHelp({
   }
   return (
     <NativeDialog
-      title="注册问题反馈"
+      title={title}
       busy={busy}
       unsavedChanges={Boolean(details.trim())}
       onClose={onClose}
@@ -370,9 +392,10 @@ function RegistrationHelp({
       </Text>
       <Textarea
         className="native-field native-register__feedback"
+        disabled={busy}
         value={details}
         maxlength={1000}
-        placeholder="请描述注册时遇到的问题"
+        placeholder="请说明姓名、学号、遇到的问题及可联系渠道，请勿填写密码或验证码"
         onInput={(event) => setDetails(event.detail.value)}
       />
       {error && <Text className="native-error">{error}</Text>}

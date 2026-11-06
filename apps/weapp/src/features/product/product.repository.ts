@@ -156,7 +156,11 @@ export const productRepository = {
   },
 
   uploadAvatar: async (dataUrl: string) => {
-    const result = await request<{ user: AuthUser; avatar: { avatarUrl: string } }>('/me/avatar', {
+    const result = await request<{
+      user: AuthUser
+      avatar: { avatarUrl: string }
+      publicationState?: 'PENDING_REVIEW'
+    }>('/me/avatar', {
       method: 'PUT',
       data: { dataUrl },
     })
@@ -183,13 +187,24 @@ export const productRepository = {
     }),
 
   logout: async () => {
+    const owner = readSession()?.accessToken
+    let revoked: boolean
     try {
       await request<void>('/auth/logout', { method: 'POST' })
+      revoked = true
+    } catch (issue) {
+      // A rejected/expired credential no longer represents a usable remote session.
+      revoked = issue instanceof ProductApiError && issue.statusCode === 401
     } finally {
-      clearSession()
-      leaveGuestMode()
-      if (Taro.getEnv() === Taro.ENV_TYPE.WEB) clearAccountByUser()
+      if (!readSession() || readSession()?.accessToken === owner) {
+        clearSession()
+        leaveGuestMode()
+        if (Taro.getEnv() === Taro.ENV_TYPE.WEB) clearAccountByUser()
+      }
     }
+    if (readSession()?.accessToken && readSession()?.accessToken !== owner)
+      throw new ProductApiError('账号已切换，当前账号保持登录', 409)
+    return { revoked }
   },
 
   getTeamPreferences: (tournamentId?: string) =>

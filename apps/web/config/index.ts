@@ -16,6 +16,7 @@ const buildEnvironment = (
         TARO_APP_API_PROXY_SERVICE?: string
         TARO_APP_API_PROXY_MEDIA_ORIGIN?: string
         XIAOQIU_WEAPP_OUTPUT?: string
+        XIAOQIU_WEB_OUTPUT?: string
       }
     }
   }
@@ -43,7 +44,7 @@ const config: UserConfigExport = {
   outputRoot:
     buildEnvironment?.TARO_ENV === 'weapp'
       ? (buildEnvironment.XIAOQIU_WEAPP_OUTPUT ?? 'dist-weapp')
-      : 'dist',
+      : (buildEnvironment?.XIAOQIU_WEB_OUTPUT ?? 'dist'),
   plugins: [
     path.resolve(__dirname, './h5-tab-cache.js'),
   ],
@@ -79,8 +80,8 @@ const config: UserConfigExport = {
           ]
         : [
             // `to` is a directory for copy-webpack-plugin; files keep their names.
-            { from: 'public/_redirects', to: 'dist' },
-            { from: 'public/_headers', to: 'dist' },
+            { from: 'public/_redirects', to: buildEnvironment?.XIAOQIU_WEB_OUTPUT ?? 'dist' },
+            { from: 'public/_headers', to: buildEnvironment?.XIAOQIU_WEB_OUTPUT ?? 'dist' },
           ],
     options: {},
   },

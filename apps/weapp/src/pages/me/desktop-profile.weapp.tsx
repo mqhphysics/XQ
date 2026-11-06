@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { NativeWebsiteLink } from '../../components/native-ui/website-link.weapp'
 import { openNativeComposer } from '../../features/native-social/routing.weapp'
-import { useWideProfileData, WideProfileContribution, WideProfileStream } from './wide-profile.weapp'
+import {
+  useWideProfileData,
+  WideProfileContribution,
+  WideProfileStream,
+} from './wide-profile.weapp'
 import { TeamCrest, UserAvatar } from '../../components/product-ui'
 import { VerificationBadge } from '../../components/verification-badge'
 import { AvatarCropper } from '../../components/avatar-cropper'
@@ -204,8 +208,14 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
     if (logoutBusy) return
     setLogoutBusy(true)
     try {
-      await productRepository.logout()
+      const result = await productRepository.logout()
       await Taro.reLaunch({ url: '/pages/login/index' })
+      if (!result.revoked)
+        await Taro.showToast({
+          title: '已退出本机，服务器会话暂未确认撤销',
+          icon: 'none',
+          duration: 3500,
+        })
     } catch (error) {
       void Taro.showToast({
         title: error instanceof Error ? error.message : '退出失败',
@@ -216,51 +226,51 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
     }
   }
   const functionGrid = (
-        <View
-          className="native-profile-function-grid"
-          id="native-guide-me-functions"
-          aria-label="我的功能"
-        >
-          <Shortcut icon="user-circle" title="个人信息" onClick={() => setDialog('edit')} />
-          <Shortcut
-            icon="shield-check"
-            id="native-guide-identity"
-            title="我的身份"
-            onClick={() => {
-              const kinds = nativeIdentityKinds(user, badge?.availableKinds)
-              if (kinds.length === 1 && kinds[0] === 'player' && user.linkedPlayer)
-                void openPlayer(user.linkedPlayer.id, home.tournament.id)
-              else setDialog('identity')
-            }}
-          />
-          <Shortcut
-            id="native-guide-manage"
-            icon="users"
-            title={
-              managedTeamIds(
-                user,
-                home.teams.map((team) => team.id),
-              ).length
-                ? '管理球队'
-                : user.linkedPlayer
-                  ? '我的球队'
-                  : '加入球队'
-            }
-            onClick={() => void openTeamArea()}
-          />
-          <Shortcut icon="message-circle" title="我的消息" onClick={() => openMessaging()} />
-          {!wide && (
-            <Shortcut
-            icon="bookmark"
-            title="我的收藏"
-            onClick={() => void openNativeDetail('/pages/favorites/index')}
-            />
-          )}
-          <Shortcut icon="exchange" title="身份管理" onClick={() => setDialog('manageIdentity')} />
-          <Shortcut icon="settings" title="设置" onClick={() => setDialog('settings')} />
-          <Shortcut icon="flag" title="问题反馈" onClick={() => setFeedback(true)} />
-          <Shortcut icon="logout" title="退出登录" onClick={() => setDialog('logout')} />
-        </View>
+    <View
+      className="native-profile-function-grid"
+      id="native-guide-me-functions"
+      aria-label="我的功能"
+    >
+      <Shortcut icon="user-circle" title="个人信息" onClick={() => setDialog('edit')} />
+      <Shortcut
+        icon="shield-check"
+        id="native-guide-identity"
+        title="我的身份"
+        onClick={() => {
+          const kinds = nativeIdentityKinds(user, badge?.availableKinds)
+          if (kinds.length === 1 && kinds[0] === 'player' && user.linkedPlayer)
+            void openPlayer(user.linkedPlayer.id, home.tournament.id)
+          else setDialog('identity')
+        }}
+      />
+      <Shortcut
+        id="native-guide-manage"
+        icon="users"
+        title={
+          managedTeamIds(
+            user,
+            home.teams.map((team) => team.id),
+          ).length
+            ? '管理球队'
+            : user.linkedPlayer
+              ? '我的球队'
+              : '加入球队'
+        }
+        onClick={() => void openTeamArea()}
+      />
+      <Shortcut icon="message-circle" title="我的消息" onClick={() => openMessaging()} />
+      {!wide && (
+        <Shortcut
+          icon="bookmark"
+          title="我的收藏"
+          onClick={() => void openNativeDetail('/pages/favorites/index')}
+        />
+      )}
+      <Shortcut icon="exchange" title="身份管理" onClick={() => setDialog('manageIdentity')} />
+      <Shortcut icon="settings" title="设置" onClick={() => setDialog('settings')} />
+      <Shortcut icon="flag" title="问题反馈" onClick={() => setFeedback(true)} />
+      <Shortcut icon="logout" title="退出登录" onClick={() => setDialog('logout')} />
+    </View>
   )
   return (
     <View className={`native-profile${wide ? ' native-profile--wide' : ''}`}>
@@ -345,7 +355,9 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
                 {primaryTeam ? primaryTeam.name : primaryTeam === null ? '还没有主队' : '读取中…'}
               </Text>
               <Text className="native-profile-team__slogan">
-                {primaryTeam ? '每一次呐喊，都让我们离球场更近。' : '选择主队后，比赛和动态会优先展示。'}
+                {primaryTeam
+                  ? '每一次呐喊，都让我们离球场更近。'
+                  : '选择主队后，比赛和动态会优先展示。'}
               </Text>
             </View>
           </View>
@@ -373,7 +385,9 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
             <View className="native-profile-functions">
               <View className="native-profile-functions__heading">
                 <Text className="native-profile-functions__title">我的功能</Text>
-                <Text className="native-profile-functions__note">个人资料与球队事务，都在这里。</Text>
+                <Text className="native-profile-functions__note">
+                  个人资料与球队事务，都在这里。
+                </Text>
               </View>
               {functionGrid}
             </View>
@@ -508,6 +522,14 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
             const updated = await productRepository.uploadAvatar(image)
             onUserChange(updated.user)
             setAvatar(false)
+            void Taro.showToast({
+              title:
+                updated.publicationState === 'PENDING_REVIEW'
+                  ? '头像已提交审核，通过前继续显示原头像'
+                  : '头像已更新',
+              icon: 'none',
+              duration: 3000,
+            })
           }}
         />
       )}

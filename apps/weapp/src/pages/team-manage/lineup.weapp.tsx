@@ -1,6 +1,6 @@
 import { Button, Input, Picker, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   FORMATIONS,
   assignPlayer,
@@ -19,6 +19,11 @@ import { createClientActionId } from '../../features/product/product.repository'
 import { NativePlayerPortrait } from '../../components/native-ui/match-lineups.weapp'
 import { NativePlayerPicker } from './player-picker.weapp'
 import { readSession } from '../../features/product/session'
+import {
+  readPendingLineup,
+  submitPendingLineup,
+  type PendingLineupSubmission,
+} from '../../features/captain-roster/lineup-submission'
 import { openPlayer } from '../../features/product/player-navigation'
 import {
   compactNativeFormation,
@@ -59,7 +64,18 @@ export function NativeManageLineup({
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [attempt, setAttempt] = useState(0),
-    [conflict, setConflict] = useState(false)
+    [conflict, setConflict] = useState(false),
+    [waiting, setWaiting] = useState(false),
+    [submissionError, setSubmissionError] = useState(false)
+  const pending = useRef<PendingLineupSubmission | null>(null),
+    saving = useRef(false)
+  const submissionKey = backupKey + ':submission'
+  const checkpoint = (command: PendingLineupSubmission) => {
+    if (!backupKey) throw new Error('请先登录后保存阵容')
+    Taro.setStorageSync(submissionKey, command)
+    pending.current = command
+    setWaiting(true)
+  }
   const discard = () => {
     clearBackup()
     setDirty(false)
@@ -72,7 +88,7 @@ export function NativeManageLineup({
       setName('默认阵容')
     }
   }
-  useNativeLeaveProtection(dirty, busy, discard, true)
+  useNativeLeaveProtection(dirty && !waiting, busy, discard, true)
   useEffect(() => {
     if (loading || !dirty || !backupKey) return
     try {
@@ -114,6 +130,19 @@ export function NativeManageLineup({
   useEffect(() => {
     let active = true
     setLoading(true)
+    setSubmissionError(false)
+    try {
+      const stored = Taro.getStorageSync(submissionKey)
+      pending.current = readPendingLineup(stored)
+      setWaiting(Boolean(pending.current))
+      if (stored && !pending.current)
+        throw new Error('未确认提交记录无法读取，请保留本机数据并联系管理员')
+    } catch (issue) {
+      setError(issue instanceof Error ? issue.message : '本机提交记录无法读取')
+      setLoading(false)
+      setSubmissionError(true)
+      return
+    }
     void lineupPlanRepository
       .list(teamId)
       .then((result) => {
@@ -154,69 +183,128 @@ export function NativeManageLineup({
     setError('')
   }
   const persist = async (makeDefault = false) => {
-    if (busy || loading || conflict) return
+    if (saving.current || loading || (conflict && !pending.current)) return
+    saving.current = true
     setBusy(true)
     setError('')
+    const token = readSession()?.accessToken
     try {
-      const used = new Set(draft.slots.flatMap((s) => (s.playerId ? [s.playerId] : [])))
-      let saved = plan
-      if (dirty || !saved) {
-        saved = await lineupPlanRepository.save(
-          teamId,
-          {
-            ...(plan ? { planId: plan.id } : {}),
-            name: name.trim() || '球队主阵容',
-            kind: 'TACTIC',
-            expectedVersion: plan?.version || 0,
-            tournamentId: plan?.tournamentId || null,
-            matchId: null,
-            rosterSnapshotId: null,
-            payload: {
-              formation: draft.formation,
-              format: 8,
-              slots: draft.slots.map((s) => ({
-                slotId: s.id,
-                label: s.label,
-                x: s.x,
-                y: s.y,
-                playerId: s.playerId,
-              })),
-              benchPlayerIds: players.filter((p) => !used.has(p.id)).map((p) => p.id),
+      if (!pending.current) {
+        if (dirty || !plan) {
+          const used = new Set(
+            draft.slots.flatMap((slot) => (slot.playerId ? [slot.playerId] : [])),
+          )
+          checkpoint({
+            phase: 'SAVE',
+            key: createClientActionId('lineup'),
+            defaultKey: makeDefault ? createClientActionId('lineup-default') : null,
+            input: {
+              ...(plan ? { planId: plan.id } : {}),
+              name: name.trim() || '默认阵容',
+              kind: 'TACTIC',
+              expectedVersion: plan?.version || 0,
+              tournamentId: plan?.tournamentId || null,
+              matchId: null,
+              rosterSnapshotId: null,
+              payload: {
+                formation: draft.formation,
+                format: 8,
+                slots: draft.slots.map((slot) => ({
+                  slotId: slot.id,
+                  label: slot.label,
+                  x: slot.x,
+                  y: slot.y,
+                  playerId: slot.playerId,
+                })),
+                benchPlayerIds: players
+                  .filter((player) => !used.has(player.id))
+                  .map((player) => player.id),
+              },
             },
-          },
-          createClientActionId('lineup'),
-        )
-        const persisted = saved
-        setPlan(persisted)
-        setPlans((previous) => [...previous.filter((p) => p.id !== persisted.id), persisted])
-        setDirty(false)
-        clearBackup()
+          })
+        } else if (makeDefault) {
+          checkpoint({ phase: 'DEFAULT', key: createClientActionId('lineup-default'), plan })
+        } else return
       }
-      if (makeDefault)
-        saved = await lineupPlanRepository.publish(
-          teamId,
-          saved.id,
-          'DEFAULT',
-          saved.version,
-          createClientActionId('lineup-default'),
-        )
-      const result = saved
-      setPlan(result)
-      setPlans((prev) => [
-        ...prev
-          .filter((p) => p.id !== result.id)
-          .map((p) => (makeDefault ? { ...p, isDefault: false } : p)),
+      const command = pending.current!
+      const publishing = command.phase === 'DEFAULT' || Boolean(command.defaultKey)
+      const result = await submitPendingLineup(
+        command,
+        {
+          save: (input, key) => lineupPlanRepository.save(teamId, input, key),
+          publish: (saved, key) =>
+            lineupPlanRepository.publish(teamId, saved.id, 'DEFAULT', saved.version, key),
+        },
+        checkpoint,
+      )
+      if (readSession()?.accessToken !== token) return
+      Taro.removeStorageSync(submissionKey)
+      pending.current = null
+      setWaiting(false)
+      restore(result)
+      setPlans((previous) => [
+        ...previous
+          .filter((item) => item.id !== result.id)
+          .map((item) => (publishing ? { ...item, isDefault: false } : item)),
         result,
       ])
       setDirty(false)
+      setConflict(false)
       clearBackup()
-      void Taro.showToast({ title: makeDefault ? '已设为默认阵容' : '阵容已保存', icon: 'success' })
+      void Taro.showToast({ title: publishing ? '已设为默认阵容' : '阵容已保存', icon: 'success' })
     } catch (issue) {
-      setError(issue instanceof Error ? issue.message : '阵容保存失败')
+      const status = (issue as { statusCode?: number }).statusCode
+      if (
+        status &&
+        status >= 400 &&
+        status < 500 &&
+        status !== 408 &&
+        readSession()?.accessToken === token
+      ) {
+        // The server rejected this step; keep the editable draft and any successful save result.
+        const saved = pending.current?.phase === 'DEFAULT' ? pending.current.plan : null
+        try {
+          Taro.removeStorageSync(submissionKey)
+          pending.current = null
+          setWaiting(false)
+          if (saved) restore(saved)
+          if (status === 409) setConflict(true)
+        } catch {
+          /* Retain the original request until its local record can be updated. */
+        }
+      }
+      setError(issue instanceof Error ? issue.message : '保存结果未确认，请重试原操作')
     } finally {
+      saving.current = false
       setBusy(false)
     }
   }
+  if (submissionError)
+    return (
+      <View className="native-manage-card">
+        <Text className="native-error">{error}</Text>
+        <Button className="native-button" onClick={() => setAttempt((value) => value + 1)}>
+          重试读取本机提交记录
+        </Button>
+      </View>
+    )
+  if (waiting)
+    return (
+      <View className="native-manage-card">
+        <Text className="native-note">
+          上次提交的结果尚未确认，本机已保留原操作。请先重试确认，再继续编辑。
+        </Text>
+        {error && <Text className="native-error">{error}</Text>}
+        <Button
+          className="native-button native-button--primary"
+          loading={busy}
+          disabled={busy || loading}
+          onClick={() => void persist()}
+        >
+          重试原提交
+        </Button>
+      </View>
+    )
   return (
     <View className="native-manage-card">
       {loading && <Text className="native-note">正在读取阵容</Text>}

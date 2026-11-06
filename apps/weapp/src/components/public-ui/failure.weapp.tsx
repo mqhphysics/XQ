@@ -59,7 +59,7 @@ export function NativeFailureState({
       await Taro.reLaunch({ url: '/pages/login/index' })
       return
     }
-    if (hint.kind === 'permission') {
+    if (hint.kind === 'permission' || hint.kind === 'missing' || hint.kind === 'service') {
       await switchNativeSection('home')
       return
     }
@@ -97,7 +97,7 @@ export function NativeFailureState({
             : '可以重试，或先返回其他页面'}
       </Text>
       <View className="native-failure__actions">
-        {onRetry && (
+        {onRetry && hint.kind !== 'missing' && (
           <Button
             className="native-failure__retry"
             hoverClass="is-pressed"
@@ -115,7 +115,7 @@ export function NativeFailureState({
         >
           {hint.kind === 'session'
             ? '重新登录'
-            : hint.kind === 'permission'
+            : hint.kind === 'permission' || hint.kind === 'missing' || hint.kind === 'service'
               ? '返回首页'
               : '检查网络'}
         </Button>

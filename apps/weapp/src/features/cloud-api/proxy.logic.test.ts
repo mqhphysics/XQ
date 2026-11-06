@@ -191,3 +191,52 @@ test('writes and permanent cloud failures are never replayed', async () => {
   assert.equal(isTransientCloudFailure(new Error('晓球云托管请求超时，请重试')), true)
   assert.equal(isTransientCloudFailure({ errMsg: 'request:fail network interrupted' }), true)
 })
+
+test('read gateway errors retry within the shared budget and preserve the final HTTP response', async () => {
+  for (const status of [502, 503, 504]) {
+    let calls = 0
+    const request = createCloudApiRequester(
+      async () => reply(++calls === 1 ? status : 200),
+      configuration,
+      { wait: async () => {} },
+    )
+    assert.equal(
+      (
+        (await request({ url: `${configuration.apiBaseUrl}/public/home` })) as {
+          statusCode: number
+        }
+      ).statusCode,
+      200,
+    )
+    assert.equal(calls, 2)
+  }
+  for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+    let calls = 0
+    const request = createCloudApiRequester(
+      async () => {
+        calls++
+        return reply(503)
+      },
+      configuration,
+      { wait: async () => {} },
+    )
+    assert.equal(
+      (
+        (await request({ url: `${configuration.apiBaseUrl}/public/home`, method })) as {
+          statusCode: number
+        }
+      ).statusCode,
+      503,
+    )
+    assert.equal(calls, method === 'GET' ? 4 : 1)
+  }
+  for (const status of [400, 401, 403, 404, 409, 429]) {
+    let calls = 0
+    const request = createCloudApiRequester(async () => {
+      calls++
+      return reply(status)
+    }, configuration)
+    await request({ url: `${configuration.apiBaseUrl}/public/home` })
+    assert.equal(calls, 1)
+  }
+})

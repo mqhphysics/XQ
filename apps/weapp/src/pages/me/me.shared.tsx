@@ -196,11 +196,21 @@ function ProfilePanel({
     if (!confirmation.confirm) return
     setLoggingOut(true)
     try {
-      await productRepository.logout()
-    } catch {
-      // 本地会话已由 repository 的 finally 清除，仍需离开受保护页面。
-    } finally {
+      const result = await productRepository.logout()
       await Taro.reLaunch({ url: '/pages/login/index' })
+      if (!result.revoked)
+        await Taro.showToast({
+          title: '已退出本机，服务器会话暂未确认撤销',
+          icon: 'none',
+          duration: 3500,
+        })
+    } catch (issue) {
+      await Taro.showToast({
+        title: issue instanceof Error ? issue.message : '退出未完成，请重试',
+        icon: 'none',
+      })
+    } finally {
+      setLoggingOut(false)
     }
   }
 

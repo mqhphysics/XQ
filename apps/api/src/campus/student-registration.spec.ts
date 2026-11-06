@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { attachRegisteredStudent, submittedStudentNumber } from './student-registration'
+import { attachRegisteredStudent } from './student-registration'
 import { ApiHttpException } from '../common/api-http.exception'
 import type { Prisma } from '../generated/prisma/client'
 import { StudentRegistrationService } from './student-registration.service'
@@ -9,11 +9,16 @@ import type { CampusCommandService } from './campus-command.service'
 function admission(listed: boolean, knownNumber?: string, claimed = false) {
   const updates: unknown[] = [],
     applications: unknown[] = [],
-    notifications: unknown[] = [], numbers: unknown[] = [], audits: unknown[] = []
+    notifications: unknown[] = [],
+    numbers: unknown[] = [],
+    audits: unknown[] = []
   const tx = {
     studentRecord: {
       findFirst: async () => null,
-      updateMany: async (value: unknown) => { numbers.push(value); return { count: 1 } },
+      updateMany: async (value: unknown) => {
+        numbers.push(value)
+        return { count: 1 }
+      },
       findMany: async ({ where }: { where: { realName: string; status: string } }) => {
         assert.equal(where.realName, '学生甲')
         assert.equal(where.status, 'ACTIVE')
@@ -71,16 +76,18 @@ test('an exact name and stored number verifies the student without creating revi
     ),
   )
 })
-test('a unique name and valid proposed number are saved, verified and audited without manual tasks or player binding', async () => {
+test('a name-only directory entry stays unchanged until an administrator verifies the proposed number', async () => {
   const f = admission(true)
-  assert.equal(await attachRegisteredStudent(f.tx, 'org', 'user', '学生甲', '2026000001'), null)
-  assert.equal(f.numbers.length, 1)
-  assert.equal(f.audits.length, 1)
+  assert.equal(await attachRegisteredStudent(f.tx, 'org', 'user', '学生甲', '2026000001'), 'review')
+  assert.equal(f.numbers.length, 0)
+  assert.equal(f.audits.length, 0)
+  assert.equal(f.applications.length, 1)
+  assert.equal(f.notifications.length, 1)
   const data = (f.updates[0] as { data: Record<string, unknown> }).data
-  assert.equal(data.studentRecordId, 'student')
+  assert.equal(data.studentRecordId, undefined)
+  assert.equal(data.studentId, undefined)
+  assert.equal(data.verificationLevel, undefined)
   assert.equal(data.playerProfileId, undefined)
-  assert.deepEqual(f.applications, [])
-  assert.deepEqual(f.notifications, [])
 })
 
 test('ambiguous names and malformed numbers retain review; occupied names cannot auto-register', async () => {
@@ -90,9 +97,81 @@ test('ambiguous names and malformed numbers retain review; occupied names cannot
   assert.equal(await attachRegisteredStudent(f.tx, 'org', 'user', '学生甲', '2026000001'), 'review')
   assert.equal(f.numbers.length, 0)
   const bad = admission(true)
-  assert.equal(await attachRegisteredStudent(bad.tx, 'org', 'user', '学生甲', '202600001'), 'review')
+  assert.equal(
+    await attachRegisteredStudent(bad.tx, 'org', 'user', '学生甲', '202600001'),
+    'review',
+  )
   assert.equal(bad.numbers.length, 0)
-  await assert.rejects(attachRegisteredStudent(admission(true, undefined, true).tx, 'org', 'user', '学生甲', '2026000001'))
+  await assert.rejects(
+    attachRegisteredStudent(
+      admission(true, undefined, true).tx,
+      'org',
+      'user',
+      '学生甲',
+      '2026000001',
+    ),
+  )
+})
+
+test('self correction resubmits for review without writing a student number or granting verification', async () => {
+  const writes: Array<{ data: Record<string, unknown> }> = []
+  let notifications = 0
+  const tx = {
+    identityApplication: {
+      findFirst: async () => ({
+        id: 'application',
+        version: 2,
+        status: 'RETURNED',
+        user: { realName: '学生甲' },
+      }),
+      updateMany: async (value: { data: Record<string, unknown> }) => {
+        writes.push(value)
+        return { count: 1 }
+      },
+    },
+    roleAssignment: { findMany: async () => [{ userId: 'admin' }] },
+    userNotification: {
+      createMany: async () => {
+        notifications++
+      },
+    },
+    studentRecord: {
+      updateMany: async () => {
+        throw new Error('self correction must not change directory')
+      },
+    },
+    user: {
+      update: async () => {
+        throw new Error('self correction must not grant verification')
+      },
+    },
+  }
+  const command = {
+    write: async (
+      _auth: unknown,
+      _route: unknown,
+      _body: unknown,
+      _key: unknown,
+      admin: boolean,
+      run: (store: unknown, actor: unknown) => unknown,
+    ) => {
+      assert.equal(admin, false)
+      return run(tx, { organizationId: 'org', userId: 'user' })
+    },
+    audit: async () => {},
+  } as unknown as CampusCommandService
+  await new StudentRegistrationService(command).correct(
+    'token',
+    {
+      expectedVersion: 2,
+      studentNumber: '2026000001',
+      reason: '修正本人提交资料',
+    },
+    'fictional-key',
+    'fictional-request',
+  )
+  assert.equal(writes[0]!.data.status, 'PENDING')
+  assert.equal(notifications, 1)
 })
 
 function workflow(

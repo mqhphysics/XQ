@@ -109,12 +109,24 @@ export function createCloudApiRequester(
     const repeatable = readMethods.has((options.method || 'GET').toUpperCase())
     for (let attempt = 0; ; attempt++) {
       try {
-        return await transport({
+        const response = await transport({
           requestParams: options,
           proceed: async () => {
             throw new Error('请求不属于已配置的晓球 API')
           },
         })
+        if (
+          repeatable &&
+          attempt < delays.length &&
+          response &&
+          typeof response === 'object' &&
+          'statusCode' in response &&
+          [502, 503, 504].includes(Number(response.statusCode))
+        ) {
+          await wait(delays[attempt]!)
+          continue
+        }
+        return response
       } catch (error) {
         /* Only idempotent reads are replayed, after a short growing pause (0.8s, 1.6s, 3s). */
         if (repeatable && attempt < delays.length && isTransientCloudFailure(error)) {

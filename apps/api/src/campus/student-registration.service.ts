@@ -6,7 +6,6 @@ import {
   STUDENT_REGISTRATION_KIND,
   submittedStudentNumber,
   notifyRegistrationAdmins,
-  autoRecordStudentNumber,
 } from './student-registration'
 import type {
   StudentRegistrationCorrectionDto,
@@ -287,14 +286,7 @@ export class StudentRegistrationService {
           },
         })
         if (changed.count !== 1) throw centerError(409, '申请已变化，请刷新核对')
-        const recorded = await autoRecordStudentNumber(
-          tx, actor.organizationId, actor.userId, application.user.realName ?? '', body.studentNumber,
-        )
-        if (recorded) await tx.identityApplication.update({
-          where: { id: application.id },
-          data: { status: 'APPROVED', reviewedAt: new Date(), decisionNote: '符合学号规则，自动收录' },
-        })
-        else await notifyRegistrationAdmins(
+        await notifyRegistrationAdmins(
           tx,
           actor.organizationId,
           actor.userId,
