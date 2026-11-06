@@ -7,9 +7,11 @@ import type { BadgePreferenceResponse } from '../../features/product/product.typ
 
 export function NativeBadgeDialog({
   onClose,
+  onBack,
   onSaved,
 }: {
   onClose: () => void
+  onBack?: () => void
   onSaved: (data: BadgePreferenceResponse) => void
 }) {
   const [data, setData] = useState<BadgePreferenceResponse | null>(null),
@@ -56,6 +58,9 @@ export function NativeBadgeDialog({
   }
   return (
     <NativeDialog
+      onBack={onBack}
+      bodyHeight={300}
+      loading={!data && !error}
       title="展示标志"
       compact
       onClose={onClose}

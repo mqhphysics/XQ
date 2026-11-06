@@ -38,6 +38,23 @@ export function NativeMyIdentities({
     () => nativeIdentityKinds(user)[0] || null,
   )
   const [error, setError] = useState('')
+  const [identityPlayer, setIdentityPlayer] = useState<PlayerDetailResponse | null>(null)
+  useEffect(() => {
+    let active = true
+    setIdentityPlayer(null)
+    if (user.linkedPlayer)
+      void productRepository
+        .getPlayer(user.linkedPlayer.id, tournamentId)
+        .then((player) => {
+          if (active) setIdentityPlayer(player)
+        })
+        .catch(() => {
+          if (active) setError('球员资料暂未刷新，可关闭后重试')
+        })
+    return () => {
+      active = false
+    }
+  }, [user.linkedPlayer?.id, tournamentId])
   useEffect(() => {
     let current = true
     void productRepository
@@ -59,6 +76,7 @@ export function NativeMyIdentities({
     <NativeDialog
       title={kinds.length === 1 ? (kinds[0] === 'player' ? '球员身份' : '信息管理员') : '我的身份'}
       compact={selected === 'player'}
+      bodyHeight={selected === 'player' ? 210 : 380}
       onClose={onClose}
     >
       {kinds.length > 1 && (
@@ -83,14 +101,16 @@ export function NativeMyIdentities({
               <NativePlayerFace
                 playerId={user.linkedPlayer.id}
                 tournamentId={tournamentId}
-                avatarUrl={user.linkedPlayer.avatarUrl || user.avatarUrl}
-                name={user.linkedPlayer.displayName}
-                loadPortrait
+                avatarUrl={identityPlayer?.avatarUrl ?? null}
+                portraitUrl={identityPlayer?.portraitUrl ?? null}
+                preferProvided
+                useSessionAvatar={false}
+                name={identityPlayer?.displayName || user.linkedPlayer.displayName}
                 large
               />
               <View>
                 <Text className="native-identity-player-summary__name">
-                  {user.linkedPlayer.displayName}
+                  {identityPlayer?.displayName || user.linkedPlayer.displayName}
                 </Text>
                 <Text>{positionLabel(user.linkedPlayer.position)}</Text>
               </View>

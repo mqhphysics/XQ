@@ -11,6 +11,7 @@ const required: Record<string, string | null> = {
   '/pages/team-manage/index': 'teamId',
   '/pages/messages/index': null,
   '/pages/favorites/index': null,
+  '/pages/compose/index': null,
 }
 export function parseNativeDetailUrl(url: string): NativeDetailRoute | null {
   const [path = '', query = ''] = url.split('?')
@@ -27,7 +28,5 @@ export function parseNativeDetailUrl(url: string): NativeDetailRoute | null {
   }
   const key = required[path]
   if (key && !params[key]?.trim()) return null
-  if (path === '/pages/messages/index' && (params.conversationId || params.userId || params.new))
-    return null
   return { path, params }
 }

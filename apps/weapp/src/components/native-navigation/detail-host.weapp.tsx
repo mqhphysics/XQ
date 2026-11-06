@@ -43,6 +43,7 @@ import NativePostDetail from '../../pages/post-detail/screen.weapp'
 import NativeTeamManage from '../../pages/team-manage/screen.weapp'
 import NativePersonDetail from '../../pages/person-detail/screen.weapp'
 import NativeMessages from '../../pages/messages/screen.weapp'
+import NativeCompose from '../../pages/compose/screen.weapp'
 import NativeFavorites from '../../pages/favorites/screen.weapp'
 import {
   NativeRefreshScope,
@@ -286,7 +287,8 @@ function NativeDetailScene({
     }
   }, [entry])
   const parsed = parseNativeDetailUrl(entry.url)
-  const path = parsed?.path || '', params = parsed?.params || {}
+  const path = parsed?.path || '',
+    params = parsed?.params || {}
   const fullScreen =
     path?.includes('/messages/') || path?.includes('/compose/') || path?.includes('/favorites/')
   const page = useMemo(
@@ -299,9 +301,15 @@ function NativeDetailScene({
           userId={params.userId}
           notificationId={params.notificationId}
           new={params.new}
+          private={params.private}
+          category={params.category}
         />
       ) : path?.includes('/compose/') ? (
-        null
+        <NativeCompose
+          tournamentId={params.tournamentId}
+          teamId={params.teamId}
+          quotePostId={params.quotePostId}
+        />
       ) : path?.includes('/team-manage/') ? (
         <NativeTeamManage teamId={params.teamId} tournamentId={params.tournamentId} />
       ) : path?.includes('/readonly-team-detail/') ? (
@@ -313,7 +321,13 @@ function NativeDetailScene({
       ) : path?.includes('/readonly-match-detail/') ? (
         <NativeMatchDetail matchId={params.matchId} technical={params.technical === '1'} />
       ) : (
-        <>{parsed && path === '/pages/post-detail/index' ? <NativePostDetail postId={params.postId} /> : <DataState kind="error" title="链接无效或该页面已退出" />}</>
+        <>
+          {parsed && path === '/pages/post-detail/index' ? (
+            <NativePostDetail postId={params.postId} />
+          ) : (
+            <DataState kind="error" title="链接无效或该页面已退出" />
+          )}
+        </>
       ),
     [entry],
   )

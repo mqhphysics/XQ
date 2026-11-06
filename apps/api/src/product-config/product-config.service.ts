@@ -40,7 +40,7 @@ export function buildProductConfiguration(
     Object.entries(moduleEnvironment).map(([id, variable]) => {
       const value = environment[variable]?.trim().toLowerCase()
       const enabled =
-        id !== 'directMessages' && implementedModules.has(id as ProductModuleId) &&
+        implementedModules.has(id as ProductModuleId) &&
         (value === undefined || value === '' || value === '1' || value === 'true')
       return [id, { enabled, reason: enabled ? null : UNAVAILABLE_FEATURE_REASON }]
     }),

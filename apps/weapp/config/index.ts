@@ -96,6 +96,8 @@ const config: UserConfigExport = {
     enable: false,
   },
   mini: {
+    // Keep local icons/emoji as files; Taro treats a zero limit as its default threshold.
+    imageUrlLoaderOption: { limit: 1 },
     postcss: {
       pxtransform: {
         enable: true,
@@ -121,7 +123,6 @@ const config: UserConfigExport = {
       compileMode: true,
     },
   },
-  
 }
 
 export default defineConfig(config)

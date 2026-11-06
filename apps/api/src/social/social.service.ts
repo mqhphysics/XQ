@@ -747,7 +747,6 @@ export class SocialService {
     const where = {
       organizationId: session.organizationId,
       recipientUserId: session.userId,
-      type: { not: NotificationType.DIRECT_MESSAGE },
     }
     const anchor = before
       ? await this.prisma.userNotification.findFirst({

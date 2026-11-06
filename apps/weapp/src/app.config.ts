@@ -17,6 +17,7 @@ export default defineAppConfig({
     'pages/team-manage/index',
     'pages/person-detail/index',
     'pages/messages/index',
+    'pages/compose/index',
     'pages/favorites/index',
   ],
   window: {

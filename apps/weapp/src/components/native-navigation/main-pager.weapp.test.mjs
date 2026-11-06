@@ -175,27 +175,62 @@ test('main paging uses one native swiper and commits native touch changes once',
   let p = h.render()
   assert.equal(p.easingFunction, 'easeInOutCubic')
   assert.equal(p.duration, 400)
-  await p.onChange({ detail: { source: '', current: 1 } })
+  await p.onChange({ target: { id: 'native-main-swiper' }, detail: { source: '', current: 1 } })
   assert.equal(h.calls.length, 0)
   p.onTouchStart({ point: { x: 300, y: 200 } })
-  p.onChange({ detail: { source: 'touch', current: 1 } })
+  p.onChange({ target: { id: 'native-main-swiper' }, detail: { source: 'touch', current: 1 } })
   await new Promise((resolve) => setImmediate(resolve))
   assert.deepEqual(h.calls, ['schedule'])
   assert.equal(h.render().current, 1)
 })
-test('nested swipes and cancel cannot later commit a stray parent change', async () => {
-  const h = harness(),
-    p = h.render()
+
+test('a native data-to-me swipe finishing after touchcancel reconciles page and navigation', async () => {
+  const h = harness()
+  h.render()
+  h.controller.goTo('data')
+  const p = h.render()
+  p.onTouchStart({ point: { x: 300, y: 100 } })
+  p.onTouchCancel()
+  p.onChange({ target: { id: 'native-main-swiper' }, detail: { current: 4, source: 'touch' } })
+  p.onAnimationFinish({
+    target: { id: 'native-main-swiper' },
+    detail: { current: 4, source: 'touch' },
+  })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(h.render().current, 4)
+  assert.equal(h.calls.at(-1), 'me')
+})
+
+test('inner data swiper events cannot change the main page or tabbar', async () => {
+  const h = harness()
+  h.render()
+  h.controller.goTo('data')
+  const p = h.render()
+  p.onTouchStart({ point: { x: 300, y: 300 } })
+  p.onChange({ target: { id: 'native-guide-data-board' }, detail: { current: 1, source: 'touch' } })
+  p.onAnimationFinish({
+    target: { id: 'native-guide-data-board' },
+    detail: { current: 1, source: 'touch' },
+  })
+  assert.equal(h.render().current, 3)
+  assert.equal(h.calls.length, 0)
+})
+test('nested swiper events are ignored, but a real main change after cancel is authoritative', async () => {
+  const h = harness()
+  const p = h.render()
   p.onTouchStart({ point: { x: 200, y: 200 } })
   h.events.get('xiaoqiu:native-nested-touch')()
-  p.onChange({ detail: { source: 'touch', current: 1 } })
+  p.onChange({ target: { id: 'native-guide-data-board' }, detail: { source: 'touch', current: 1 } })
   await new Promise((resolve) => setImmediate(resolve))
   assert.equal(h.calls.length, 0)
   p.onTouchStart({ point: { x: 200, y: 200 } })
   p.onTouchCancel()
-  p.onChange({ detail: { source: 'touch', current: 1 } })
-  assert.equal(h.calls.length, 0)
+  p.onChange({ target: { id: 'native-main-swiper' }, detail: { source: 'touch', current: 1 } })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.deepEqual(h.calls, ['schedule'])
+  assert.equal(h.render().current, 1)
 })
+
 test('blocked motion stays disabled and an old rejected reset cannot pull back a new navigation', async () => {
   const h = harness()
   h.render()
@@ -203,9 +238,22 @@ test('blocked motion stays disabled and an old rejected reset cannot pull back a
   let p = h.render()
   assert.equal(p.disableTouch, true)
   p.onTouchStart({ point: { x: 200, y: 200 } })
-  p.onChange({ detail: { source: 'touch', current: 1 } })
+  p.onChange({ target: { id: 'native-main-swiper' }, detail: { source: 'touch', current: 1 } })
   h.controller.goTo('data')
   for (const fn of h.ticks.splice(0)) fn()
   p = h.render()
   assert.equal(p.current, 3)
+})
+
+test('native wrappers may retarget the main swiper ID without losing navigation updates', async () => {
+  const h = harness()
+  const p = h.render()
+  p.onChange({
+    target: { id: 'native-wrapper-42' },
+    currentTarget: { id: 'native-wrapper-42' },
+    detail: { source: 'touch', current: 4 },
+  })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(h.render().current, 4)
+  assert.deepEqual(h.calls, ['me'])
 })

@@ -478,16 +478,30 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
       )}
       {dialog === 'certification' && (
         <NativeIdentityDialog
+          onBack={() => setDialog('manageIdentity')}
           user={user}
           onClose={() => setDialog(null)}
           onChanged={onUserChange}
         />
       )}
       {dialog === 'badge' && (
-        <NativeBadgeDialog onClose={() => setDialog(null)} onSaved={setBadge} />
+        <NativeBadgeDialog
+          onBack={() => setDialog('manageIdentity')}
+          onClose={() => setDialog(null)}
+          onSaved={setBadge}
+        />
       )}
       {dialog && dialog in titles && (
-        <NativeDialog title={titles[dialog as ProfileService]} onClose={() => setDialog(null)}>
+        <NativeDialog
+          compact={false}
+          onBack={
+            admin && (dialog === 'adminReports' || dialog === 'identities')
+              ? () => setDialog('manageIdentity')
+              : undefined
+          }
+          title={titles[dialog as ProfileService]}
+          onClose={() => setDialog(null)}
+        >
           {renderService(dialog as ProfileService, setDialog)}
         </NativeDialog>
       )}

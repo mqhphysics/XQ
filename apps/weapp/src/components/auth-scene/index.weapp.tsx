@@ -2,7 +2,7 @@ import { Canvas, Image, Text, View } from '@tarojs/components'
 import type { CanvasTouchEvent } from '@tarojs/components/types/common'
 import Taro, { useDidHide, useDidShow, useReady } from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
-import sceneSource from '../../assets/login-art/stadium-particle-plate.weapp.png'
+import sceneSource from '../../assets/login-art/stadium-particle-plate.weapp.webp'
 import brandMark from '../../assets/home-visual/brand-mark.png'
 import { canvasTouchPosition } from './touch-field.logic'
 import {

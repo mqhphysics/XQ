@@ -5,6 +5,7 @@ import type { NativeDialogProps } from './index'
 import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
 import { registerDialogScroll } from '../../features/native-navigation/dialog-scroll.weapp'
 import { useDialogViewport } from './dialog-viewport.weapp'
+import { dialogBodyHeight } from './dialog-size.logic'
 import {
   confirmNativeDiscard,
   useNativeBackLayer,
@@ -14,6 +15,7 @@ import {
 export function NativeDialog({
   title,
   onClose,
+  onBack,
   children,
   footer,
   compact = true,
@@ -22,6 +24,8 @@ export function NativeDialog({
   focusId,
   className = '',
   bodyHeight,
+  minBodyHeight = 240,
+  loading = false,
   fullScreen = false,
 }: NativeDialogProps) {
   const requestClose = async () => {
@@ -29,22 +33,26 @@ export function NativeDialog({
     if (allowed) onClose()
     return allowed
   }
+  const requestBack = async () => {
+    if (await confirmNativeDiscard(unsavedChanges, busy)) onBack?.()
+  }
   useNativeLeaveProtection(unsavedChanges, busy, onClose)
   useNativeBackLayer(async () => {
-    await requestClose()
+    if (onBack) await requestBack()
+    else await requestClose()
     return true
   })
   const contentId = `native-dialog-content-${useId().replace(/[^a-z0-9]/gi, '')}`
   const info = Taro.getWindowInfo()
   const viewport = useDialogViewport(info)
   const [contentHeight, setContentHeight] = useState<number | null>(null)
-  const maximum = Math.max(100, Math.min(460, viewport - 160))
-  const height =
-    bodyHeight !== undefined
-      ? Math.min(bodyHeight, maximum)
-      : compact
-        ? Math.min(contentHeight ?? 240, maximum)
-        : Math.min(maximum, viewport * 0.57)
+  const height = dialogBodyHeight(viewport, {
+    bodyHeight,
+    compact,
+    contentHeight,
+    minBodyHeight,
+    loading,
+  })
   useEffect(() => {
     if (!compact || bodyHeight !== undefined || fullScreen) return
     let active = true
@@ -171,7 +179,19 @@ export function NativeDialog({
             onClick={(event) => event.stopPropagation()}
           >
             <View className="native-dialog__head">
-              <Text>{title}</Text>
+              {onBack ? (
+                <Button
+                  className="native-dialog__back"
+                  aria-label="返回上一级"
+                  disabled={busy}
+                  onClick={() => void requestBack()}
+                >
+                  ‹
+                </Button>
+              ) : (
+                <View className="native-dialog__head-space" />
+              )}
+              <Text className="native-dialog__title">{title}</Text>
               <Button
                 className="native-dialog__close"
                 aria-label="关闭弹窗"

@@ -226,10 +226,33 @@ page .public-app.public-app .home-search-entry__action {
   align-items: center;
   justify-content: space-between;
   min-height: 100px;
-  padding: 8px 12px 8px 28px;
+  padding: 8px 12px;
   border-bottom: 2px solid #edf0e8;
   font-size: 36px;
   font-weight: 800;
+}
+.native-dialog__title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.native-dialog__head-space {
+  width: 84px;
+  flex: 0 0 84px;
+}
+.native-dialog__back.native-dialog__back {
+  width: 84px;
+  flex: 0 0 84px;
+  height: 84px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #356747;
+  font-size: 50px;
+  border: 0;
 }
 .native-dialog__close.native-dialog__close {
   display: flex;

@@ -155,6 +155,15 @@ export function createCloudApiInterceptor(
     )
       return chain.proceed(options)
 
+    if (options.data !== undefined) {
+      let bytes = 0
+      for (const char of JSON.stringify(options.data)) {
+        const value = char.codePointAt(0)!
+        bytes += value <= 0x7f ? 1 : value <= 0x7ff ? 2 : value <= 0xffff ? 3 : 4
+      }
+      if (bytes > 950000) throw new Error('图片或内容过大，请减少图片后重试')
+    }
+
     const timeout = Math.max(500, Math.min(15000, options.timeout || 8000))
     const header: Record<string, unknown> = {}
     for (const key of Object.keys(options.header || {})) {

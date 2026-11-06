@@ -163,7 +163,7 @@ test('player and captain matching use self service instead of a manual applicati
     0,
   )
   nodes(tree)
-    .find((n) => n.type === 'Button' && label(n) === '自助关联球员身份')
+    .find((n) => n.type === 'Button' && n.props['aria-label'] === '自助关联球员身份')
     .props.onClick()
   await flush()
   assert.equal(h.writes.length, 0)

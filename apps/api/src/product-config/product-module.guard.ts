@@ -10,7 +10,6 @@ import type { ProductModuleId } from '@xiaoqiu/contracts'
 import { ApiHttpException } from '../common/api-http.exception'
 import type { RequestWithId } from '../common/request-context'
 import { ProductConfigService, UNAVAILABLE_FEATURE_REASON } from './product-config.service'
-import { retiredUgcRequest, RETIRED_UGC_REASON } from './retired-ugc'
 
 /** Only registered, existing business route templates; never health/auth/config/media delivery. */
 export function modulesForRoute(route: string): ProductModuleId[] {
@@ -84,11 +83,6 @@ export class ProductModuleGuard implements CanActivate {
     const route: unknown = request.route?.path
     // Never infer authorization from an unmatched, user-provided URL.
     if (typeof route !== 'string') return true
-    if (retiredUgcRequest(request.method, route, request.body))
-      throw new ApiHttpException(HttpStatus.GONE, {
-        code: ERROR_CODES.FORBIDDEN,
-        message: RETIRED_UGC_REASON,
-      })
     const required = modulesForRoute(route)
     const config = this.configuration.getConfiguration()
     const unavailable = required.find((id) => !config.modules[id].enabled)

@@ -18,10 +18,12 @@ import { gettingStartedEvent } from '../../features/getting-started/repository.w
 export function NativeIdentityDialog({
   user,
   onClose,
+  onBack,
   onChanged,
 }: {
   user: AuthUser
   onClose: () => void
+  onBack?: () => void
   onChanged: (user: AuthUser) => void
 }) {
   const [data, setData] = useState<IdentitySnapshot | null>(null),
@@ -119,28 +121,24 @@ export function NativeIdentityDialog({
     ) || []
   return (
     <NativeDialog
-      title="身份管理"
+      title="认证与关联"
+      onBack={onBack}
+      bodyHeight={380}
+      loading={!data && !error}
       onClose={onClose}
       busy={busy}
+      unsavedChanges={Boolean(kind || message.trim())}
       footer={
-        data && (
-          <Button
-            className="native-button native-button--primary"
-            disabled={busy}
-            loading={busy}
-            onClick={() => void submit()}
-          >
-            提交申请
-          </Button>
-        )
+        <Button
+          className="native-button native-button--primary"
+          disabled={!data || busy}
+          loading={busy}
+          onClick={() => void submit()}
+        >
+          提交申请
+        </Button>
       }
     >
-      <Button className="native-button native-button--primary" onClick={selfMatch}>
-        {user.linkedPlayer ? '刷新球员与队长身份' : '自助关联球员身份'}
-      </Button>
-      <Text className="native-note">
-        确认本人即可关联球员；队长身份依据已确认四官表自动识别，不需要提交人工申请。
-      </Text>
       {error && <Text className="native-error">{error}</Text>}
       {!data && !error && <Text className="native-note">正在读取认证信息…</Text>}
       {!data && error && (
@@ -150,6 +148,60 @@ export function NativeIdentityDialog({
       )}
       {data && (
         <>
+          <View className="native-select-row">
+            <Text>申请身份</Text>
+            <Picker
+              mode="selector"
+              range={['请选择身份', ...kinds.map((item) => item[1])]}
+              value={kinds.findIndex((item) => item[0] === kind) + 1}
+              onChange={(event) => {
+                setKind((kinds[Number(event.detail.value) - 1]?.[0] as IdentityKind) || '')
+                setCandidateId('')
+                setTeamId('')
+              }}
+            >
+              <View className="native-select">
+                <Text>{kind ? identityLabels[kind] : '请选择身份'}</Text>
+                <Text>⌄</Text>
+              </View>
+            </Picker>
+          </View>
+          {['TEAM_CAPTAIN', 'TEAM_COACH'].includes(kind) && (
+            <View className="native-select-row">
+              <Text>所属球队</Text>
+              <Picker
+                mode="selector"
+                disabled={Boolean(candidateId)}
+                range={data.teams}
+                rangeKey="name"
+                onChange={(event) => setTeamId(data.teams[Number(event.detail.value)]?.id ?? '')}
+              >
+                <View className="native-select">
+                  <Text>{data.teams.find((team) => team.id === teamId)?.name ?? '选择球队'}</Text>
+                  <Text>⌄</Text>
+                </View>
+              </Picker>
+            </View>
+          )}
+          <Text className="native-label">申请说明</Text>
+          <Textarea
+            className="native-field"
+            maxlength={1000}
+            value={message}
+            placeholder="说明身份和所属球队，便于管理员核实"
+            onInput={(event) => setMessage(event.detail.value)}
+          />
+          <Button
+            className="native-button native-button--primary"
+            aria-label={user.linkedPlayer ? '刷新球员与队长身份' : '自助关联球员身份'}
+            onClick={selfMatch}
+          >
+            <Text aria-hidden>↻ </Text>
+            {user.linkedPlayer ? '刷新球员与队长身份' : '自助关联球员身份'}
+          </Button>
+          <Text className="native-note">
+            确认本人即可关联球员；队长身份依据已确认四官表自动识别，不需要提交人工申请。
+          </Text>
           {data.verifiedCandidates?.map((record) => (
             <View className="native-identity-record" key={record.id}>
               <Text>
@@ -223,49 +275,6 @@ export function NativeIdentityDialog({
               )}
             </>
           )}
-          <View className="native-select-row">
-            <Text>申请身份</Text>
-            <Picker
-              mode="selector"
-              range={['请选择身份', ...kinds.map((item) => item[1])]}
-              value={kinds.findIndex((item) => item[0] === kind) + 1}
-              onChange={(event) => {
-                setKind((kinds[Number(event.detail.value) - 1]?.[0] as IdentityKind) || '')
-                setCandidateId('')
-                setTeamId('')
-              }}
-            >
-              <View className="native-select">
-                <Text>{kind ? identityLabels[kind] : '请选择身份'}</Text>
-                <Text>⌄</Text>
-              </View>
-            </Picker>
-          </View>
-          {['TEAM_CAPTAIN', 'TEAM_COACH'].includes(kind) && (
-            <View className="native-select-row">
-              <Text>所属球队</Text>
-              <Picker
-                mode="selector"
-                disabled={Boolean(candidateId)}
-                range={data.teams}
-                rangeKey="name"
-                onChange={(event) => setTeamId(data.teams[Number(event.detail.value)]?.id ?? '')}
-              >
-                <View className="native-select">
-                  <Text>{data.teams.find((team) => team.id === teamId)?.name ?? '选择球队'}</Text>
-                  <Text>⌄</Text>
-                </View>
-              </Picker>
-            </View>
-          )}
-          <Text className="native-label">申请说明</Text>
-          <Textarea
-            className="native-field"
-            maxlength={1000}
-            value={message}
-            placeholder="说明身份和所属球队，便于管理员核实"
-            onInput={(event) => setMessage(event.detail.value)}
-          />
           <Text className="native-section-title">申请记录</Text>
           {data.applications.map((item) => (
             <View className="native-identity-record" key={item.id}>

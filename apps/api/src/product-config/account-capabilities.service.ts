@@ -134,7 +134,7 @@ export class AccountCapabilitiesService {
         'schedule.read': capability('schedule', organization),
         'data.read': capability('data', organization),
         'teams.read': capability('teams', organization),
-        'community.write': { enabled: false, reason: '普通用户发帖与评论已退出', scopes: [] },
+        'community.write': capability('community', organization),
         'teams.manage': capability(
           'teamManagement',
           administrator ? [...organization, ...teamScopes] : teamScopes,

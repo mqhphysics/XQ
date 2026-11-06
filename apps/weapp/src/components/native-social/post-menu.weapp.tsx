@@ -1,3 +1,4 @@
+import { openNativeComposer } from '../../features/native-social/routing.weapp'
 import { requestNativeLogin } from '../../features/product/login-return.weapp'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
@@ -19,14 +20,18 @@ export function NativePostMenu({ post: source }: { post: PostSummary }) {
     if (lock.current) return
     try {
       const action = await Taro.showActionSheet({
-        itemList: [post.favoritedByMe ? '取消收藏' : '收藏', '举报'],
+        itemList: [post.favoritedByMe ? '取消收藏' : '收藏', '转发', '举报'],
       })
       if (!readSession()) {
         void requestNativeLogin('登录后可以收藏和举报')
         return
       }
-      if (action.tapIndex === 1) {
+      if (action.tapIndex === 2) {
         setReport(true)
+        return
+      }
+      if (action.tapIndex === 1) {
+        await openNativeComposer({ quotePostId: post.id, tournamentId: post.tournamentId })
         return
       }
       lock.current = true

@@ -19,6 +19,28 @@ const reply = (statusCode: number) => ({
   header: { ETag: 'fixture-etag', 'X-Xiaoqiu-Media-Origin': 'https://new.trycloudflare.com' },
 })
 
+test('oversized multi-image JSON is rejected before the cloud call, including UTF-8 text bytes', async () => {
+  let calls = 0
+  const request = createCloudApiRequester(async () => {
+    calls++
+    return reply(200)
+  }, configuration)
+  await assert.rejects(
+    request({
+      url: configuration.apiBaseUrl + '/community/posts',
+      method: 'POST',
+      data: { body: '字'.repeat(320000) },
+    }),
+    /内容过大/,
+  )
+  await request({
+    url: configuration.apiBaseUrl + '/community/posts',
+    method: 'POST',
+    data: { body: '正常内容' },
+  })
+  assert.equal(calls, 1)
+})
+
 test('one interceptor forwards API requests with session and version headers, preserving HTTP failures', async () => {
   const calls: unknown[] = []
   const interceptor = createCloudApiInterceptor(async (options) => {

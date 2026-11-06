@@ -11,7 +11,7 @@ export type MessageCategory = (typeof messageCategories)[number]['id'] | 'messag
 export type MessageNotification = NotificationResponse['items'][number]
 export function notificationCategory(item: MessageNotification): MessageCategory {
   if (item.messageCategory === 'mentions') return 'mentions'
-  if (item.type === 'DIRECT_MESSAGE') return 'system'
+  if (item.type === 'DIRECT_MESSAGE') return 'messages'
   if (item.type === 'POST_LIKED') return 'likes'
   if (['POST_COMMENTED', 'COMMENT_REPLIED'].includes(item.type)) return 'replies'
   if (item.type.includes('MENTION')) return 'mentions'

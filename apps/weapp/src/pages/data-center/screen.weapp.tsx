@@ -133,7 +133,7 @@ function NativeDataContent({
   const gestures = useNestedNativeSwipe(tab, tabs.length, setTab, false, true)
   const wide = nativeWideWindow(useNativeViewport())
   return (
-    <View className="native-data" {...gestures}>
+    <View className="native-data">
       {wide && <WideDataHero data={data} />}
       <View className="native-data-toolbar" id="native-guide-data-toolbar">
         <NativeTournamentSelect data={data} onSelect={onTournament} season />
@@ -154,12 +154,16 @@ function NativeDataContent({
         </View>
       </View>
       <Swiper
+        {...gestures}
         id="native-guide-data-board"
         className={`native-data-swiper${showKnockout ? ' native-data-swiper--cup' : ''}`}
         current={tab}
         duration={280}
         easingFunction="easeOutCubic"
-        onChange={(event) => setTab(event.detail.current)}
+        onChange={(event) => {
+          event.stopPropagation()
+          setTab(event.detail.current)
+        }}
         style={`height:${height}px;`}
       >
         <SwiperItem>

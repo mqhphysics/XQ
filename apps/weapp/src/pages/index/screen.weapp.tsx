@@ -1,3 +1,4 @@
+import { NativeComposeEntry } from '../../components/native-social/compose-entry.weapp'
 import { Button, Image, Input, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance, useDidHide, useDidShow } from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -436,6 +437,7 @@ export default function NativeHomeScreen() {
                 </Button>
               )}
               <View className="native-home-section" id="native-home-feed-start">
+                <NativeComposeEntry tournamentId={home?.tournament.id} />
                 <View id="native-guide-home-feed">
                   <View className="native-feed-heading">
                     <ProductSection kicker="CAMPUS FEED" title="绿茵动态" />

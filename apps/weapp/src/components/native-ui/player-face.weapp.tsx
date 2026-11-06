@@ -15,6 +15,7 @@ export function NativePlayerFace({
   avatarUrl,
   portraitUrl,
   preferProvided = false,
+  useSessionAvatar = true,
   loadPortrait = false,
   large = false,
   small = false,
@@ -26,6 +27,7 @@ export function NativePlayerFace({
   avatarUrl?: string | null
   portraitUrl?: string | null
   preferProvided?: boolean
+  useSessionAvatar?: boolean
   loadPortrait?: boolean
   large?: boolean
   small?: boolean
@@ -38,7 +40,9 @@ export function NativePlayerFace({
   const [failed, setFailed] = useState(0)
   const user = useStoredSessionUser()
   const currentAvatar =
-    playerId && user?.linkedPlayer?.id === playerId ? user.linkedPlayer.avatarUrl : null
+    useSessionAvatar && playerId && user?.linkedPlayer?.id === playerId
+      ? user.linkedPlayer.avatarUrl
+      : null
   const provided = preferProvided
       ? nativePlayerPhotos(avatarUrl, portraitUrl, currentAvatar)
       : nativePlayerPhotos(currentAvatar, avatarUrl, portraitUrl),

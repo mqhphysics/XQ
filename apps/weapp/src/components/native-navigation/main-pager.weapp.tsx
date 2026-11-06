@@ -123,7 +123,6 @@ export function NativeMainPager() {
     alive = useRef(true),
     intent = useRef(0),
     touchedSection = useRef(initial),
-    ownsTouch = useRef(false),
     touch = useRef<ReturnType<typeof nativeTouchPoint>>(null),
     finishTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const goTo = (section: NativeSection) => {
@@ -147,10 +146,7 @@ export function NativeMainPager() {
   latest.current = goTo
   useEffect(() => {
     const nested = () => {
-      ownsTouch.current = false
       touch.current = null
-      intent.current++
-      setDisplayed(index.current)
     }
     Taro.eventCenter.on('xiaoqiu:native-nested-touch', nested)
     return () => {
@@ -231,7 +227,7 @@ export function NativeMainPager() {
   const select = async (target: number) => {
     const token = ++intent.current
     setDisplayed(target)
-    if (!blocked && target !== index.current)
+    if (canDragNativeMain() && target !== index.current)
       await switchNativeSection(
         nativeSections[target]!,
         tournamentId,
@@ -297,6 +293,7 @@ export function NativeMainPager() {
               mode="aspectFit"
             />
             <Swiper
+              id="native-main-swiper"
               className="native-main-swiper"
               current={displayed}
               duration={pagerMs}
@@ -305,7 +302,6 @@ export function NativeMainPager() {
               disableTouch={blocked}
               skipHiddenItemLayout
               onTouchStart={(event) => {
-                ownsTouch.current = true
                 touch.current = nativeTouchPoint(event)
                 touchedSection.current = index.current
                 intent.current++
@@ -325,14 +321,14 @@ export function NativeMainPager() {
                   Taro.eventCenter.trigger('xiaoqiu:native-request-back')
               }}
               onTouchCancel={() => {
-                ownsTouch.current = false
                 touch.current = null
               }}
               onChange={(event) => {
-                if (event.detail.source === 'touch' && ownsTouch.current)
-                  void select(event.detail.current)
+                if (event.target?.id !== (event.currentTarget?.id || 'native-main-swiper')) return
+                if (event.detail.source === 'touch') void select(event.detail.current)
               }}
               onAnimationFinish={(event) => {
+                if (event.target?.id !== (event.currentTarget?.id || 'native-main-swiper')) return
                 if (event.detail.current === index.current) {
                   if (finishTimer.current) clearTimeout(finishTimer.current)
                   setSettled(index.current)

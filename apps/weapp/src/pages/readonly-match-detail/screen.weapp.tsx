@@ -1,3 +1,12 @@
+import { NativeSocialInput } from '../../components/native-social/input.weapp'
+import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
+import {
+  readNativeDraft,
+  saveNativeDraft,
+  clearNativeDraft,
+  nativeSocialApi,
+} from '../../features/native-social/runtime.weapp'
+import { useNativeLeaveProtection } from '../../features/native-navigation/leave-guard.weapp'
 import { useNativeRefreshTask } from '../../features/product/native-refresh.weapp'
 import {
   NativeContentPager,
@@ -8,7 +17,7 @@ import Taro, { getCurrentInstance, useDidShow } from '@tarojs/taro'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { PublicShell } from '../../components/public-shell'
 import { DataState } from '../../components/public-ui'
-import { MatchStatus, TeamCrest } from '../../components/product-ui'
+import { MatchStatus, TeamCrest, UserAvatar } from '../../components/product-ui'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { NativeGoalClip } from '../../features/managed-media/goal-clip.weapp'
 import { prepareMatchGif } from '../../features/managed-media/gif-cache.weapp'
@@ -19,7 +28,7 @@ import {
 } from '../../features/product/product.repository'
 import { NativeDetailActiveContext } from '../../features/native-navigation/detail-context.weapp'
 import { readSession } from '../../features/product/session'
-import { eventLabel } from '../../features/product/product.format'
+import { eventLabel, formatDate } from '../../features/product/product.format'
 import { openPlayer } from '../../features/product/player-navigation'
 import { openTeam } from '../../features/product/team-navigation'
 import { nativeMatchMedia, ownMediaImage } from '../../features/managed-media/native-media.weapp'
@@ -486,22 +495,62 @@ function NativeRatings({
   const [rating, setRating] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('')
-  const lock = useRef(false)
   const saved = match.reviews.viewerReview?.rating || 0
   const finished = ['FINISHED', 'CONFIRMED'].includes(match.status)
+  const scope = `match-comment:${match.id}`
+  const [body, setBody] = useState(() => readNativeDraft(scope, ''))
+  const lock = useRef(false)
+  const commentsEnabled = nativeWriteEnabled('matchComments')
+  useEffect(() => {
+    measureNativeContent()
+  }, [error])
+  const changeBody = (text: string) => {
+    setBody(text)
+    saveNativeDraft(scope, text)
+  }
+  const clearBody = () => {
+    setBody('')
+    clearNativeDraft(scope)
+  }
+  useNativeLeaveProtection(commentsEnabled && Boolean(body.trim()), busy, clearBody, true)
   const submit = async () => {
-    if (!rating || lock.current || saved || !finished) return
+    if (!rating || busy || lock.current || saved || !finished) return
     if (!readSession()) {
       void Taro.showToast({ title: '登录后可以评分', icon: 'none' })
       return
     }
+    setBusy(true)
+    lock.current = true
+    setError('')
+    try {
+      const text = commentsEnabled ? body.trim() : ''
+      onUpdated(await productRepository.reviewMatch(match.id, rating, text || undefined))
+      if (text) clearBody()
+      void Taro.showToast({ title: '评分已保存', icon: 'success' })
+    } catch (issue) {
+      setError(issue instanceof Error ? issue.message : '评分保存失败')
+    } finally {
+      setBusy(false)
+      lock.current = false
+    }
+  }
+  const comment = async () => {
+    if (lock.current || !body.trim() || !finished) return
     lock.current = true
     setBusy(true)
     setError('')
     try {
-      onUpdated(await productRepository.reviewMatch(match.id, rating))
+      onUpdated(
+        await nativeSocialApi.commentMatch(
+          match.id,
+          saved ? undefined : rating || undefined,
+          body.trim(),
+        ),
+      )
+      clearBody()
+      await Taro.hideKeyboard().catch(() => {})
     } catch (issue) {
-      setError(issue instanceof Error ? issue.message : '评分保存失败')
+      setError(issue instanceof Error ? issue.message : '评论未发出，文字已保留')
     } finally {
       lock.current = false
       setBusy(false)
@@ -509,7 +558,7 @@ function NativeRatings({
   }
   return (
     <View className="native-match-ratings">
-      {!!match.flashReports?.length && (
+      {Boolean(match.flashReports?.length) && (
         <View className="native-review-card">
           <Text className="native-match-section-title">比赛快报</Text>
           {match.flashReports!.map((post) => (
@@ -570,12 +619,45 @@ function NativeRatings({
           <Text className="native-note">比赛结束后可以评分</Text>
         )}
       </View>
-
+      <View className="native-review-card">
+        <Text className="native-match-section-title">评论</Text>
+        {commentsEnabled && finished && readSession() && (
+          <NativeSocialInput
+            value={body}
+            onChange={changeBody}
+            onSend={() => void comment()}
+            maximum={500}
+            busy={busy}
+            label="发表评论"
+            placeholder={!saved && rating ? '写评论，也可以随评分一起提交…' : '聊聊这场比赛…'}
+          />
+        )}
+        {match.reviews.comments.length ? (
+          match.reviews.comments.map((comment) => (
+            <View className="native-review-comment" key={comment.id}>
+              <View className="native-review-comment__author">
+                <UserAvatar
+                  name={comment.author.displayName}
+                  avatarUrl={comment.author.avatarUrl}
+                  size="small"
+                />
+                <Text>{comment.author.displayName}</Text>
+                <Text className="native-review-comment__stars" aria-label={`${comment.rating}星`}>
+                  {'★'.repeat(Math.max(0, Math.min(5, Math.round(comment.rating))))}
+                </Text>
+              </View>
+              <Text className="native-review-comment__body">{comment.body}</Text>
+              <Text className="native-note">{formatDate(comment.createdAt)}</Text>
+            </View>
+          ))
+        ) : (
+          <Text className="native-note">暂无评论</Text>
+        )}
+      </View>
       <NativeMatchCheckin matchId={match.id} />
     </View>
   )
 }
-
 function FlashPreview({ post }: { post: PostSummary }) {
   const [failed, setFailed] = useState(false)
   const cover = [...(post.imageUrls || []), post.imageUrl].find(

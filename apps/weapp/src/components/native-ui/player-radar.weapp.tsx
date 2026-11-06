@@ -1,6 +1,8 @@
-import { Canvas, Image, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
-import { useEffect, useId, useState } from 'react'
+import { Button, Canvas, Image, Text, View } from '@tarojs/components'
+import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
+import { useContext, useEffect, useId, useState } from 'react'
+import { useNativePanelVisible } from '../native-navigation/panel-context.weapp'
+import { NativeDetailActiveContext } from '../../features/native-navigation/detail-context.weapp'
 import { useNativeViewport } from '../../features/native-navigation/viewport.weapp'
 import { measureNativeContent } from '../native-navigation/content-pager.weapp'
 import { radarGeometry, radarValues, type PlayerAbilities } from './player-radar.logic'
@@ -14,29 +16,48 @@ export function NativePlayerRadar({
   active: boolean
 }) {
   const id = `player-radar-${useId().replace(/[^a-z0-9]/gi, '')}`
+  const panelVisible = useNativePanelVisible(),
+    detailVisible = useContext(NativeDetailActiveContext)
+  const [appVisible, setAppVisible] = useState(true)
+  useDidShow(() => setAppVisible(true))
+  useDidHide(() => setAppVisible(false))
+  const drawing = active && panelVisible && detailVisible && appVisible
   const info = useNativeViewport()
   const [failed, setFailed] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
+  const [attempt, setAttempt] = useState(0)
   const values = radarValues(abilities)
   const key = values.map((a) => `${a.key}:${a.value}`).join('|')
   useEffect(() => {
-    if (!active || values.length < 3) return
+    if (!drawing || values.length < 3) return
     setFailed(false)
     let alive = true
     let timer: ReturnType<typeof setTimeout> | undefined
     const draw = (attempt = 0) => {
       const query = Taro.createSelectorQuery()
       query.select('#' + id).fields({ node: true, size: true })
-      query.select('.native-player-radar >>> #' + id).fields({ node: true, size: true })
+      // The inline player page adds a custom-component boundary inside the hub swiper.
+      query.select('.native-player-detail >>> #' + id).fields({ node: true, size: true })
+      query.select('#' + id + '-plot').boundingClientRect()
+      query.select('.native-player-detail >>> #' + id + '-plot').boundingClientRect()
       query.exec((results: Array<{ node?: Taro.Canvas; width: number; height: number } | null>) => {
         if (!alive) return
-        const field = results.find((r) => r?.node && r.width > 0 && r.height > 0)
-        if (!field?.node) {
-          if (attempt < 2) timer = setTimeout(() => draw(attempt + 1), 80)
-          else setFailed(true)
+        const field = results.find((r) => r?.node)
+        const plot = results.slice(2).find((r) => r?.width && r.height)
+        if (!field?.node || !plot?.width || !plot.height) {
+          if (attempt < 6) timer = setTimeout(() => draw(attempt + 1), 80)
+          else {
+            console.warn(
+              'Player radar layout unavailable',
+              JSON.stringify(
+                results.map((r) => ({ node: !!r?.node, width: r?.width, height: r?.height })),
+              ),
+            )
+            setFailed(true)
+          }
           return
         }
-        const shape = radarGeometry(abilities, field.width, field.height)
+        const shape = radarGeometry(abilities, plot.width, plot.height)
         if (!shape) {
           setFailed(true)
           return
@@ -44,11 +65,11 @@ export function NativePlayerRadar({
         try {
           const node = field.node,
             ratio = info.pixelRatio || 1
-          node.width = Math.round(field.width * ratio)
-          node.height = Math.round(field.height * ratio)
+          node.width = Math.round(plot.width * ratio)
+          node.height = Math.round(plot.height * ratio)
           const ctx = node.getContext('2d') as CanvasRenderingContext2D
           ctx.scale(ratio, ratio)
-          ctx.clearRect(0, 0, field.width, field.height)
+          ctx.clearRect(0, 0, plot.width, plot.height)
           ctx.lineJoin = 'round'
           const polygon = (points: Array<{ x: number; y: number }>) => {
             ctx.beginPath()
@@ -99,15 +120,19 @@ export function NativePlayerRadar({
               a.align === 'left' ? 8 : a.align === 'right' ? textWidth + 8 : textWidth / 2 + 8
             const right =
               a.align === 'right'
-                ? field.width - 8
+                ? plot.width - 8
                 : a.align === 'left'
-                  ? field.width - textWidth - 8
-                  : field.width - textWidth / 2 - 8
+                  ? plot.width - textWidth - 8
+                  : plot.width - textWidth / 2 - 8
             ctx.fillText(text, Math.max(left, Math.min(right, a.labelPoint.x)), a.labelPoint.y)
           }
           // A visible native Canvas can cover RootPortal drawers. Keep the PNG in memory instead.
           setPreview(node.toDataURL('image/png', 1))
-        } catch {
+        } catch (issue) {
+          console.warn(
+            'Player radar drawing failed',
+            issue instanceof Error ? issue.message : 'canvas error',
+          )
           setFailed(true)
         }
       })
@@ -117,20 +142,27 @@ export function NativePlayerRadar({
       alive = false
       clearTimeout(timer)
     }
-  }, [key, active, id, info.windowWidth, info.pixelRatio])
-  const shown = values.length >= 3 && !failed
+  }, [key, drawing, id, info.windowWidth, info.pixelRatio, attempt])
+  const shown = values.length >= 3
   useEffect(() => {
     Taro.nextTick(measureNativeContent)
-  }, [shown])
+  }, [shown, preview, drawing])
   if (!shown) return null
   return (
-    <View className="native-player-radar">
+    <View id={id + '-plot'} className="native-player-radar">
       <Canvas id={id} type="2d" className="native-player-radar__canvas" />
+      {!preview && !failed && <Text className="native-note">正在绘制能力图…</Text>}
+      {failed && (
+        <Button className="native-button" onClick={() => setAttempt((value) => value + 1)}>
+          重新加载能力图
+        </Button>
+      )}
       {preview && (
         <Image
           className="native-player-radar__image"
           src={preview}
           mode="aspectFit"
+          onLoad={measureNativeContent}
           aria-label={values.map((a) => `${a.label}${a.value}`).join('，')}
         />
       )}

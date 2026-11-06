@@ -1,10 +1,10 @@
-/** User authoring is retired. Official content and system notifications remain readable. */
+/** UGC is enabled in 0.8.9; authorization and moderation remain server-owned. */
 export const nativeSocialConfig = {
-  enabled: false,
-  publishPosts: false,
-  postComments: false,
-  matchComments: false,
-  privateMessages: false,
+  enabled: true,
+  publishPosts: true,
+  postComments: true,
+  matchComments: true,
+  privateMessages: true,
 }
 export type NativeWriteFeature = Exclude<keyof typeof nativeSocialConfig, 'enabled'>
 export function nativeWriteEnabled(feature: NativeWriteFeature, config = nativeSocialConfig) {

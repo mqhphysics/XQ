@@ -7,6 +7,7 @@ import {
 } from '../native-navigation/index.weapp'
 import { nativeWriteEnabled } from './config.weapp'
 import { readSession } from '../product/session'
+import { requestNativeLogin } from '../product/login-return.weapp'
 
 export async function openNativeComposer(
   options: {
@@ -17,7 +18,7 @@ export async function openNativeComposer(
 ) {
   if (!nativeWriteEnabled('publishPosts')) return
   if (!readSession()) {
-    await Taro.showToast({ title: '登录后可以发布动态', icon: 'none' })
+    await requestNativeLogin('登录后可以发布动态')
     return
   }
   const query = Object.entries(options)

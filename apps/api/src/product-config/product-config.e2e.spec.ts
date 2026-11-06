@@ -15,10 +15,18 @@ import type { Server } from 'node:http'
 
 @Controller()
 class BusinessProbeController {
-  @Post('community/posts') retiredPost() { throw new Error('Retired post handler reached') }
-  @Post('community/posts/:postId/comments') retiredComment() { throw new Error('Retired comment handler reached') }
-  @Post('messages/direct/:recipientUserId') retiredMessage() { throw new Error('Retired message handler reached') }
-  @Get('me/notifications') notices() { return { items: [{ type: 'SYSTEM', title: '通知仍可读取' }] } }
+  @Post('community/posts') retiredPost() {
+    throw new Error('Retired post handler reached')
+  }
+  @Post('community/posts/:postId/comments') retiredComment() {
+    throw new Error('Retired comment handler reached')
+  }
+  @Post('messages/direct/:recipientUserId') retiredMessage() {
+    return { fixtureMessage: true }
+  }
+  @Get('me/notifications') notices() {
+    return { items: [{ type: 'SYSTEM', title: '通知仍可读取' }] }
+  }
   @Post('captain/teams/:teamId/lineup-plans/:planId/default') defaultLineup() {
     throw new Error('Closed teamManagement route must never reach a write handler')
   }
@@ -87,9 +95,13 @@ after(async () => {
   await app?.close()
 })
 
-test('retired authoring is rejected before handlers while system notifications remain reachable', async () => {
-  for (const path of ['/api/community/posts', '/api/community/posts/post-1/comments', '/api/messages/direct/user-1'])
-    await request(app.getHttpServer()).post(path).send({ body: 'must not be saved' }).expect(410)
+test('explicitly disabled community is blocked while restored messaging and notifications remain reachable', async () => {
+  for (const path of ['/api/community/posts', '/api/community/posts/post-1/comments'])
+    await request(app.getHttpServer()).post(path).send({ body: 'must not be saved' }).expect(403)
+  await request(app.getHttpServer())
+    .post('/api/messages/direct/user-1')
+    .send({ body: 'fixture' })
+    .expect(201)
   const notices = await request(app.getHttpServer()).get('/api/me/notifications').expect(200)
   assert.equal(notices.body.items[0].type, 'SYSTEM')
 })

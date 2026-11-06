@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 test(
-  'check-in real HTTP: persistence, concurrent retries, account isolation and retired UGC',
+  'check-in real HTTP: persistence, concurrent retries, account isolation and restored UGC',
   { timeout: 60000 },
   async () => {
     const url = process.env.TEST_DATABASE_URL
@@ -138,16 +138,75 @@ test(
       assert.equal((await read().expect(200)).body.count, 2)
       await request(server).put(endpoint).set('Authorization', auth[2]!).expect(404)
       await read(auth[2]).expect(403)
+      const postKey = randomUUID()
+      const create = () =>
+        request(server).post('/api/community/posts').set('Authorization', auth[0]!).send({
+          body: 'FICTIONAL_TEST restored post',
+          clientPostId: postKey,
+          tournamentId: tournament.id,
+        })
+      const post = await create().expect(201)
+      assert.equal((await create().expect(201)).body.id, post.body.id)
+      await request(server)
+        .post('/api/community/posts')
+        .send({ body: 'anonymous', clientPostId: randomUUID() })
+        .expect(401)
       await request(server)
         .post('/api/community/posts')
         .set('Authorization', auth[0]!)
-        .send({ body: 'retired' })
-        .expect(410)
+        .send({
+          body: 'FICTIONAL_TEST quote',
+          clientPostId: randomUUID(),
+          tournamentId: tournament.id,
+          quotedPostId: post.body.id,
+        })
+        .expect(201)
+      const comment = await request(server)
+        .post('/api/community/posts/' + post.body.id + '/comments')
+        .set('Authorization', auth[1]!)
+        .send({ body: 'FICTIONAL_TEST comment', clientCommentId: randomUUID() })
+        .expect(201)
       await request(server)
-        .post(`/api/matches/${match.id}/reviews`)
+        .post('/api/community/posts/' + post.body.id + '/comments')
         .set('Authorization', auth[0]!)
-        .send({ body: 'retired' })
-        .expect(410)
+        .send({
+          body: 'FICTIONAL_TEST reply',
+          clientCommentId: randomUUID(),
+          parentCommentId: comment.body.id,
+        })
+        .expect(201)
+      await request(server)
+        .post('/api/community/posts/' + post.body.id + '/comments')
+        .set('Authorization', auth[2]!)
+        .send({ body: 'foreign comment', clientCommentId: randomUUID() })
+        .expect(404)
+      const messageId = randomUUID()
+      const send = () =>
+        request(server)
+          .post('/api/messages/direct/' + users[1]!.id)
+          .set('Authorization', auth[0]!)
+          .send({ body: 'FICTIONAL_TEST private', clientMessageId: messageId })
+      const direct = await send().expect(201)
+      assert.equal((await send().expect(201)).body.message.id, direct.body.message.id)
+      await request(server)
+        .get('/api/messages/conversations/' + direct.body.conversationId)
+        .set('Authorization', auth[2]!)
+        .expect(404)
+      await request(server)
+        .post('/api/messages/direct/' + users[2]!.id)
+        .set('Authorization', auth[0]!)
+        .send({ body: 'foreign private', clientMessageId: randomUUID() })
+        .expect(404)
+      await request(server)
+        .post('/api/matches/' + match.id + '/reviews')
+        .set('Authorization', auth[0]!)
+        .send({ body: 'FICTIONAL_TEST match comment' })
+        .expect(200)
+      assert.equal(
+        (await read().expect(200)).body.count,
+        2,
+        'comments and messages never create check-ins',
+      )
       const ratingResponse = await request(server)
         .post(`/api/matches/${match.id}/reviews`)
         .set('Authorization', auth[0]!)
