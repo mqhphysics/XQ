@@ -12,13 +12,23 @@ import {
   Query,
   Req,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiExtraModels,
+  ApiBody,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger'
 
 import { getRequestId, type RequestWithId } from '../common/request-context'
 import { MessagingService } from './messaging.service'
 import { BadgePreferenceService } from './badge-preference.service'
 import { HubStripOrderService } from './hub-strip-order.service'
 import {
+  NotificationPageQueryDto,
+  NotificationItemDto,
+  NotificationPageDto,
   CreateDirectMessageDto,
   CreateReportDto,
   CreateTeamApplicationDto,
@@ -211,9 +221,23 @@ export class SocialController {
   }
 
   @Get('me/notifications')
-  @ApiOperation({ summary: '读取点赞、回复、申请、投诉和私信通知' })
-  notifications(@Headers('authorization') authorization: string | undefined) {
-    return this.socialService.listNotifications(authorization)
+  @ApiExtraModels(NotificationPageQueryDto)
+  @ApiOperation({ summary: '分页读取系统及互动通知' })
+  @ApiOkResponse({ type: NotificationPageDto })
+  notifications(
+    @Headers('authorization') authorization: string | undefined,
+    @Query() query: NotificationPageQueryDto,
+  ) {
+    return this.socialService.listNotifications(authorization, query.before)
+  }
+
+  @Get('me/notifications/:notificationId')
+  @ApiOkResponse({ type: NotificationItemDto })
+  notification(
+    @Headers('authorization') authorization: string | undefined,
+    @Param('notificationId', ParseUUIDPipe) id: string,
+  ) {
+    return this.socialService.getNotification(authorization, id)
   }
 
   @Put('me/notifications/read-all')
@@ -242,9 +266,13 @@ export class SocialController {
   }
 
   @Get('me/reports')
+  @ApiExtraModels(NotificationPageQueryDto)
   @ApiOperation({ summary: '读取本人投诉与处理结果' })
-  myReports(@Headers('authorization') authorization: string | undefined) {
-    return this.socialService.listMyReports(authorization)
+  myReports(
+    @Headers('authorization') authorization: string | undefined,
+    @Query() query: NotificationPageQueryDto,
+  ) {
+    return this.socialService.listMyReports(authorization, query.before)
   }
 
   @Get('admin/reports')

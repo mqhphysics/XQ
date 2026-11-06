@@ -1,5 +1,5 @@
+import { requestNativeLogin } from '../product/login-return.weapp'
 import { Button, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { productRepository } from '../product/product.repository'
 import { readSession } from '../product/session'
@@ -47,7 +47,7 @@ export function NativeMatchCheckin({ matchId }: { matchId: string }) {
   const checkIn = async () => {
     if (lock.current || value?.checkedIn) return
     if (!readSession()) {
-      void Taro.showToast({ title: '登录后可以打卡', icon: 'none' })
+      void requestNativeLogin('登录后可以打卡')
       return
     }
     lock.current = true

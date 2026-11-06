@@ -4,6 +4,11 @@ import { ApiHttpException } from '../common/api-http.exception'
 
 export const REGISTRATION_CLOSED_MESSAGE = '测试阶段暂未开放注册'
 
+/** Temporary roadshow admission; it grants an account, never a student/player identity. */
+export function registrationOpenToEveryone(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.REGISTRATION_AUDIENCE?.trim().toUpperCase() === 'ALL'
+}
+
 /**
  * Public self-registration switch. Production defaults to closed unless
  * REGISTRATION_ENABLED=true; local/dev defaults to open unless set to false.

@@ -1,4 +1,6 @@
 export function nativeFailureHint(message = '') {
+  if (/参数|格式不正确|校验失败|HTTP (400|409|429)|过于频繁|版本冲突|已被其他人更新/i.test(message))
+    return { kind: 'service', cause: '请核对提示；数据已变化时重新读取，请求过于频繁时稍后再试。' } as const
   if (/不存在|已删除|已撤回|已下架|HTTP 404/i.test(message))
     return { kind: 'missing', cause: '内容可能已删除或撤回，可以返回其他页面。' } as const
   if (/登录|会话|认证.*失效|token|过期/i.test(message))

@@ -15,6 +15,20 @@ const asset = {
   frames: 3,
   durationMs: 300,
 }
+
+test('cache clearing refuses active downloads and only removes managed GIF entries', async () => {
+  const s = storage(),
+    cache = createGifCache(s.io)
+  const download = cache.load(asset)
+  await assert.rejects(cache.clear(), /仍在下载/)
+  await download
+  assert.equal((await cache.usage()).count, 1)
+  await cache.clear()
+  assert.equal((await cache.usage()).bytes, 0)
+  assert.equal(s.files.size, 0)
+  await cache.load(asset)
+  assert.equal(s.fetches(), 2)
+})
 function storage() {
   let now = 0,
     index: GifCacheIndex = {},

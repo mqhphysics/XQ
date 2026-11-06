@@ -1,4 +1,5 @@
 import type { Prisma } from '../generated/prisma/client'
+import { registrationOpenToEveryone } from './registration-policy'
 
 type Directory = Pick<Prisma.TransactionClient, 'studentRecord' | 'user'>
 export async function registrationCheck(
@@ -7,6 +8,12 @@ export async function registrationCheck(
   rawName: string,
   studentNumber: string,
 ) {
+  if (registrationOpenToEveryone())
+    return {
+      eligible: true,
+      reason: 'OPEN_REGISTRATION',
+      message: '路演期间开放注册，姓名和学号不影响注册。',
+    }
   if (!/^20\d{8}$/.test(studentNumber))
     return { eligible: false, reason: 'INVALID_NUMBER', message: '请填写以20开头的10位学号。' }
   const name = rawName.normalize('NFKC').trim()

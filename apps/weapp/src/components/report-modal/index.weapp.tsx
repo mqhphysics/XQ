@@ -14,14 +14,16 @@ export function ReportModal({
   title,
   onClose,
   onHistory,
+  initialReason = '',
 }: {
   targetId?: string
   targetType: ReportTargetType
   title: string
   onClose: () => void
   onHistory?: () => void
+  initialReason?: string
 }) {
-  const [reason, setReason] = useState(''),
+  const [reason, setReason] = useState(initialReason),
     [details, setDetails] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false)

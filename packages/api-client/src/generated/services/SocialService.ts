@@ -5,6 +5,8 @@
 import type { CreateDirectMessageDto } from '../models/CreateDirectMessageDto';
 import type { CreateReportDto } from '../models/CreateReportDto';
 import type { CreateTeamApplicationDto } from '../models/CreateTeamApplicationDto';
+import type { NotificationItemDto } from '../models/NotificationItemDto';
+import type { NotificationPageDto } from '../models/NotificationPageDto';
 import type { ReviewReportDto } from '../models/ReviewReportDto';
 import type { ReviewTeamApplicationDto } from '../models/ReviewTeamApplicationDto';
 import type { TeamManagementCommandDto } from '../models/TeamManagementCommandDto';
@@ -264,14 +266,36 @@ export class SocialService {
         });
     }
     /**
-     * 读取点赞、回复、申请、投诉和私信通知
-     * @returns any
+     * 分页读取系统及互动通知
+     * @param before
+     * @returns NotificationPageDto
      * @throws ApiError
      */
-    public static socialControllerNotifications(): CancelablePromise<any> {
+    public static socialControllerNotifications(
+        before?: string,
+    ): CancelablePromise<NotificationPageDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/me/notifications',
+            query: {
+                'before': before,
+            },
+        });
+    }
+    /**
+     * @param notificationId
+     * @returns NotificationItemDto
+     * @throws ApiError
+     */
+    public static socialControllerNotification(
+        notificationId: string,
+    ): CancelablePromise<NotificationItemDto> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/me/notifications/{notificationId}',
+            path: {
+                'notificationId': notificationId,
+            },
         });
     }
     /**
@@ -320,13 +344,19 @@ export class SocialService {
     }
     /**
      * 读取本人投诉与处理结果
+     * @param before
      * @returns any
      * @throws ApiError
      */
-    public static socialControllerMyReports(): CancelablePromise<any> {
+    public static socialControllerMyReports(
+        before?: string,
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/me/reports',
+            query: {
+                'before': before,
+            },
         });
     }
     /**

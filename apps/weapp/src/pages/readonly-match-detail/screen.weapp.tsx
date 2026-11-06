@@ -4,8 +4,8 @@ import {
   measureNativeContent,
 } from '../../components/native-navigation/content-pager.weapp'
 import { Button, Image, PageMeta, Text, Video, View } from '@tarojs/components'
-import Taro, { getCurrentInstance } from '@tarojs/taro'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Taro, { getCurrentInstance, useDidShow } from '@tarojs/taro'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { PublicShell } from '../../components/public-shell'
 import { DataState } from '../../components/public-ui'
 import { MatchStatus, TeamCrest } from '../../components/product-ui'
@@ -17,6 +17,7 @@ import {
   resolveMediaUrl,
   peekNativeProduct,
 } from '../../features/product/product.repository'
+import { NativeDetailActiveContext } from '../../features/native-navigation/detail-context.weapp'
 import { readSession } from '../../features/product/session'
 import { eventLabel } from '../../features/product/product.format'
 import { openPlayer } from '../../features/product/player-navigation'
@@ -62,25 +63,47 @@ export default function NativeMatchScreen({
     'match-data',
     cachedMatch ? { phase: 'ready', match: cachedMatch } : { phase: 'loading' },
   )
+  const [refreshError, setRefreshError] = useState('')
+  const requestSequence = useRef(0),
+    refreshedAt = useRef(0)
+  const active = useContext(NativeDetailActiveContext)
   const load = useCallback(async () => {
+    const ticket = ++requestSequence.current
+    refreshedAt.current = Date.now()
     if (!matchId) {
       setState({ phase: 'failed', message: '缺少比赛信息' })
       return
     }
     try {
-      setState({ phase: 'ready', match: await productRepository.getMatch(matchId) })
+      const match = await productRepository.getMatch(matchId)
+      if (ticket !== requestSequence.current) return
+      setState({ phase: 'ready', match })
+      setRefreshError('')
     } catch (issue) {
-      setState({
-        phase: 'failed',
-        message: issue instanceof Error ? issue.message : '比赛读取失败',
-      })
+      if (ticket !== requestSequence.current) return
+      const message = issue instanceof Error ? issue.message : '比赛读取失败'
+      const denied = [401, 403, 404].includes(Number((issue as { statusCode?: number }).statusCode))
+      setRefreshError(message)
+      setState((previous) =>
+        !denied && previous.phase === 'ready' && previous.match.id === matchId
+          ? previous
+          : { phase: 'failed', message },
+      )
     }
   }, [matchId])
+  const refreshVisible = () => {
+    if (active && !technical && Date.now() - refreshedAt.current > 15000) void load()
+  }
+  useDidShow(refreshVisible)
+  useEffect(refreshVisible, [active, technical, load])
   useNativeRefreshTask(async () => {
     if (!technical) await load()
   })
   useEffect(() => {
     if (!technical) void load()
+    return () => {
+      requestSequence.current++
+    }
   }, [load, technical])
   if (technical)
     return (
@@ -107,6 +130,14 @@ export default function NativeMatchScreen({
           description={state.message}
           onRetry={() => void load()}
         />
+      )}
+      {state.phase === 'ready' && refreshError && (
+        <View>
+          <Text className="native-note">更新未完成，暂显示上次读取的比赛信息：{refreshError}</Text>
+          <Button className="native-button" onClick={() => void load()}>
+            重新更新
+          </Button>
+        </View>
       )}
       {state.phase === 'ready' && (
         <NativeMatchContent

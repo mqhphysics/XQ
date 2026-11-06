@@ -19,7 +19,7 @@ class RecordingMail extends MailService {
   messages: Array<{ email: string; code: string; purpose: EmailPurpose }> = []
   notices: string[] = []
   override get enabled() {
-    return true
+    return this.configured
   }
   override requireConfigured() {
     if (!this.configured) return super.requireConfigured()
@@ -54,6 +54,9 @@ test(
     let orgId = ''
     let otherId = ''
     const userIds: string[] = []
+    const previousAudience = process.env.REGISTRATION_AUDIENCE
+    // This suite exercises unbound email accounts; student claims have their own HTTP acceptance.
+    process.env.REGISTRATION_AUDIENCE = 'ALL'
     try {
       orgId = (
         await prisma.organization.create({
@@ -139,10 +142,15 @@ test(
           assert.equal(mail.messages.length, sentBefore)
           assert.equal(await prisma.emailAuthCode.count({ where: { organizationId: orgId } }), 0)
           assert.equal((await post('register', { ...input, email: 'bad-email' })).status, 400)
-          assert.equal(
-            (await post('register', { ...input, email: '', studentId: '123' })).status,
-            400,
-          )
+          process.env.REGISTRATION_AUDIENCE = 'STUDENTS'
+          try {
+            assert.equal(
+              (await post('register', { ...input, email: '', studentId: '123' })).status,
+              400,
+            )
+          } finally {
+            process.env.REGISTRATION_AUDIENCE = 'ALL'
+          }
         },
       )
 
@@ -502,6 +510,8 @@ test(
         },
       )
     } finally {
+      if (previousAudience === undefined) delete process.env.REGISTRATION_AUDIENCE
+      else process.env.REGISTRATION_AUDIENCE = previousAudience
       if (app) await app.close()
       await prisma.auditLog.deleteMany({
         where: { organizationId: { in: [orgId, otherId].filter(Boolean) } },

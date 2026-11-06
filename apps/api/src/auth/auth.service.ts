@@ -8,6 +8,7 @@ import { ApiHttpException } from '../common/api-http.exception'
 import { DEMO_ACCOUNTS, DEMO_ORGANIZATION_ID, fixtureId } from '../database/demo-fixture'
 import { PrismaService } from '../database/prisma.service'
 import { attachRegisteredStudent } from '../campus/student-registration'
+import { queueProfileReview } from './profile-review'
 import { defaultAvatar, defaultCover } from '../media/default-media'
 import {
   AuditActorType,
@@ -354,7 +355,9 @@ export class AuthService {
       ? normalizeIdentifier(body.username)
       : `u_${randomBytes(8).toString('hex')}`
     const email = body.email ? normalizeIdentifier(body.email) : undefined
-    const studentId = body.studentId.trim()
+    const studentId = typeof body.studentId === 'string' ? body.studentId.trim().slice(0, 32) : ''
+    const realName =
+      typeof body.realName === 'string' ? body.realName.normalize('NFKC').trim().slice(0, 120) : ''
     const organization = await this.prisma.organization.findFirst({
       where: { id: organizationId, status: 'ACTIVE' },
       select: { id: true },
@@ -392,7 +395,7 @@ export class AuthService {
     const credential = hashPassword(body.password)
     const create = async (tx: Prisma.TransactionClient) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${organizationId + ':registration:' + studentId},0))`
-      const check = await registrationCheck(tx, organizationId, body.realName, studentId)
+      const check = await registrationCheck(tx, organizationId, realName, studentId)
       if (!check.eligible)
         throw new ApiHttpException(HttpStatus.CONFLICT, {
           code: ERROR_CODES.CONFLICT,
@@ -404,8 +407,8 @@ export class AuthService {
           loginNameNormalized: username,
           displayName:
             body.displayName?.trim() || `晓球${String(randomInt(100000)).padStart(5, '0')}`,
-          realName: body.realName.normalize('NFKC').trim(),
-          realNameNormalized: normalizeIdentifier(body.realName.normalize('NFKC')),
+          realName: realName || null,
+          realNameNormalized: realName ? normalizeIdentifier(realName) : null,
           // The registration helper determines the student's verification workflow.
           studentId: null,
           email: body.email?.trim() ?? null,
@@ -415,7 +418,12 @@ export class AuthService {
           status: UserStatus.ACTIVE,
         },
       })
-      await attachRegisteredStudent(tx, organizationId, user.id, body.realName.trim(), studentId)
+      await attachRegisteredStudent(tx, organizationId, user.id, realName, studentId)
+      if (body.displayName?.trim())
+        await queueProfileReview(tx, organizationId, user.id, {
+          displayName: user.displayName,
+          bio: null,
+        })
       await tx.passwordCredential.create({
         data: {
           userId: user.id,
@@ -827,6 +835,11 @@ export class AuthService {
           },
           include: userInclude,
         })
+        if (updated.displayName !== before.displayName || updated.bio !== before.bio)
+          await queueProfileReview(tx, session.organizationId, session.userId, {
+            displayName: updated.displayName,
+            bio: updated.bio,
+          })
         await tx.auditLog.create({
           data: {
             organizationId: session.organizationId,

@@ -11,6 +11,7 @@ import {
 } from '../../components/messaging-drawer/message-categories.h5'
 import { productRepository } from '../../features/product/product.repository'
 import { readSession } from '../../features/product/session'
+import { queueProfileEntry } from '../../features/product/profile-entry.weapp'
 import { formatRelativeTime } from '../../features/product/product.format'
 import type { NotificationResponse } from '../../features/product/product.types'
 import { NativeDetailActiveContext } from '../../features/native-navigation/detail-context.weapp'
@@ -47,6 +48,10 @@ export default function NativeMessagesScreen(supplied: NativeMessagesParams = {}
   const [loading, setLoading] = useState(true),
     [refreshing, setRefreshing] = useState(false),
     [error, setError] = useState('')
+  const [nextCursor, setNextCursor] = useState<string | null>(null),
+    [unread, setUnread] = useState(0),
+    [moreBusy, setMoreBusy] = useState(false)
+  const moreLock = useRef(false)
   const sequence = useRef(0)
   const notice = notifications.find((item) => item.id === noticeId)
   const load = useCallback(
@@ -61,14 +66,23 @@ export default function NativeMessagesScreen(supplied: NativeMessagesParams = {}
       }
       if (!silent) setLoading(true)
       try {
+        if (noticeId) {
+          const detail = await productRepository.getNotification(noticeId)
+          if (ticket !== sequence.current || readSession()?.user.id !== owner) return
+          setNotifications([detail])
+          if (!detail.readAt) {
+            await productRepository.readNotification(noticeId)
+            if (ticket !== sequence.current || readSession()?.user.id !== owner) return
+            setNotifications([{ ...detail, readAt: new Date().toISOString() }])
+          }
+          setError('')
+          return
+        }
         const result = await productRepository.getNotifications()
         if (ticket !== sequence.current || readSession()?.user.id !== owner) return
         setNotifications(result.items.filter((item) => item.type !== 'DIRECT_MESSAGE'))
-        if (noticeId && result.items.some((item) => item.id === noticeId && !item.readAt)) {
-          const read = await productRepository.readNotification(noticeId)
-          if (ticket === sequence.current && readSession()?.user.id === owner)
-            setNotifications(read.items.filter((item) => item.type !== 'DIRECT_MESSAGE'))
-        }
+        setNextCursor(result.nextCursor || null)
+        setUnread(result.unreadCount)
         setError('')
       } catch (issue) {
         if (ticket === sequence.current)
@@ -98,18 +112,47 @@ export default function NativeMessagesScreen(supplied: NativeMessagesParams = {}
       void Taro.showToast({ title: '该功能已退出', icon: 'none' })
       return
     }
-    if (url.startsWith('/pages/me/')) await switchNativeSection('me')
-    else if (url.startsWith('/pages/my-team/')) await switchNativeSection('team')
+    if (url.startsWith('/pages/me/')) {
+      await switchNativeSection('me')
+      queueProfileEntry(url)
+    } else if (url.startsWith('/pages/my-team/')) await switchNativeSection('team')
     else await openNativeDetail(url)
   }
   const markAll = async () => {
     const owner = readSession()?.accessToken
     try {
       const result = await productRepository.readAllNotifications()
-      if (owner === readSession()?.accessToken)
-        setNotifications(result.items.filter((item) => item.type !== 'DIRECT_MESSAGE'))
+      if (owner === readSession()?.accessToken) {
+        setNotifications((previous) =>
+          previous.map((item) => ({ ...item, readAt: item.readAt || new Date().toISOString() })),
+        )
+        setUnread(result.unreadCount)
+      }
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : '标记失败，请重试')
+    }
+  }
+  const loadMore = async () => {
+    if (!nextCursor || moreLock.current) return
+    moreLock.current = true
+    setMoreBusy(true)
+    const owner = readSession()?.accessToken,
+      ticket = sequence.current
+    try {
+      const result = await productRepository.getNotifications(nextCursor)
+      if (owner !== readSession()?.accessToken || ticket !== sequence.current) return
+      setNotifications((previous) => [
+        ...previous,
+        ...result.items.filter((item) => !previous.some((old) => old.id === item.id)),
+      ])
+      setNextCursor(result.nextCursor || null)
+      setUnread(result.unreadCount)
+      setError('')
+    } catch (issue) {
+      setError(issue instanceof Error ? issue.message : '更多通知读取失败')
+    } finally {
+      moreLock.current = false
+      setMoreBusy(false)
     }
   }
   const rows = notifications.filter((item) => notificationCategory(item) === category)
@@ -157,6 +200,7 @@ export default function NativeMessagesScreen(supplied: NativeMessagesParams = {}
         </ScrollView>
       ) : (
         <View className="native-mail-main">
+          <Text className="native-note">未读共 {unread} 条 · 分类角标为已加载记录</Text>
           <View
             className="native-mail-categories"
             role="tablist"
@@ -220,6 +264,16 @@ export default function NativeMessagesScreen(supplied: NativeMessagesParams = {}
                 {!item.readAt && <Text className="native-mail-badge">●</Text>}
               </Button>
             ))}
+            {nextCursor && (
+              <Button
+                className="native-button"
+                loading={moreBusy}
+                disabled={moreBusy}
+                onClick={() => void loadMore()}
+              >
+                加载更早的通知
+              </Button>
+            )}
             {!loading && !rows.length && (
               <Text className="native-mail-empty">
                 暂时没有{messageCategories.find((item) => item.id === category)?.label}

@@ -177,3 +177,32 @@ export class CreateDirectMessageDto {
   @Length(8, 120)
   clientMessageId!: string
 }
+
+export class NotificationPageQueryDto {
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  before?: string
+}
+export class NotificationActorDto {
+  @ApiProperty() id!: string
+  @ApiProperty() displayName!: string
+  @ApiProperty({ type: String, nullable: true }) avatarUrl!: string | null
+}
+export class NotificationItemDto {
+  @ApiProperty() id!: string
+  @ApiProperty() type!: string
+  @ApiProperty({ type: String, nullable: true }) messageCategory!: string | null
+  @ApiProperty() title!: string
+  @ApiProperty({ type: String, nullable: true }) body!: string | null
+  @ApiProperty({ type: String, nullable: true }) linkPath!: string | null
+  @ApiProperty({ type: String, nullable: true }) readAt!: string | null
+  @ApiProperty() createdAt!: string
+  @ApiProperty({ type: () => NotificationActorDto, nullable: true })
+  actor!: NotificationActorDto | null
+}
+export class NotificationPageDto {
+  @ApiProperty() unreadCount!: number
+  @ApiProperty({ type: String, nullable: true }) nextCursor!: string | null
+  @ApiProperty({ type: () => [NotificationItemDto] }) items!: NotificationItemDto[]
+}

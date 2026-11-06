@@ -1,3 +1,4 @@
+import { resumeNativeLogin } from '../../features/product/login-return.weapp'
 import { AuthInput as Input } from '../../components/auth-scene/auth-input'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
@@ -60,7 +61,7 @@ export default function LoginPage({
 
   useEffect(() => {
     if (redirectAuthenticated && readSession()) {
-      void Taro.reLaunch({ url: '/pages/index/index' })
+      void resumeNativeLogin()
     }
   }, [redirectAuthenticated])
 
@@ -77,7 +78,7 @@ export default function LoginPage({
     setFailureMessage('')
     try {
       await productRepository.login(identifier, password)
-      await Taro.reLaunch({ url: '/pages/index/index' })
+      await resumeNativeLogin()
     } catch (error) {
       setFailureMessage(error instanceof Error ? error.message : '登录失败，请重试。')
       await showError(error, '登录失败')
@@ -98,7 +99,7 @@ export default function LoginPage({
     try {
       const { confirmPassword: _confirmPassword, ...input } = registration
       await productRepository.register(input)
-      await Taro.reLaunch({ url: '/pages/index/index' })
+      await resumeNativeLogin()
     } catch (error) {
       setFailureMessage(error instanceof Error ? error.message : '注册失败，请重试。')
       await showError(error, '注册失败')
@@ -146,7 +147,7 @@ export default function LoginPage({
       return
     }
     enterGuestMode()
-    await Taro.reLaunch({ url: '/pages/index/index' })
+    await resumeNativeLogin()
   }
 
   const showEmailPlaceholder = async () => {

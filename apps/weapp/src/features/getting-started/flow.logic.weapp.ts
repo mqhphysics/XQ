@@ -3,6 +3,7 @@ import type { NativeSection } from '../native-navigation/history.logic.weapp'
 export type GuideAudience = 'student' | 'player' | 'captain'
 export type GuideAction = 'next' | 'player' | 'edit' | 'manage' | 'back' | 'finish'
 export type GuideStep = {
+  navigationTarget?: NativeSection
   id: string
   /** Main tab that must be showing before this step is measured. */
   section: NativeSection
@@ -232,8 +233,24 @@ export function guideSteps(
       button: '结束引导',
     },
   )
-  return drafts.map((step, index) => {
+  const expanded: Draft[] = drafts.flatMap((step, index) => {
     const next = drafts[index + 1]
+    if (!next || next.section === step.section) return [step]
+    return [
+      step,
+      {
+        id: 'navigate-' + next.section,
+        section: step.section,
+        navigationTarget: next.section,
+        selector: '#native-guide-nav-' + next.section,
+        title: '接下来，点击「' + guidePageLabels[next.section] + '」',
+        body: '先认一下导航的位置。点击高亮按钮进入，也可以点击屏幕其他位置继续；没有操作时8秒后自动进入。',
+        action: 'next',
+      },
+    ]
+  })
+  return expanded.map((step, index) => {
+    const next = expanded[index + 1]
     const leaving = step.action === 'next' && next && next.section !== step.section
     return {
       ...step,

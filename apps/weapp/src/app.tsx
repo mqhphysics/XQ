@@ -5,12 +5,14 @@ import { mountSoftFocus } from './components/public-shell/focus-style'
 import { AccountBoundary } from './components/account-boundary'
 import { readSession, subscribeToExternalSessionChanges } from './features/product/session'
 import { AppOverlays, PublicAppOverlays } from './components/app-overlays'
+import { useNativeUpdate } from './features/product/update.weapp'
 
 import './app.scss'
 import './app-box-sizing'
 import './components/viewport-page'
 
 export default function App({ children }: PropsWithChildren) {
+  useNativeUpdate()
   // Native system cursors site-wide: the PNG cursor skin rendered as a blocky black hand on links.
   useEffect(() => mountSoftFocus(), [])
 

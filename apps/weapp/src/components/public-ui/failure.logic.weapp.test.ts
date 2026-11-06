@@ -10,4 +10,6 @@ test('load failures distinguish account state and permissions from network recov
   assert.equal(nativeFailureHint('内容已撤回').kind, 'missing')
   assert.equal(nativeFailureHint('请求失败（HTTP 404）').kind, 'missing')
   assert.equal(nativeFailureHint('请求失败（HTTP 503）').kind, 'service')
+  assert.equal(nativeFailureHint('请求参数校验失败').kind, 'service')
+  assert.equal(nativeFailureHint('请求失败（HTTP 429）').kind, 'service')
 })

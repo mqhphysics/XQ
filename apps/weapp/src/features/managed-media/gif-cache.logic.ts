@@ -31,6 +31,7 @@ export function createGifCache(io: GifCacheIO) {
   let index: GifCacheIndex = {},
     ready: Promise<void> | undefined,
     saves = Promise.resolve()
+  let clearing = false
   const pending = new Map<string, Promise<string>>()
   const persist = () => {
     const snapshot = JSON.parse(JSON.stringify(index)) as GifCacheIndex
@@ -63,7 +64,27 @@ export function createGifCache(io: GifCacheIO) {
     return info
   }
   return {
+    async usage() {
+      await initialize()
+      return {
+        count: Object.keys(index).length,
+        bytes: Object.values(index).reduce((sum, entry) => sum + entry.storedBytes, 0),
+      }
+    },
+    async clear() {
+      if (clearing || pending.size) throw new Error('比赛片段仍在下载，请稍后清理')
+      clearing = true
+      try {
+        await initialize()
+        await saves
+        for (const key of Object.keys(index)) await remove(key)
+        await persist()
+      } finally {
+        clearing = false
+      }
+    },
     load(asset: Asset): Promise<string> {
+      if (clearing) return Promise.reject(new Error('缓存正在清理，请稍后重试'))
       const key = `${asset.id}-${asset.version || 1}`
       if (!/^[\w-]+$/.test(key)) return Promise.reject(Error('GIF 标识无效'))
       if (pending.has(key)) return pending.get(key)!

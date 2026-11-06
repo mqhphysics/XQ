@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
+import { registrationOpenToEveryone } from './registration-policy'
 import {
   IsBoolean,
   IsEmail,
@@ -60,12 +61,14 @@ export class RegisterDto {
   displayName?: string
 
   @ApiProperty({ type: String, description: '后台实名', example: '林知夏' })
+  @ValidateIf(() => !registrationOpenToEveryone())
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Length(2, 120)
   realName!: string
 
   @ApiProperty({ type: String, pattern: '^20\\d{8}$', example: '2024990001' })
+  @ValidateIf(() => !registrationOpenToEveryone())
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Length(10, 10)
@@ -93,12 +96,14 @@ export class RegisterDto {
 
 export class RegistrationCheckDto {
   @ApiProperty({ type: String, description: '姓名' })
+  @ValidateIf(() => !registrationOpenToEveryone())
   @Transform(({ value }) => (typeof value === 'string' ? value.normalize('NFKC').trim() : value))
   @IsString()
   @Length(2, 120)
   realName!: string
 
   @ApiProperty({ type: String, description: '学号', pattern: '^20\\d{8}$' })
+  @ValidateIf(() => !registrationOpenToEveryone())
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Matches(/^20\d{8}$/)

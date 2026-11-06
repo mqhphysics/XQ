@@ -353,7 +353,15 @@ export const productRepository = {
       { method: 'DELETE' },
     ),
 
-  getNotifications: () => request<NotificationResponse>('/me/notifications'),
+  getNotifications: (before?: string) =>
+    request<NotificationResponse>(
+      '/me/notifications' + (before ? '?before=' + encodeURIComponent(before) : ''),
+      { refresh: true },
+    ),
+  getNotification: (id: string) =>
+    request<NotificationResponse['items'][number]>('/me/notifications/' + encodeURIComponent(id), {
+      refresh: true,
+    }),
   readNotification: (notificationId: string) =>
     request<NotificationResponse>(`/me/notifications/${encodeURIComponent(notificationId)}/read`, {
       method: 'PUT',
@@ -378,7 +386,11 @@ export const productRepository = {
         ...(targetId ? { targetId } : {}),
       },
     }),
-  getMyReports: () => request<ReportListResponse>('/me/reports'),
+  getMyReports: (before?: string) =>
+    request<ReportListResponse>(
+      '/me/reports' + (before ? '?before=' + encodeURIComponent(before) : ''),
+      { refresh: true },
+    ),
   getAdminReports: () => request<ReportListResponse>('/admin/reports'),
   reviewReport: (reportId: string, status: string, resolution: string, hideContent: boolean) =>
     request<ReportListResponse>(`/admin/reports/${encodeURIComponent(reportId)}`, {

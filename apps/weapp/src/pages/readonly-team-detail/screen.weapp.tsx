@@ -1,3 +1,4 @@
+import { requestNativeLogin } from '../../features/product/login-return.weapp'
 import { NativeContentPager } from '../../components/native-navigation/content-pager.weapp'
 import { Button, Input, Picker, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance } from '@tarojs/taro'
@@ -230,31 +231,42 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
     [join, setJoin] = useState(false),
     [message, setMessage] = useState(''),
     [position, setPosition] = useState(2)
+  const [relationshipError, setRelationshipError] = useState(''),
+    [retry, setRetry] = useState(0)
   const positions = ['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD']
   useEffect(() => {
     let current = true
     if (readSession()) {
+      setRelationshipError('')
+      setPrefs(null)
+      setRelation(null)
       void productRepository
         .getTeamPreferences()
         .then((value) => {
           if (current) setPrefs(value)
         })
-        .catch(() => {})
+        .catch((issue) => {
+          if (current)
+            setRelationshipError(issue instanceof Error ? issue.message : '球队关系读取失败')
+        })
       void productRepository
         .getTeamRelationship(data.team.id)
         .then((value) => {
           if (current) setRelation(value)
         })
-        .catch(() => {})
+        .catch((issue) => {
+          if (current)
+            setRelationshipError(issue instanceof Error ? issue.message : '球队关系读取失败')
+        })
     }
     return () => {
       current = false
     }
-  }, [data.team.id])
+  }, [data.team.id, retry])
   const act = async (mode: 'primary' | 'follow' | 'join') => {
     if (busy) return
     if (!readSession()) {
-      void Taro.showToast({ title: '登录后可以操作', icon: 'none' })
+      void requestNativeLogin('登录后可以操作')
       return
     }
     if (mode === 'join') {
@@ -316,7 +328,9 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
           </View>
           <View className="native-profile-actions native-team-cover-actions">
             <Button
-              disabled={busy || prefs?.primaryTeam?.id === data.team.id}
+              disabled={
+                busy || (!!readSession() && !prefs) || prefs?.primaryTeam?.id === data.team.id
+              }
               onClick={async () => {
                 const followed = prefs?.followedTeams.some((team) => team.id === data.team.id)
                 if (followed) {
@@ -336,11 +350,14 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
                 ? '我的主队'
                 : prefs?.followedTeams.some((team) => team.id === data.team.id)
                   ? '已关注'
-                  : '关注球队'}
+                  : readSession() && !prefs
+                    ? '读取关注状态…'
+                    : '关注球队'}
             </Button>
             <Button
               disabled={
                 busy ||
+                (!!readSession() && !relation) ||
                 relation?.membershipStatus === 'ACTIVE' ||
                 relation?.application?.status === 'PENDING'
               }
@@ -350,11 +367,21 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
                 ? '已在队中'
                 : relation?.application?.status === 'PENDING'
                   ? '申请中'
-                  : '申请加入'}
+                  : readSession() && !relation
+                    ? '读取成员状态…'
+                    : '申请加入'}
             </Button>
           </View>
         </NativeProfileCover>
       </View>
+      {relationshipError && (
+        <View>
+          <Text className="native-error">{relationshipError}</Text>
+          <Button className="native-button" onClick={() => setRetry((n) => n + 1)}>
+            重新读取球队关系
+          </Button>
+        </View>
+      )}
       {join && (
         <NativeDialog
           title="申请加入球队"

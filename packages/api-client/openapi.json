@@ -1739,10 +1739,27 @@
     "/api/me/notifications": {
       "get": {
         "operationId": "SocialController_notifications",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPageDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1750,7 +1767,42 @@
             "bearer": []
           }
         ],
-        "summary": "读取点赞、回复、申请、投诉和私信通知",
+        "summary": "分页读取系统及互动通知",
+        "tags": [
+          "social"
+        ]
+      }
+    },
+    "/api/me/notifications/{notificationId}": {
+      "get": {
+        "operationId": "SocialController_notification",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationItemDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "social"
         ]
@@ -1838,7 +1890,17 @@
     "/api/me/reports": {
       "get": {
         "operationId": "SocialController_myReports",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -9360,6 +9422,111 @@
             "maxLength": 500
           }
         }
+      },
+      "NotificationPageQueryDto": {
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "NotificationActorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "avatarUrl"
+        ]
+      },
+      "NotificationItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "messageCategory": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "linkPath": {
+            "type": "string",
+            "nullable": true
+          },
+          "readAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "actor": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NotificationActorDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "messageCategory",
+          "title",
+          "body",
+          "linkPath",
+          "readAt",
+          "createdAt",
+          "actor"
+        ]
+      },
+      "NotificationPageDto": {
+        "type": "object",
+        "properties": {
+          "unreadCount": {
+            "type": "number"
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationItemDto"
+            }
+          }
+        },
+        "required": [
+          "unreadCount",
+          "nextCursor",
+          "items"
+        ]
       },
       "CreateReportDto": {
         "type": "object",

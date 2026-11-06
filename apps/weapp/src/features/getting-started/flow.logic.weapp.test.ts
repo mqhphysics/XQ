@@ -45,10 +45,10 @@ test('first-use guide walks home, schedule, me and ends on 主队 next to 添加
         assert.match(step.button, /^下一页：/)
     }
     /* About 8–10 cards for a student, more for players and captains. */
-    assert.ok(steps.length >= 8 && steps.length <= 16)
+    assert.ok(steps.length >= 8 && steps.length <= 20)
   }
   const student = guideSteps('student')
-  assert.equal(student.length, 8)
+  assert.equal(student.length, 11)
   /* The UGC feed is no longer a stop; one step frames 赛事公告 and the 平台公告 bar together. */
   assert.ok(student.every((step) => !step.selector.includes('home-feed')))
   assert.deepEqual(
@@ -85,7 +85,7 @@ test('first-use guide walks home, schedule, me and ends on 主队 next to 添加
   /* A 'back' step returns from the detail page straight into the next tab (主队). */
   const captain = guideSteps('captain')
   const back = captain.findIndex((step) => step.action === 'back')
-  assert.equal(captain[back + 1]?.section, 'team')
+  assert.equal(captain[back + 1]?.navigationTarget, 'team')
   assert.equal(guideSteps('player').length, student.length + 5)
   assert.equal(guideSteps('captain', true).length, student.length + 7)
   assert.equal(guideSteps('player').at(-2)?.id, 'team-follow')
@@ -110,4 +110,19 @@ test('account step falls back next to the capsule on wide windows and top-left o
   assert.equal(phone.left, 14)
   assert.equal(phone.width, 42)
   assert.equal(phone.top, 43)
+})
+
+test('every page change waits on its destination navigation before switching', () => {
+  for (const role of ['student', 'player', 'captain'] as const) {
+    const steps = guideSteps(role)
+    assert.equal(steps.filter((step) => step.navigationTarget).length, 3)
+    steps.forEach((step, i) => {
+      if (step.navigationTarget) {
+        assert.equal(step.section, steps[i - 1]!.section)
+        assert.equal(steps[i + 1]!.section, step.navigationTarget)
+        assert.equal(step.selector, '#native-guide-nav-' + step.navigationTarget)
+        assert.equal(step.action, 'next')
+      }
+    })
+  }
 })

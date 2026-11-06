@@ -1,3 +1,4 @@
+import { resumeNativeLogin } from '../../features/product/login-return.weapp'
 import { AuthInput as Input } from '../../components/auth-scene/auth-input'
 import { Button, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
@@ -12,6 +13,7 @@ import {
   useEmailResendCountdown,
 } from '../../components/email-code/countdown.weapp'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
+import { NativePrivacyNotice } from '../../components/native-ui/privacy.weapp'
 import {
   resolveSubmissionAttempt,
   type SubmissionAttempt,
@@ -35,6 +37,8 @@ const empty: NativeRegistrationValues = {
 }
 
 export function NativeRegistrationForm() {
+  const [consent, setConsent] = useState(false),
+    [privacy, setPrivacy] = useState(false)
   const [value, setValue] = useState(empty)
   const [touched, setTouched] = useState<Partial<Record<keyof NativeRegistrationValues, boolean>>>(
     {},
@@ -111,6 +115,7 @@ export function NativeRegistrationForm() {
   const key = `${value.realName.normalize('NFKC').trim()}|${value.studentId.trim()}`
   const currentCheck = check?.key === key ? check : null
   useEffect(() => {
+    if (!consent) return
     if (value.realName.trim().length < 2 || !/^\d{10}$/.test(value.studentId.trim())) return
     let active = true
     const timer = setTimeout(() => {
@@ -132,8 +137,12 @@ export function NativeRegistrationForm() {
       active = false
       clearTimeout(timer)
     }
-  }, [key, value.realName, value.studentId])
+  }, [key, value.realName, value.studentId, consent])
   const sendCode = async () => {
+    if (!consent) {
+      setServerError('请先阅读并同意个人信息与隐私说明')
+      return
+    }
     if (!value.email.trim() || errors.email || sendLock.current || remaining) return
     sendLock.current = true
     setSending(true)
@@ -160,6 +169,10 @@ export function NativeRegistrationForm() {
     }
   }
   const submit = async () => {
+    if (!consent) {
+      setServerError('请先阅读并同意个人信息与隐私说明')
+      return
+    }
     if (lock.current) return
     setAttempted(true)
     setServerError('')
@@ -179,7 +192,7 @@ export function NativeRegistrationForm() {
       setCheck({ key, result })
       if (!result.eligible) return
       await nativeRegistration.register(nativeRegistrationPayload(value, emailCode))
-      await Taro.reLaunch({ url: '/pages/index/index' })
+      await resumeNativeLogin()
     } catch (reason) {
       setServerError(reason instanceof Error ? reason.message : '注册失败，请重试。')
     } finally {
@@ -189,6 +202,17 @@ export function NativeRegistrationForm() {
   }
   return (
     <View className="auth-form native-register">
+      <Button className="auth-link" onClick={() => setPrivacy(true)}>
+        阅读个人信息与隐私说明
+      </Button>
+      <Button
+        className="auth-link"
+        aria-pressed={consent}
+        onClick={() => setConsent((value) => !value)}
+      >
+        {consent ? '✓ 已阅读并同意' : '○ 阅读后点击同意'}
+      </Button>
+      {privacy && <NativePrivacyNotice onClose={() => setPrivacy(false)} />}
       {fields.map((field) => {
         const invalid = Boolean(errors[field] && (attempted || touched[field]))
         const matched = field === 'realName' || field === 'studentId'

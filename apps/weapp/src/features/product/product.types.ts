@@ -337,11 +337,21 @@ export interface PlayerDetailResponse {
   team: TeamSummary | null
   tournamentName: string | null
   stats: PlayerStats
-  recentMatches: Array<MatchSummary & { starter: boolean | null; minutesPlayed: number | null; appearanceRecorded?: boolean }>
+  recentMatches: Array<
+    MatchSummary & {
+      starter: boolean | null
+      minutesPlayed: number | null
+      appearanceRecorded?: boolean
+    }
+  >
 }
 
 export interface MatchExperienceResponse extends MatchSummary {
-  officials?: Array<{ role: 'REFEREE' | 'ASSISTANT_REFEREE_1' | 'ASSISTANT_REFEREE_2' | 'FOURTH_OFFICIAL'; displayName: string; playerId: string | null }>
+  officials?: Array<{
+    role: 'REFEREE' | 'ASSISTANT_REFEREE_1' | 'ASSISTANT_REFEREE_2' | 'FOURTH_OFFICIAL'
+    displayName: string
+    playerId: string | null
+  }>
   periodMinutes?: number
   summary: string | null
   /** 快报: official posts linked to this match; empty when none. */
@@ -485,6 +495,7 @@ export interface CaptainWorkspaceResponse {
 }
 
 export interface NotificationResponse {
+  nextCursor?: string | null
   unreadCount: number
   items: Array<{
     id: string
@@ -528,6 +539,7 @@ export interface ReportItem {
 }
 
 export interface ReportListResponse {
+  nextCursor?: string | null
   items: ReportItem[]
 }
 
@@ -567,4 +579,9 @@ export interface MessageListResponse {
   }>
 }
 
-export interface MatchCheckin { matchId: string; count: number; checkedIn: boolean; checkedInAt: string | null }
+export interface MatchCheckin {
+  matchId: string
+  count: number
+  checkedIn: boolean
+  checkedInAt: string | null
+}

@@ -1,6 +1,7 @@
 import { Button, Image, Input, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
+import { profileEntryEvent, takeProfileEntry } from '../../features/product/profile-entry.weapp'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { NativeWebsiteLink } from '../../components/native-ui/website-link.weapp'
 import { openNativeComposer } from '../../features/native-social/routing.weapp'
@@ -88,6 +89,17 @@ export function useDesktopProfile() {
 }
 export function DesktopProfile({ home, user, onUserChange, renderService }: DesktopProfileProps) {
   const [dialog, setDialog] = useState<Dialog>(null)
+  useEffect(() => {
+    const open = () => {
+      const panel = takeProfileEntry()
+      if (panel) setDialog(panel)
+    }
+    Taro.eventCenter.on(profileEntryEvent, open)
+    open()
+    return () => {
+      Taro.eventCenter.off(profileEntryEvent, open)
+    }
+  }, [])
   const [avatar, setAvatar] = useState(false)
   const [background, setBackground] = useState(false)
   const [emailOpen, setEmailOpen] = useState(false)

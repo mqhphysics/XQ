@@ -1,5 +1,5 @@
 import { Button, RootPortal, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
 import { guideAccountRect, type GuideStep } from './flow.logic.weapp'
 import { nativeHeaderMetrics } from '../../components/public-shell/native-header-metrics.weapp'
@@ -138,6 +138,15 @@ export function NativeGuideSpotlight({
     [instant, setInstant] = useState(false),
     [motion, setMotion] = useState<Motion>('idle'),
     [window, setWindow] = useState(() => Taro.getWindowInfo())
+  const [visible, setVisible] = useState(true)
+  useDidHide(() => setVisible(false))
+  useDidShow(() => setVisible(true))
+  const automatic = useRef<() => Promise<void>>(async () => {})
+  useEffect(() => {
+    if (!step.navigationTarget || !ready || busy || paused || motion !== 'idle' || !visible) return
+    const timer = setTimeout(() => void automatic.current(), 8000)
+    return () => clearTimeout(timer)
+  }, [step.id, step.navigationTarget, ready, busy, paused, motion, visible])
   const readyAt = useRef(0),
     pending = useRef(false),
     skipping = useRef(false),
@@ -326,6 +335,7 @@ export function NativeGuideSpotlight({
         }, restoreDelay)
     }
   }
+  automatic.current = advance
   const skip = async (event?: { stopPropagation?: () => void }) => {
     event?.stopPropagation?.()
     if (skipping.current) return
@@ -484,9 +494,11 @@ export function NativeGuideSpotlight({
                 <Text>
                   {busy
                     ? '正在打开…'
-                    : step.action === 'next'
-                      ? '点击任意处继续'
-                      : `点击任意处${step.button}`}
+                    : step.navigationTarget
+                      ? '点击高亮导航进入 · 无操作8秒后继续'
+                      : step.action === 'next'
+                        ? '点击任意处继续'
+                        : `点击任意处${step.button}`}
                 </Text>
               </View>
             </View>

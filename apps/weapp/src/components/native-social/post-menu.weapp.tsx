@@ -1,3 +1,4 @@
+import { requestNativeLogin } from '../../features/product/login-return.weapp'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useRef, useState } from 'react'
@@ -21,7 +22,7 @@ export function NativePostMenu({ post: source }: { post: PostSummary }) {
         itemList: [post.favoritedByMe ? '取消收藏' : '收藏', '举报'],
       })
       if (!readSession()) {
-        void Taro.showToast({ title: '登录后可以收藏和举报', icon: 'none' })
+        void requestNativeLogin('登录后可以收藏和举报')
         return
       }
       if (action.tapIndex === 1) {

@@ -1,6 +1,6 @@
+import { resumeNativeLogin } from '../../features/product/login-return.weapp'
 import { AuthInput as Input } from '../../components/auth-scene/auth-input'
 import { Button, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
 import { useRef, useState } from 'react'
 import { emailAuth } from '../../features/product/email-auth.repository.h5'
 import { ProductApiError } from '../../features/product/product.repository'
@@ -33,7 +33,7 @@ export function NativeEmailLogin() {
         if (target.current === address) setNotice(result.message)
       } else {
         await emailAuth.login(address, code)
-        await Taro.reLaunch({ url: '/pages/index/index' })
+        await resumeNativeLogin()
       }
     } catch (issue) {
       if (issue instanceof ProductApiError && issue.statusCode === 429)

@@ -8,6 +8,8 @@ type Guard = {
   retainOnDetailOpen: () => boolean
 }
 const guards = new Set<Guard>()
+export const hasPendingNativeEdits = () =>
+  [...guards].some((guard) => guard.dirty() || guard.busy())
 const layers: Array<() => Promise<boolean>> = []
 export async function confirmNativeDiscard(dirty: boolean, busy = false) {
   if (busy) {

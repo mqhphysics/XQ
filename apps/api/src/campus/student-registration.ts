@@ -1,3 +1,4 @@
+import { registrationOpenToEveryone } from '../auth/registration-policy'
 import type { Prisma } from '../generated/prisma/client'
 import { centerError } from '../admin-center/admin-center.policy'
 
@@ -59,6 +60,7 @@ export async function attachRegisteredStudent(
   realName: string,
   studentNumber: string,
 ) {
+  if (registrationOpenToEveryone()) return null
   const candidates = await tx.studentRecord.findMany({
     where: { organizationId, status: 'ACTIVE', realName: realName.normalize('NFKC').trim() },
     select: { id: true, studentNumber: true, user: { select: { id: true } } },

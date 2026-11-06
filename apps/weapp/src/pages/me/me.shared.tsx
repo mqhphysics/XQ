@@ -521,20 +521,44 @@ function readConversationId(linkPath: string): string | null {
 function MyReportsPanel() {
   const [items, setItems] = useState<ReportItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const load = useCallback(async () => {
-    setLoading(true)
+  const [error, setError] = useState(''),
+    [nextCursor, setNextCursor] = useState<string | null>(null),
+    [moreBusy, setMoreBusy] = useState(false)
+  const locked = useRef(false),
+    sequence = useRef(0)
+  const load = useCallback(async (before?: string) => {
+    if (locked.current) return
+    locked.current = true
+    const ticket = ++sequence.current,
+      owner = readSession()?.accessToken
+    if (before) setMoreBusy(true)
+    else setLoading(true)
     try {
-      setItems((await productRepository.getMyReports()).items)
+      const result = await productRepository.getMyReports(before)
+      if (ticket !== sequence.current || owner !== readSession()?.accessToken) return
+      setItems((previous) =>
+        before
+          ? [
+              ...previous,
+              ...result.items.filter((item) => !previous.some((old) => old.id === item.id)),
+            ]
+          : result.items,
+      )
+      setNextCursor(result.nextCursor || null)
       setError('')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '投诉记录加载失败')
     } finally {
+      locked.current = false
       setLoading(false)
+      setMoreBusy(false)
     }
   }, [])
   useEffect(() => {
     void load()
+    return () => {
+      sequence.current++
+    }
   }, [load])
   return (
     <View className="profile-section" id="my-reports">
@@ -562,6 +586,16 @@ function MyReportsPanel() {
               </View>
             </View>
           ))}
+          {nextCursor && (
+            <Button
+              className="native-button"
+              disabled={moreBusy}
+              loading={moreBusy}
+              onClick={() => void load(nextCursor)}
+            >
+              加载更早的记录
+            </Button>
+          )}
           {items.length === 0 && <Text className="profile-empty">暂无反馈或投诉记录</Text>}
         </View>
       )}

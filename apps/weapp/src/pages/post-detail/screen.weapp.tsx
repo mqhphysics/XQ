@@ -1,3 +1,4 @@
+import { requestNativeLogin } from '../../features/product/login-return.weapp'
 import { useNativeRefreshTask } from '../../features/product/native-refresh.weapp'
 import { Button, Image, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance } from '@tarojs/taro'
@@ -93,7 +94,7 @@ export default function NativePostScreen({
   const like = async () => {
     if (!post || liking) return
     if (!readSession()) {
-      void Taro.showToast({ title: '登录后可以点赞', icon: 'none' })
+      void requestNativeLogin('登录后可以点赞')
       return
     }
     setLiking(true)

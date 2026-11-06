@@ -738,25 +738,49 @@ export class SocialService {
     return this.getCaptainWorkspace(authorization, teamId)
   }
 
-  async listNotifications(authorization: string | undefined) {
+  async listNotifications(
+    authorization: string | undefined,
+    before?: string,
+    notificationId?: string,
+  ) {
     const session = await this.authService.requireSession(authorization)
     const where = {
       organizationId: session.organizationId,
       recipientUserId: session.userId,
       type: { not: NotificationType.DIRECT_MESSAGE },
     }
+    const anchor = before
+      ? await this.prisma.userNotification.findFirst({
+          where: { ...where, id: before },
+          select: { id: true, createdAt: true },
+        })
+      : null
+    if (before && !anchor) throw notFound('通知游标不存在')
+    const pageWhere = {
+      ...where,
+      ...(notificationId ? { id: notificationId } : {}),
+      ...(anchor
+        ? {
+            OR: [
+              { createdAt: { lt: anchor.createdAt } },
+              { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+            ],
+          }
+        : {}),
+    }
     const [items, unreadCount] = await Promise.all([
       this.prisma.userNotification.findMany({
-        where,
+        where: pageWhere,
         include: { actor: true },
-        orderBy: { createdAt: 'desc' },
-        take: 100,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 101,
       }),
       this.prisma.userNotification.count({ where: { ...where, readAt: null } }),
     ])
     return {
       unreadCount,
-      items: items.map((item) => ({
+      nextCursor: items.length > 100 ? items[99]!.id : null,
+      items: items.slice(0, 100).map((item) => ({
         id: item.id,
         type: item.type,
         messageCategory:
@@ -780,6 +804,12 @@ export class SocialService {
           : null,
       })),
     }
+  }
+
+  async getNotification(authorization: string | undefined, id: string) {
+    const result = await this.listNotifications(authorization, undefined, id)
+    if (!result.items[0]) throw notFound('通知不存在')
+    return result.items[0]
   }
 
   async markNotificationRead(authorization: string | undefined, notificationId: string) {
@@ -856,7 +886,7 @@ export class SocialService {
             actorUserId: session.userId,
             body: `${input.targetType === 'FEEDBACK' ? '问题反馈' : '内容投诉'}：${reason}`,
             deduplicationKey: `report-created:${stored.id}`,
-            linkPath: '/pages/me/index?panel=reports',
+            linkPath: '/pages/me/index?panel=adminReports',
             organizationId: session.organizationId,
             recipientUserId: userId,
             title: '收到新的投诉或反馈',
@@ -876,7 +906,7 @@ export class SocialService {
               : input.targetType === 'FEEDBACK'
                 ? '反馈已收到'
                 : '投诉已收到',
-          body: `我们已收到你提交的${input.targetType === 'FEEDBACK' ? '反馈' : '投诉'}，预计48小时内处理并回复。请耐心等待后续消息。`,
+          body: `我们已收到你提交的${input.targetType === 'FEEDBACK' ? '反馈' : '投诉'}，管理员处理后会通过通知告知结果，可在反馈记录中查看进度。`,
           linkPath: '/pages/me/index?panel=reports',
           deduplicationKey: `report-received:${stored.id}`,
         },
@@ -887,14 +917,35 @@ export class SocialService {
     return mapReport(report)
   }
 
-  async listMyReports(authorization: string | undefined) {
+  async listMyReports(authorization: string | undefined, before?: string) {
     const session = await this.authService.requireSession(authorization)
+    const where = { organizationId: session.organizationId, reporterUserId: session.userId }
+    const anchor = before
+      ? await this.prisma.contentReport.findFirst({
+          where: { ...where, id: before },
+          select: { id: true, createdAt: true },
+        })
+      : null
+    if (before && !anchor) throw notFound('反馈记录游标不存在')
     const reports = await this.prisma.contentReport.findMany({
-      where: { organizationId: session.organizationId, reporterUserId: session.userId },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
+      where: {
+        ...where,
+        ...(anchor
+          ? {
+              OR: [
+                { createdAt: { lt: anchor.createdAt } },
+                { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 51,
     })
-    return { items: reports.map(mapReport) }
+    return {
+      items: reports.slice(0, 50).map(mapReport),
+      nextCursor: reports.length > 50 ? reports[49]!.id : null,
+    }
   }
 
   async listAdminReports(authorization: string | undefined) {

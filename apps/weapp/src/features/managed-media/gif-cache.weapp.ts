@@ -67,3 +67,6 @@ const cache = createGifCache({
   now: Date.now,
 })
 export const prepareMatchGif = cache.load
+
+export const nativeGifCacheUsage = cache.usage
+export const clearNativeGifCache = cache.clear
