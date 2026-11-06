@@ -61,7 +61,7 @@ try {
 }
 
 if (!existsSync(join(dist, 'index.html'))) {
-  console.error('缺少生产构建。请先在 apps/mini-program 执行 npm run build:h5。')
+  console.error('缺少生产构建。请先在 apps/web 执行 npm run build。')
   process.exit(1)
 }
 

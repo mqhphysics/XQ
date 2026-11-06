@@ -993,7 +993,7 @@ export class ExperienceService {
     }
     for (const plan of confirmedPlans) {
       const lineup = confirmedMatchLineup(plan, { organizationId, tournamentId: selectedTournamentId, teamId: plan.teamId })
-      if (plan.matchId && lineup?.players.some(p => p.id === playerId && p.starter)) starters.set(plan.matchId, true)
+      if (plan.matchId && !starters.has(plan.matchId) && lineup?.players.some(p => p.id === playerId && p.starter)) starters.set(plan.matchId, true)
     }
     const schedule = playerSchedule(fixtures, teamIds, playerId, appearances, events, starters)
     const playerStats = stats ?? emptyPlayerStats(player.id, player.displayName)

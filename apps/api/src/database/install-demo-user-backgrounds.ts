@@ -18,7 +18,7 @@ const COVERS: ReadonlyArray<[username: string, file: string]> = [
 ]
 
 function assetPath(file: string) {
-  return resolve(__dirname, '../../../mini-program/src/assets/home-visual', file)
+  return resolve(__dirname, '../../../web/src/assets/home-visual', file)
 }
 
 export async function installDemoUserBackgrounds(prisma: PrismaClient): Promise<number> {
