@@ -87,9 +87,11 @@ export function IdentityManagement({ context }: { context: OrganizationContext }
       })
       pending.current = null
       records.refresh()
-      if (label && label !== '录入任职') applications.update(current => current && ({ ...current,
-        items: current.items.filter(item => item.id !== label),
-      }))
+      if (label && label !== '录入任职')
+        applications.update(
+          (current) =>
+            current && { ...current, items: current.items.filter((item) => item.id !== label) },
+        )
       else applications.refresh()
       return true
     } catch (issue) {
@@ -318,7 +320,9 @@ export function IdentityManagement({ context }: { context: OrganizationContext }
                       setChoices((current) => ({ ...current, [a.id]: e.target.value }))
                     }
                   >
-                    <option value="">先选择已核实记录</option>
+                    <option value="">
+                      {a.kind === 'PLAYER' ? '按本人学生档案批准成为球员' : '先选择已核实记录'}
+                    </option>
                     {a.candidateId && (
                       <option value={a.candidateId}>申请人选择的候选（请独立核验）</option>
                     )}
