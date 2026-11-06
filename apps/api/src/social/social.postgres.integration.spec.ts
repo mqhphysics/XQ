@@ -98,6 +98,13 @@ test(
       })
       organizationIds.push(otherOrganization.id)
       const student = await createUser('student', organization.id)
+      const studentRecord = await prisma.studentRecord.create({
+        data: { organizationId: organization.id, realName: student.realName! },
+      })
+      await prisma.user.update({
+        where: { id: student.id },
+        data: { studentRecordId: studentRecord.id, verificationLevel: 'STUDENT_VERIFIED' },
+      })
       const captain = await createUser('captain', organization.id)
       const admin = await createUser('admin', organization.id)
       const disabledAdmin = await createUser('disabled-admin', organization.id, 'FROZEN')
@@ -549,6 +556,8 @@ test(
         await prisma.organizationMembership.deleteMany({ where: { userId: { in: userIds } } })
         await prisma.passwordCredential.deleteMany({ where: { userId: { in: userIds } } })
         await prisma.user.deleteMany({ where: { id: { in: userIds } } })
+        await prisma.playerProfile.deleteMany({ where: scoped })
+        await prisma.studentRecord.deleteMany({ where: scoped })
         await prisma.organization.deleteMany({ where: { id: { in: organizationIds } } })
       }
       if (app) await app.close()

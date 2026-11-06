@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { TeamCrest } from '../../components/product-ui'
-import { productRepository } from '../../features/product/product.repository'
+import { productRepository, peekProduct, subscribeProductUpdates } from '../../features/product/product.repository'
 import { formatDate, formatTime } from '../../features/product/product.format'
 import { openPlayer } from '../../features/product/player-navigation'
-import type { MatchSummary, PlayerStats, TeamSummary } from '../../features/product/product.types'
+import type { MatchSummary, PlayerStats, TeamSummary, PlayerDetailResponse } from '../../features/product/product.types'
 import { isPendingMatch } from './profile.logic'
 import { ProfileIcon } from './profile-icons.h5'
 
@@ -38,7 +38,7 @@ type SeasonState =
       kind: 'ready'
       stats: PlayerStats
       team: TeamSummary | null
-      recent: Array<MatchSummary & { starter: boolean; minutesPlayed: number }>
+      recent: Array<MatchSummary & { starter: boolean | null; minutesPlayed: number | null }>
     }
 
 /** Next pending fixture of the player's team, earliest kickoff first (TBD times last). */
@@ -71,24 +71,24 @@ export function MySeasonCard({
     if (!linkedPlayerId) return
     let active = true
     setState({ kind: 'loading' })
+    const path = `/public/players/${encodeURIComponent(linkedPlayerId)}?tournamentId=${encodeURIComponent(tournamentId)}`
+    const apply = (player: PlayerDetailResponse) => {
+      if (active) setState({ kind: 'ready', stats: player.stats, team: player.team,
+        recent: player.recentMatches.filter(match => match.homeScore !== null && match.awayScore !== null).slice(0, 3) })
+    }
+    const unsubscribe = subscribeProductUpdates(updated => updated === path, () => {
+      const latest = peekProduct<PlayerDetailResponse>(path)
+      if (latest) apply(latest)
+    })
     void productRepository
       .getPlayer(linkedPlayerId, tournamentId)
-      .then((player) => {
-        if (active)
-          setState({
-            kind: 'ready',
-            stats: player.stats,
-            team: player.team,
-            recent: (player.recentMatches ?? [])
-              .filter((match) => match.homeScore !== null && match.awayScore !== null)
-              .slice(0, 3),
-          })
-      })
+      .then(apply)
       .catch(() => {
         if (active) setState({ kind: 'error' })
       })
     return () => {
       active = false
+      unsubscribe()
     }
   }, [linkedPlayerId, tournamentId])
 
@@ -259,7 +259,7 @@ export function MySeasonCard({
                       {mine} : {theirs}
                     </span>
                     <span className="profile-season__recent-minutes">
-                      {match.starter ? '首发' : '替补'} · {match.minutesPlayed}′
+                      {match.minutesPlayed === null ? '已参赛' : `${match.starter ? '首发' : '替补'} · ${match.minutesPlayed}′`}
                     </span>
                   </li>
                 )

@@ -1,4 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common'
+import { matchRecording } from './match-recording'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
 import { validateTournamentSelection } from '../common/public-tournament'
 
@@ -787,7 +788,7 @@ export class ScheduleService {
   private toMatchView(match: MatchWithRelations) {
     return {
       id: match.id,
-      recorded: match.reportVersion > 0,
+      ...matchRecording(match),
       organizationId: match.organizationId,
       tournamentId: match.tournamentId,
       matchCode: match.matchCode,

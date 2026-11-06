@@ -15,7 +15,7 @@ import {
   type PlayerHoverRequest,
   type PlayerRequest,
 } from '../../features/product/player-navigation.h5'
-import { productRepository, resolveMediaUrl } from '../../features/product/product.repository'
+import { productRepository, resolveMediaUrl, peekProduct, subscribeProductUpdates } from '../../features/product/product.repository'
 import {
   footLabel,
   formatDate,
@@ -134,6 +134,11 @@ function usePlayer(request: PlayerRequest) {
   useEffect(() => {
     let active = true
     setState({ phase: 'loading' })
+    const path = `/public/players/${encodeURIComponent(request.playerId)}${request.tournamentId ? `?tournamentId=${encodeURIComponent(request.tournamentId)}` : ''}`
+    const unsubscribe = subscribeProductUpdates(updated => updated === path || (!request.tournamentId && updated.startsWith(`${path}?`)), () => {
+      const latest = peekProduct<PlayerDetailResponse>(path)
+      if (active && latest) setState({ phase: 'ready', player: latest })
+    })
     void getPlayer(request)
       .then((player) => {
         if (active) setState({ phase: 'ready', player })
@@ -147,6 +152,7 @@ function usePlayer(request: PlayerRequest) {
       })
     return () => {
       active = false
+      unsubscribe()
     }
   }, [request.playerId, request.tournamentId, reload])
   return { state, retry: () => setReload((value) => value + 1) }
@@ -689,7 +695,7 @@ export function PlayerProfileSections({
                 [player.stats.minutes, '上场分钟'],
               ]}
             />
-            {player.position === 'GOALKEEPER' ? (
+            {player.position === 'GOALKEEPER' && player.stats.goals === 0 && player.stats.assists === 0 ? (
               <StatGroup
                 title="守门"
                 items={[
@@ -785,17 +791,17 @@ export function PlayerProfileSections({
                     </div>
                     <div className="player-match-record__appearance">
                       <strong>
-                        {match.minutesPlayed}
-                        <small> 分钟</small>
+                        {match.minutesPlayed ?? (['SCHEDULED', 'CHECK_IN', 'LIVE', 'POSTPONED'].includes(match.status) ? '待赛' : '已参赛')}
+                        {match.minutesPlayed !== null && <small> 分钟</small>}
                       </strong>
-                      <span>{match.starter ? '首发出场' : '替补出场'}</span>
+                      <span>{match.starter === null ? '' : match.starter ? '首发出场' : '替补出场'}</span>
                     </div>
                   </button>
                 ))
               ) : (
                 <div className="player-section-empty">
                   <strong>暂无符合筛选的比赛</strong>
-                  <p>这里展示已记录的最近出场，未确认的参赛安排暂不展示。</p>
+                  <p>这里展示参赛记录与后续赛程。</p>
                 </div>
               )}
             </div>
@@ -874,7 +880,7 @@ export function CompactStats({
   goalkeeperStats?: PlayerPresentation['goalkeeperStats']
 }) {
   const items: Array<[number | null, string]> =
-    player.position === 'GOALKEEPER'
+    player.position === 'GOALKEEPER' && player.stats.goals === 0 && player.stats.assists === 0
       ? [
           [player.stats.appearances, '出场'],
           [goalkeeperStats?.saves ?? null, '扑救'],

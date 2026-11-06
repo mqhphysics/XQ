@@ -4681,6 +4681,52 @@
         ]
       }
     },
+    "/api/matches/{matchId}/report/recognize-sheet": {
+      "post": {
+        "operationId": "SheetRecognitionController_recognize",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecognizeMatchSheetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecognizeMatchSheetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "使用当前组织的AI连接识别四官表，仅返回待核对字段，不保存或发布",
+        "tags": [
+          "match-report"
+        ]
+      }
+    },
     "/api/admin/schedule-workbench": {
       "get": {
         "operationId": "ScheduleController_getAdminScheduleWorkbench",
@@ -11474,6 +11520,41 @@
           "items"
         ]
       },
+      "RecognizeMatchSheetDto": {
+        "type": "object",
+        "properties": {
+          "images": {
+            "description": "本场四官表 JPEG、PNG 或 WebP data URL，最多3张，每张4MB，总计10MB",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string",
+            "description": "辅助辨认的备注，不作为比赛事实"
+          }
+        },
+        "required": [
+          "images"
+        ]
+      },
+      "RecognizeMatchSheetResponseDto": {
+        "type": "object",
+        "properties": {
+          "sheet": {
+            "type": "object",
+            "description": "待核对的单场比赛信息；不保存赛果或发布内容"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sheet",
+          "model"
+        ]
+      },
       "SeasonResponseDto": {
         "type": "object",
         "properties": {
@@ -11701,7 +11782,21 @@
         "properties": {
           "recorded": {
             "type": "boolean",
-            "description": "已保存比赛录入记录；与按时间计算的比赛状态分别表示"
+            "description": "双方正式比分已确认；与按时间计算的比赛状态分别表示，草稿不算已录入"
+          },
+          "homeScore": {
+            "type": "number",
+            "nullable": true,
+            "description": "已确认主队比分，待补录明确返回null"
+          },
+          "awayScore": {
+            "type": "number",
+            "nullable": true,
+            "description": "已确认客队比分，待补录明确返回null"
+          },
+          "confirmedReportVersion": {
+            "type": "number",
+            "nullable": true
           },
           "id": {
             "type": "string",
@@ -11765,6 +11860,9 @@
           }
         },
         "required": [
+          "homeScore",
+          "awayScore",
+          "confirmedReportVersion",
           "id",
           "organizationId",
           "tournamentId",

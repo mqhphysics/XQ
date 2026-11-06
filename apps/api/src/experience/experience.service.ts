@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { defaultAvatar, defaultCover } from '../media/default-media'
 import { matchReportTagKey } from './match-report-tag'
 import { documentMatchLineup } from './document-match-lineup'
+import { playerSchedule } from './player-schedule'
 import {
   competitionAnnouncementKey,
   featuredHomeMatches,
@@ -930,7 +931,9 @@ export class ExperienceService {
             organizationId,
             rosterSnapshot: snapshotScope,
           },
-          include: { rosterSnapshot: { include: { team: true, tournament: true } } },
+          include: { rosterSnapshot: { include: { team: true, tournament: true, entries: {
+            include: { playerProfile: { select: { position: true, avatarUrl: true } } },
+          } } } },
           orderBy: { rosterSnapshot: { snapshotVersion: 'desc' } },
           take: 1,
         },
@@ -959,6 +962,44 @@ export class ExperienceService {
     ])
     const stats = buildPlayerStats(events, appearances).find((item) => item.id === playerId)
     const snapshot = player.snapshotEntries[0]
+    const teamIds = snapshot ? [snapshot.rosterSnapshot.teamId] : player.teamMemberships.map(m => m.teamId)
+    const [fixtures, documented, confirmedPlans] = await Promise.all([
+      prisma.match.findMany({ where: { organizationId, tournamentId: selectedTournamentId, status: { not: 'DRAFT' } },
+        include: matchSummaryInclude, orderBy: [{ scheduledStartAt: { sort: 'desc', nulls: 'last' } }, { id: 'asc' }] }),
+      prisma.auditLog.findMany({ where: { organizationId, action: { in: ['MATCH_DOCUMENT_LINEUP_RECORDED', 'MATCH_DOCUMENT_PARTICIPATION_RECORDED'] },
+        targetType: 'Match', actorType: 'ADMIN', source: 'OFFICIAL_MATCH_DOCUMENT',
+        afterSummary: { path: ['tournamentId'], equals: selectedTournamentId } },
+        orderBy: { createdAt: 'desc' }, select: { targetId: true, afterSummary: true } }),
+      prisma.teamLineupPlan.findMany({ where: { organizationId, tournamentId: selectedTournamentId,
+        kind: 'MATCH_LINEUP', confirmedAt: { not: null } }, include: { confirmedRevision: {
+          include: { rosterSnapshot: { include: { entries: { include: {
+            playerProfile: { select: { position: true, avatarUrl: true } },
+          } } } } },
+        } } }),
+    ])
+    const starters = new Map<string, boolean | null>()
+    for (const row of documented) {
+      if (!row.targetId || starters.has(row.targetId) || !snapshot) continue
+      const evidence = row.afterSummary as Record<string, unknown> | null
+      if (evidence?.matchId === row.targetId && evidence.tournamentId === selectedTournamentId &&
+        evidence.teamId === snapshot.rosterSnapshot.teamId && Array.isArray(evidence.playerIds) &&
+        evidence.playerIds.includes(playerId)) {
+        starters.set(row.targetId, null)
+        continue
+      }
+      const lineup = documentMatchLineup(snapshot.rosterSnapshot.entries, row.afterSummary,
+        { matchId: row.targetId, teamId: snapshot.rosterSnapshot.teamId, tournamentId: selectedTournamentId })
+      if (lineup?.players.some(p => p.id === playerId && p.starter)) starters.set(row.targetId, true)
+    }
+    for (const plan of confirmedPlans) {
+      const lineup = confirmedMatchLineup(plan, { organizationId, tournamentId: selectedTournamentId, teamId: plan.teamId })
+      if (plan.matchId && !starters.has(plan.matchId) && lineup?.players.some(p => p.id === playerId && p.starter)) starters.set(plan.matchId, true)
+    }
+    const schedule = playerSchedule(fixtures, teamIds, playerId, appearances, events, starters)
+    const playerStats = stats ?? emptyPlayerStats(player.id, player.displayName)
+    const finished = schedule.filter(row => row.participationConfirmed && row.match.status === 'FINISHED')
+    playerStats.appearances = Math.max(playerStats.appearances, finished.length)
+    playerStats.starts = Math.max(playerStats.starts, finished.filter(row => row.starter === true).length)
     const account =
       player.linkedUser?.status === 'ACTIVE' &&
       player.linkedUser.memberships.some(
@@ -1007,13 +1048,12 @@ export class ExperienceService {
           : null,
       rosterSource: snapshot ? 'OFFICIAL_SNAPSHOT' : 'TEAM_MEMBERSHIP',
       tournamentName: snapshot?.rosterSnapshot.tournament.name ?? null,
-      stats: stats ?? emptyPlayerStats(player.id, player.displayName),
+      stats: playerStats,
       resultsMode: resultContext.mode,
       appearanceRecording: resultContext.mode === 'DEMO' ? 'DEMO' : 'EXISTING_MATCH_RECORDS',
-      recentMatches: appearances.slice(0, 5).map((appearance) => ({
-        ...mapResultMatch(appearance.match, resultContext.official),
-        starter: appearance.starter,
-        minutesPlayed: appearance.minutesPlayed,
+      recentMatches: schedule.map(({ match, starter, minutesPlayed, appearanceRecorded }) => ({
+        ...mapResultMatch(match, resultContext.official),
+        starter, minutesPlayed, appearanceRecorded,
       })),
     }
   }

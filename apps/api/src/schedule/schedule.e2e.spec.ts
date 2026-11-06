@@ -541,6 +541,9 @@ test('P1 schedule slice creates and publishes a tournament schedule', async () =
     .expect(200)
   assert.equal(schedule.body.matches.length, 1)
   assert.equal(schedule.body.matches[0].status, 'SCHEDULED')
+  assert.equal(schedule.body.matches[0].recorded, false)
+  assert.equal(schedule.body.matches[0].homeScore, null)
+  assert.equal(schedule.body.matches[0].awayScore, null)
 
   const publicMatch = await request(app.getHttpServer())
     .get(`/api/public/matches/${match.body.id}`)

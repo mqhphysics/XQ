@@ -1071,7 +1071,7 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
           <div className="profile-identity-apply">
             <div>
               <strong>申请认证</strong>
-              <p>认领球员档案，申请队长、教练或信息员身份。</p>
+              <p>认领档案或申请成为球员，也可申请队长、教练或信息员身份。</p>
             </div>
             <button
               data-profile-button

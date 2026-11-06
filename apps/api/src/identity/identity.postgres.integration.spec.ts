@@ -227,7 +227,7 @@ test(
         }).expect(201)
         const me = await get('auth/me', coach.token).expect(200)
         assert.equal(me.body.linkedPlayer.id, player.id)
-        assert.equal(me.body.verificationLevel, 'PLAYER_CONFIRMED')
+        assert.equal(me.body.verificationLevel, 'STAFF_VERIFIED')
         assert.ok(me.body.roles.some((r: { role: string }) => r.role === 'TEAM_COACH'))
         await post('me/identity/applications', sameName.token, {
           kind: 'PLAYER',
@@ -249,7 +249,7 @@ test(
         await post(`messages/direct/${admin.user.id}`, coach.token, {
           body: '教练不能发送私信',
           clientMessageId: randomUUID(),
-        }).expect(403)
+        }).expect(410)
       },
     )
 
@@ -571,6 +571,113 @@ test(
         assert.equal(
           (await prisma.playerProfile.findUniqueOrThrow({ where: { id: original.body.id } })).bio,
           original.body.bio,
+        )
+      },
+    )
+    await t.test(
+      'students without player candidates become players on identity or team approval',
+      async () => {
+        const studentAccount = async (label: string) => {
+          const person = await account(label)
+          const student = await prisma.studentRecord.create({
+            data: {
+              organizationId: org.id,
+              realName: `虚构学生-${label}`,
+              studentNumber: null,
+            },
+          })
+          await prisma.user.update({
+            where: { id: person.user.id },
+            data: {
+              studentRecordId: student.id,
+              realName: student.realName,
+              verificationLevel: 'STUDENT_VERIFIED',
+            },
+          })
+          return { ...person, student }
+        }
+        const applicant = await studentAccount('new-player')
+        const application = await post('me/identity/applications', applicant.token, {
+          kind: 'PLAYER',
+          message: '申请成为本校正式球员',
+        }).expect(201)
+        await post(`admin/identity/applications/${application.body.id}/review`, admin.token, {
+          decision: 'APPROVED',
+          expectedVersion: 1,
+        }).expect(201)
+        const identity = await get('auth/me', applicant.token).expect(200)
+        assert.ok(identity.body.linkedPlayer?.id)
+        assert.equal(identity.body.verificationLevel, 'PLAYER_CONFIRMED')
+        assert.equal(
+          await prisma.playerProfile.count({ where: { studentRecordId: applicant.student.id } }),
+          1,
+        )
+
+        const joining = await studentAccount('joining-player')
+        // An existing unclaimed profile must be reused, rather than duplicating the roster.
+        const existing = await prisma.playerProfile.create({
+          data: {
+            organizationId: org.id,
+            studentRecordId: joining.student.id,
+            displayName: joining.student.realName,
+          },
+        })
+        await post(`teams/${team.id}/join-applications`, joining.token, {
+          message: '申请入队',
+        }).expect(201)
+        const join = await prisma.teamJoinApplication.findFirstOrThrow({
+          where: { userId: joining.user.id, teamId: team.id },
+        })
+        const approve = () =>
+          http
+            .put(`/api/captain/teams/${team.id}/applications/${join.id}`)
+            .set('authorization', `Bearer ${admin.token}`)
+            .send({ decision: 'APPROVED' })
+        await approve().expect(200)
+        const joined = await get('auth/me', joining.token).expect(200)
+        assert.equal(joined.body.linkedPlayer.id, existing.id)
+        assert.equal(joined.body.verificationLevel, 'PLAYER_CONFIRMED')
+        const member = await prisma.teamMembership.findUniqueOrThrow({
+          where: { teamId_userId: { teamId: team.id, userId: joining.user.id } },
+        })
+        assert.equal(member.playerProfileId, existing.id)
+        await approve().expect(200)
+        assert.equal(
+          await prisma.playerProfile.count({ where: { studentRecordId: joining.student.id } }),
+          1,
+        )
+
+        const teamApplicant = await studentAccount('identity-team-player')
+        const teamPlayer = await prisma.playerProfile.create({ data: {
+          organizationId: org.id, studentRecordId: teamApplicant.student.id,
+          displayName: teamApplicant.student.realName,
+        } })
+        const rosterMember = await prisma.teamMembership.create({ data: {
+          organizationId: org.id, teamId: team.id, playerProfileId: teamPlayer.id,
+        } })
+        const teamApplication = await post('me/identity/applications', teamApplicant.token, {
+          kind: 'PLAYER', teamId: team.id, message: '关联已有球队球员',
+        }).expect(201)
+        await post(`admin/identity/applications/${teamApplication.body.id}/review`, admin.token, {
+          decision: 'APPROVED', expectedVersion: 1,
+        }).expect(201)
+        const linkedMember = await prisma.teamMembership.findUniqueOrThrow({ where: { id: rosterMember.id } })
+        assert.equal(linkedMember.userId, teamApplicant.user.id)
+        assert.equal(linkedMember.playerProfileId, teamPlayer.id)
+
+        const unverified = await account('no-student')
+        const denied = await post('me/identity/applications', unverified.token, {
+          kind: 'PLAYER',
+          message: '尚无本人学生档案',
+        }).expect(201)
+        await post(`admin/identity/applications/${denied.body.id}/review`, admin.token, {
+          decision: 'APPROVED',
+          expectedVersion: 1,
+        }).expect(409)
+        assert.equal(
+          (await prisma.identityApplication.findUniqueOrThrow({ where: { id: denied.body.id } }))
+            .status,
+          'PENDING',
         )
       },
     )

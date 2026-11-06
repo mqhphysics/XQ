@@ -711,6 +711,26 @@ test('report client key is idempotent, rejects changed content, and stays organi
 })
 
 class TeamReviewPrismaFake {
+  $queryRawUnsafe = async () => []
+  user = {
+    findFirst: async ({ where }: { where: { playerProfileId?: string } }) =>
+      where.playerProfileId
+        ? null
+        : {
+            id: RECIPIENT_ID,
+            playerProfileId: 'existing-player',
+            studentRecordId: null,
+            verificationLevel: 'PLAYER_CONFIRMED',
+          },
+    update: async () => ({ id: RECIPIENT_ID }),
+  }
+  playerProfile = {
+    findFirst: async () => ({
+      id: 'existing-player',
+      organizationId: ORGANIZATION_ID,
+      studentRecordId: null,
+    }),
+  }
   userSession = { findFirst: async () => ({ id: 'active-session' }) }
   organizationMembership = { findFirst: async () => ({ id: 'active-member' }) }
   team = { findFirst: async () => ({ id: TEAM_ID }) }
@@ -823,6 +843,6 @@ test('concurrent team application reviews use a compare-and-swap claim', async (
   assertHttpStatus(rejected.reason, HttpStatus.CONFLICT)
   assert.equal(prisma.claims, 1)
   assert.equal(prisma.memberships, 1)
-  assert.equal(prisma.audits, 1)
+  assert.equal(prisma.audits, 2)
   assert.equal(prisma.notifications.length, 1)
 })

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { PersonRequest, PersonHoverRequest } from '../../features/product/person-navigation.h5'
 import { openPerson } from '../../features/product/person-navigation.h5'
-import { productRepository } from '../../features/product/product.repository'
+import { productRepository, peekProduct, subscribeProductUpdates } from '../../features/product/product.repository'
 import { readSession } from '../../features/product/session'
 import type { PublicPersonResponse } from '../../features/product/product.types'
 import { identityBadgeKinds, identityLabels } from '../../features/product/identity-badges'
@@ -29,6 +29,11 @@ function usePerson(request: PersonRequest) {
     let active = true
     setPerson(null)
     setError('')
+    const path = `/public/people/${encodeURIComponent(request.userId)}${request.tournamentId ? `?tournamentId=${encodeURIComponent(request.tournamentId)}` : ''}`
+    const unsubscribe = subscribeProductUpdates(updated => updated === path || (!request.tournamentId && updated.startsWith(`${path}?`)), () => {
+      const latest = peekProduct<PublicPersonResponse>(path)
+      if (active && latest) setPerson(latest)
+    })
     const key = JSON.stringify([request.userId, request.tournamentId, readSession()?.user.id])
     let read = pending.get(key)
     if (!read) {
@@ -46,6 +51,7 @@ function usePerson(request: PersonRequest) {
       })
     return () => {
       active = false
+      unsubscribe()
     }
   }, [request.userId, request.tournamentId, reload])
   return { person, error, retry: () => setReload((value) => value + 1) }

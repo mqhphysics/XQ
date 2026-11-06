@@ -120,6 +120,8 @@ export type { PublicTournamentTeamDetailResponseDto } from './models/PublicTourn
 export type { PublicTournamentTeamListItemResponseDto } from './models/PublicTournamentTeamListItemResponseDto';
 export type { PublicTournamentTeamListResponseDto } from './models/PublicTournamentTeamListResponseDto';
 export type { ReadinessResponseDto } from './models/ReadinessResponseDto';
+export type { RecognizeMatchSheetDto } from './models/RecognizeMatchSheetDto';
+export type { RecognizeMatchSheetResponseDto } from './models/RecognizeMatchSheetResponseDto';
 export type { RecordTechnicalStatisticsDto } from './models/RecordTechnicalStatisticsDto';
 export type { RefereeAppearanceDto } from './models/RefereeAppearanceDto';
 export type { RefereeBioDto } from './models/RefereeBioDto';

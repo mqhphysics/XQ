@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import type { NativeSection } from './history.logic.weapp'
+type NativeSection = 'home' | 'schedule' | 'team' | 'data' | 'me'
 export function useNativeTournamentId(): string {
   return Taro.getCurrentInstance().router?.params.tournamentId || ''
 }

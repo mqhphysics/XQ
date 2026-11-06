@@ -337,7 +337,7 @@ export interface PlayerDetailResponse {
   team: TeamSummary | null
   tournamentName: string | null
   stats: PlayerStats
-  recentMatches: Array<MatchSummary & { starter: boolean; minutesPlayed: number }>
+  recentMatches: Array<MatchSummary & { starter: boolean | null; minutesPlayed: number | null; appearanceRecorded?: boolean }>
 }
 
 export interface MatchExperienceResponse extends MatchSummary {

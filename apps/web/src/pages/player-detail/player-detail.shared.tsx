@@ -175,7 +175,11 @@ function PlayerContent({
                   }
                 />
                 <Text className="player-match-wrap__appearance">
-                  {match.starter ? '首发' : '替补'} · {match.minutesPlayed} 分钟
+                  {match.minutesPlayed === null
+                    ? ['SCHEDULED', 'CHECK_IN', 'LIVE', 'POSTPONED'].includes(match.status)
+                      ? '待赛'
+                      : '已参赛 · 分钟未记录'
+                    : `${match.starter === null ? '' : match.starter ? '首发 · ' : '替补 · '}${match.minutesPlayed} 分钟`}
                 </Text>
               </View>
             ))}

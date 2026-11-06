@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import type { OrganizationContext } from '../adminSchedule/types'
 import { Modal, DataState, useAdminData, type Row } from '../adminCenter/shared'
 import { SheetEditor } from './AdminSheetImport'
-import { genericSheetPrompt } from './generic-sheet-prompt'
 import { intakeState } from './intake-state'
 type Match = Row & {
   tournamentId: string
@@ -38,8 +37,7 @@ export function MatchIntake({
   }>(context, '/admin/schedule-workbench')
   const [selected, setSelected] = useState<Match | null>(null),
     [query, setQuery] = useState(''),
-    [showAll, setShowAll] = useState(false),
-    [copied, setCopied] = useState(false)
+    [showAll, setShowAll] = useState(false)
   const opened = useRef('')
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
@@ -90,14 +88,6 @@ export function MatchIntake({
   return (
     <>
       <section className="mc-panel intake-toolbar">
-        <button
-          type="button"
-          onClick={() =>
-            void navigator.clipboard.writeText(genericSheetPrompt).then(() => setCopied(true))
-          }
-        >
-          {copied ? '通用提示词已复制' : '复制通用识别提示词'}
-        </button>
         <input
           aria-label="查找录入比赛"
           placeholder="日期、球队"
@@ -147,11 +137,10 @@ export function MatchIntake({
           }}
         >
           <SheetEditor
+            key={selected.id}
             context={context}
             matchId={selected.id}
-            tournamentId={selected.tournamentId}
             scheduledStartAt={selected.scheduledStartAt}
-            genericPrompt
           />
         </Modal>
       )}

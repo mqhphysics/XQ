@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { ensureStudentPlayer } from '../common/student-player'
 import { Inject, Injectable, type HttpStatus } from '@nestjs/common'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
 import { isUUID } from 'class-validator'
@@ -667,21 +668,45 @@ export class IdentityService {
         const note = body.note?.trim() || (body.decision === 'APPROVED' ? '管理员批准身份认证' : '')
         if (body.decision === 'REJECTED' && note.length < 2) throw fail(400, '请填写拒绝原因')
         let resolved = body.resolvedCandidateId ?? application.candidateId
-        if (body.decision === 'APPROVED' && !resolved &&
-          ['MATCH_REPORTER', 'TOURNAMENT_ADMIN'].includes(application.kind)) {
-          if (!body.scopeId || !body.scopeType ||
-            (application.kind === 'TOURNAMENT_ADMIN' && body.scopeType !== 'TOURNAMENT'))
+
+        if (
+          body.decision === 'APPROVED' &&
+          !resolved &&
+          ['MATCH_REPORTER', 'TOURNAMENT_ADMIN'].includes(application.kind)
+        ) {
+          if (
+            !body.scopeId ||
+            !body.scopeType ||
+            (application.kind === 'TOURNAMENT_ADMIN' && body.scopeType !== 'TOURNAMENT')
+          )
             throw fail(400, '请选择本次任职的赛事或比赛范围')
-          const scope = body.scopeType === 'MATCH'
-            ? await tx.match.findFirst({ where: { id: body.scopeId, organizationId: actor.organizationId }, select: { id: true } })
-            : await tx.tournament.findFirst({ where: { id: body.scopeId, organizationId: actor.organizationId }, select: { id: true } })
+          const scope =
+            body.scopeType === 'MATCH'
+              ? await tx.match.findFirst({
+                  where: { id: body.scopeId, organizationId: actor.organizationId },
+                  select: { id: true },
+                })
+              : await tx.tournament.findFirst({
+                  where: { id: body.scopeId, organizationId: actor.organizationId },
+                  select: { id: true },
+                })
           if (!scope) throw fail(404, '授权对象不属于当前组织')
-          const person = await tx.user.findUniqueOrThrow({ where: { id: application.userId }, select: { realName: true } })
+          const person = await tx.user.findUniqueOrThrow({
+            where: { id: application.userId },
+            select: { realName: true },
+          })
           if (!person.realName) throw fail(400, '请先补充申请人姓名')
-          const record = await tx.identityRecord.create({ data: {
-            organizationId: actor.organizationId, kind: application.kind, displayName: person.realName,
-            scopeType: body.scopeType, scopeId: scope.id, createdByUserId: actor.userId, status: 'ACTIVE',
-          } })
+          const record = await tx.identityRecord.create({
+            data: {
+              organizationId: actor.organizationId,
+              kind: application.kind,
+              displayName: person.realName,
+              scopeType: body.scopeType,
+              scopeId: scope.id,
+              createdByUserId: actor.userId,
+              status: 'ACTIVE',
+            },
+          })
           resolved = `record:${record.id}`
         } else if (body.scopeId || body.scopeType) throw fail(400, '已有任职记录的授权范围不能在审批时覆盖')
         // Claim the application before locking the applicant or writing its notification.
@@ -702,6 +727,56 @@ export class IdentityService {
           },
         })
         if (claimed.count !== 1) throw fail(409, '申请已处理或版本变化，请刷新后核对')
+        if (body.decision === 'APPROVED' && !resolved && application.kind === 'PLAYER') {
+          const player = await ensureStudentPlayer(
+            tx,
+            actor.organizationId,
+            application.userId,
+            actor.userId,
+            requestId,
+            false,
+          )
+          const member = application.teamId
+            ? await tx.teamMembership.findUnique({
+                where: {
+                  teamId_userId: { teamId: application.teamId, userId: application.userId },
+                },
+              })
+            : null
+          if (member?.playerProfileId && member.playerProfileId !== player.id)
+            throw fail(409, '已有球队成员关联其他球员，请核对后再批准')
+          const playerMember = application.teamId
+            ? await tx.teamMembership.findUnique({
+                where: { teamId_playerProfileId: { teamId: application.teamId, playerProfileId: player.id } },
+              })
+            : null
+          if (playerMember?.userId && playerMember.userId !== application.userId)
+            throw fail(409, '球队内的球员成员已关联其他账号，不能覆盖')
+          if (member && playerMember && member.id !== playerMember.id)
+            throw fail(409, '账号与球员分别已有球队成员记录，请先核对')
+          if (playerMember)
+            await tx.teamMembership.update({
+              where: { id: playerMember.id },
+              data: { userId: application.userId, status: 'ACTIVE', removedAt: null },
+            })
+          else if (application.teamId)
+            await tx.teamMembership.upsert({
+              where: { teamId_userId: { teamId: application.teamId, userId: application.userId } },
+              create: {
+                organizationId: actor.organizationId,
+                teamId: application.teamId,
+                userId: application.userId,
+                playerProfileId: player.id,
+              },
+              update: { playerProfileId: player.id, status: 'ACTIVE', removedAt: null },
+            })
+          resolved = `player:${player.id}`
+        }
+        if (resolved && !application.candidateId && application.kind === 'PLAYER')
+          await tx.identityApplication.update({
+            where: { id },
+            data: { resolvedCandidateId: resolved },
+          })
         const applicant = await tx.user.findFirst({
           where: {
             id: application.userId,
@@ -719,7 +794,7 @@ export class IdentityService {
         if (!applicant) throw fail(409, '申请人的账号或组织成员身份已失效')
         if (body.decision === 'APPROVED') {
           if (!resolved) throw fail(400, '批准前必须指定核实后的名单记录或球员档案，并填写核实依据')
-          const candidate = await this.candidate(tx, actor.organizationId, resolved, applicant.id)
+          const candidate = await this.candidate(tx, actor.organizationId, resolved, applicant.id, application.teamId ?? undefined)
           if (
             candidate.kind !== application.kind ||
             (application.teamId && candidate.teamId !== application.teamId)
@@ -754,7 +829,10 @@ export class IdentityService {
               where: { id: applicant.id },
               data: {
                 playerProfileId: playerId,
-                verificationLevel: 'PLAYER_CONFIRMED',
+                verificationLevel:
+                  applicant.verificationLevel === 'STAFF_VERIFIED'
+                    ? 'STAFF_VERIFIED'
+                    : 'PLAYER_CONFIRMED',
                 ...(applicant.studentRecordId ? { studentVerifiedAt: new Date() } : {}),
               },
             })
@@ -1043,16 +1121,26 @@ export class IdentityService {
       ),
     ])
   }
-  private async candidate(tx: Tx, organizationId: string, value: string, applicantId?: string): Promise<Candidate> {
+  private async candidate(
+    tx: Tx,
+    organizationId: string,
+    value: string,
+    applicantId?: string,
+    teamId?: string,
+  ): Promise<Candidate> {
     const parsed = parseCandidate(value)
     if (parsed.type === 'player') {
       const player = await tx.playerProfile.findFirst({
-        where: { id: parsed.id, organizationId, linkedUser: null },
+        where: {
+          id: parsed.id,
+          organizationId,
+          OR: [{ linkedUser: null }, ...(applicantId ? [{ linkedUser: { id: applicantId } }] : [])],
+        },
         select: {
           id: true,
           displayName: true,
           teamMemberships: {
-            where: { organizationId, status: 'ACTIVE' },
+            where: { organizationId, status: 'ACTIVE', ...(teamId ? { teamId } : {}) },
             select: { team: { select: { id: true, name: true } } },
             take: 1,
           },
@@ -1068,8 +1156,12 @@ export class IdentityService {
       }
     }
     const record = await tx.identityRecord.findFirst({
-      where: { id: parsed.id, organizationId, status: 'ACTIVE',
-        OR: [{ linkedUserId: null }, ...(applicantId ? [{ linkedUserId: applicantId }] : [])] },
+      where: {
+        id: parsed.id,
+        organizationId,
+        status: 'ACTIVE',
+        OR: [{ linkedUserId: null }, ...(applicantId ? [{ linkedUserId: applicantId }] : [])],
+      },
       include: { team: { select: { name: true } } },
     })
     if (!record) throw fail(409, '候选已关联、撤销或不存在，请刷新后核查')

@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
@@ -100,6 +101,14 @@ const config: UserConfigExport = {
     publicPath: '/',
     staticDirectory: 'static',
     webpackChain(chain) {
+      // Bootstrap and H5 navigation APIs must share the same stateful router module.
+      // Taro's main:h5 and browser entries otherwise create separate history singletons.
+      chain.resolve.alias.set(
+        '@tarojs/router$',
+        createRequire(
+          createRequire(path.resolve(__dirname, '../package.json')).resolve('@tarojs/plugin-platform-h5/package.json'),
+        ).resolve('@tarojs/router'),
+      )
       const argv = (globalThis as { process?: { argv?: string[] } }).process?.argv ?? []
       const production = buildEnvironment?.NODE_ENV === 'production' || !argv.includes('--watch')
       if (!production) return

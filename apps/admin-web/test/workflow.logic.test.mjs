@@ -6,8 +6,8 @@ import {
   emptyReport,
   reportChanges,
   validateReportCommand,
-} from './report.logic.ts'
-import { validateRuleDocument } from './rule.logic.ts'
+} from '../src/features/adminWorkflows/report.logic.ts'
+import { validateRuleDocument } from '../src/features/adminWorkflows/rule.logic.ts'
 
 const homePlayer = '11111111-1111-4111-8111-111111111111'
 const awayPlayer = '22222222-2222-4222-8222-222222222222'
