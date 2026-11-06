@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { ensureStudentPlayer } from '../common/student-player'
 
 import { HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
@@ -445,17 +446,33 @@ export class SocialService {
       })
       if (claimed.count !== 1) throw conflict('该申请刚刚已由其他管理者处理')
       if (input.decision === 'APPROVED') {
-        const playerMembership = application.playerProfileId
+        const player = await ensureStudentPlayer(
+          tx,
+          session.organizationId,
+          application.userId,
+          session.userId,
+          requestId,
+        )
+        if (application.playerProfileId && application.playerProfileId !== player.id)
+          throw conflict('申请球员与当前账号关联不一致，请重新核对')
+        const playerProfileId = player.id
+        await tx.teamJoinApplication.updateMany({
+          where: { id: application.id, organizationId: session.organizationId },
+          data: { playerProfileId },
+        })
+        const playerMembership = playerProfileId
           ? await tx.teamMembership.findUnique({
               where: {
                 teamId_playerProfileId: {
                   teamId,
-                  playerProfileId: application.playerProfileId,
+                  playerProfileId,
                 },
               },
             })
           : null
         if (playerMembership) {
+          if (playerMembership.userId && playerMembership.userId !== application.userId)
+            throw conflict('球队内的球员成员已关联其他账号，不能覆盖')
           await tx.teamMembership.update({
             where: { id: playerMembership.id },
             data: {
@@ -472,11 +489,11 @@ export class SocialService {
               organizationId: session.organizationId,
               teamId,
               userId: application.userId,
-              playerProfileId: application.playerProfileId,
+              playerProfileId,
               position: application.requestedPosition,
             },
             update: {
-              playerProfileId: application.playerProfileId,
+              playerProfileId,
               position: application.requestedPosition,
               status: TeamMembershipStatus.ACTIVE,
               removedAt: null,

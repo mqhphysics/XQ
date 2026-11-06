@@ -605,13 +605,16 @@ function TeamSchedule({
                 <span className="th-score">
                   {match.homeScore !== null && match.awayScore !== null
                     ? `${match.homeScore} : ${match.awayScore}`
-                    : 'VS'}
+                    : completed(match)
+                      ? '待补比分'
+                      : 'VS'}
                 </span>
                 <TeamIdentity team={match.awayTeam} tournamentId={match.tournamentId} />
               </div>
               <div className="th-match__venue">
                 <TeamIcon name="pin" />
                 {match.venue?.name ?? '场地待定'}
+                <MatchStatus status={match.status} />
               </div>
               {match.statusReason ? <small className="th-muted">{match.statusReason}</small> : null}
             </div>

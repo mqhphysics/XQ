@@ -306,9 +306,18 @@ export class MatchVenueResponseDto {
 export class MatchResponseDto implements MatchView {
   @ApiPropertyOptional({
     type: Boolean,
-    description: '已保存比赛录入记录；与按时间计算的比赛状态分别表示',
+    description: '双方正式比分已确认；与按时间计算的比赛状态分别表示，草稿不算已录入',
   })
   recorded?: boolean
+
+  @ApiProperty({ type: Number, nullable: true, description: '已确认主队比分，待补录明确返回null' })
+  homeScore!: number | null
+
+  @ApiProperty({ type: Number, nullable: true, description: '已确认客队比分，待补录明确返回null' })
+  awayScore!: number | null
+
+  @ApiProperty({ type: Number, nullable: true })
+  confirmedReportVersion!: number | null
 
   @ApiProperty({ type: String, format: 'uuid' })
   id!: string
