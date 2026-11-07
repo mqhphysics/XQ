@@ -27,6 +27,7 @@ const guest = { hasSession: false, needsAccount: false }
 test('future guest access accepts only known public pages and module-enabled GET endpoints', () => {
   for (const path of [
     '/public/home',
+    '/public/focus-matches',
     '/public/seasons',
     '/public/tournaments',
     '/public/tournaments/test/schedule',
@@ -45,6 +46,7 @@ test('future guest access accepts only known public pages and module-enabled GET
     '/captain/teams/test',
     '/messages/conversations',
     '/matches/test/start',
+    '/matches/test/interest',
     '/public/private',
     '/public/teams/../admin',
     '/public/teams/a%2fb/dashboard',

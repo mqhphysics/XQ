@@ -3613,6 +3613,87 @@
         ]
       }
     },
+    "/api/public/focus-matches": {
+      "get": {
+        "operationId": "FocusMatchesController_list",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FocusMatchesDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "recommendation"
+        ]
+      }
+    },
+    "/api/matches/{matchId}/interest": {
+      "put": {
+        "operationId": "FocusMatchesController_record",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchInterestDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "recommendation"
+        ]
+      }
+    },
     "/api/public/matches/{matchId}/check-in": {
       "get": {
         "operationId": "MatchCheckinController_get",
@@ -8982,7 +9063,7 @@
   "info": {
     "title": "晓球 API",
     "description": "",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "contact": {}
   },
   "tags": [],
@@ -11555,6 +11636,221 @@
         "properties": {
           "accepted": {
             "type": "number"
+          }
+        },
+        "required": [
+          "accepted"
+        ]
+      },
+      "FocusTeamDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teamCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shortName": {
+            "type": "string"
+          },
+          "collegeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "primaryColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "secondaryColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "crestUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "teamCode",
+          "name",
+          "shortName",
+          "collegeName",
+          "primaryColor",
+          "secondaryColor",
+          "crestUrl",
+          "coverUrl"
+        ]
+      },
+      "FocusVenueDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "FocusMatchDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tournamentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "matchCode": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "SCHEDULED",
+              "LIVE",
+              "FINISHED",
+              "POSTPONED",
+              "CANCELLED"
+            ]
+          },
+          "scheduledStartAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "homeTeam": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FocusTeamDto"
+              }
+            ]
+          },
+          "awayTeam": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FocusTeamDto"
+              }
+            ]
+          },
+          "homeScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "awayScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "homePenaltyScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "awayPenaltyScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "statusReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "venue": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FocusVenueDto"
+              }
+            ]
+          },
+          "stageName": {
+            "type": "string",
+            "nullable": true
+          },
+          "stageType": {
+            "type": "string",
+            "nullable": true
+          },
+          "groupName": {
+            "type": "string",
+            "nullable": true
+          },
+          "roundName": {
+            "type": "string",
+            "nullable": true
+          },
+          "focusGender": {
+            "type": "string"
+          },
+          "focusCupName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tournamentId",
+          "matchCode",
+          "title",
+          "status",
+          "scheduledStartAt",
+          "homeTeam",
+          "awayTeam",
+          "homeScore",
+          "awayScore",
+          "homePenaltyScore",
+          "awayPenaltyScore",
+          "statusReason",
+          "venue",
+          "stageName",
+          "stageType",
+          "groupName",
+          "roundName",
+          "focusGender",
+          "focusCupName"
+        ]
+      },
+      "FocusMatchesDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FocusMatchDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "MatchInterestDto": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean"
           }
         },
         "required": [

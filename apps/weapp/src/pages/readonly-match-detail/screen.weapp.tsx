@@ -27,6 +27,7 @@ import {
   peekNativeProduct,
 } from '../../features/product/product.repository'
 import { NativeDetailActiveContext } from '../../features/native-navigation/detail-context.weapp'
+import { useNativeMatchInterest } from '../../features/recommendation/match-interest.weapp'
 import { readSession } from '../../features/product/session'
 import { eventLabel, formatDate } from '../../features/product/product.format'
 import { openPlayer } from '../../features/product/player-navigation'
@@ -96,6 +97,7 @@ export default function NativeMatchScreen({
   const requestSequence = useRef(0),
     refreshedAt = useRef(0)
   const active = useContext(NativeDetailActiveContext)
+  useNativeMatchInterest(matchId, active && !technical && state.phase === 'ready')
   const load = useCallback(async () => {
     const ticket = ++requestSequence.current
     refreshedAt.current = Date.now()
@@ -104,7 +106,7 @@ export default function NativeMatchScreen({
       return
     }
     try {
-      const match = await productRepository.getMatch(matchId)
+      const match = await productRepository.getMatch(matchId, true)
       if (ticket !== requestSequence.current) return
       setState({ phase: 'ready', match })
       setRefreshError('')

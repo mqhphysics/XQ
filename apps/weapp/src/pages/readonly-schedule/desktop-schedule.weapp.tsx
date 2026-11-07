@@ -32,7 +32,7 @@ import {
 } from './native-schedule.logic.weapp'
 import './index.weapp.scss'
 
-type ScheduleData = CompetitionDataResponse & { labels: Record<string, string> }
+type ScheduleData = CompetitionDataResponse & { labels: Record<string, string>; scopeKey: string }
 export default function NativeSchedulePage() {
   const [scope, setScope] = useState('all'),
     [state, setState] = useState<{ data: ScheduleData | null; error: string; loading: boolean }>({
@@ -73,7 +73,11 @@ export default function NativeSchedulePage() {
         }),
       )
       if (ticket !== sequence.current) return
-      setState({ data: { ...datasets[0]!, schedule, labels }, error: '', loading: false })
+      setState({
+        data: { ...datasets[0]!, schedule, labels, scopeKey: scope },
+        error: '',
+        loading: false,
+      })
     } catch (error) {
       if (ticket === sequence.current)
         setState((old) => ({
@@ -98,9 +102,9 @@ export default function NativeSchedulePage() {
       )}
       {state.data && (
         <ScheduleContent
-          key={scope}
+          key={state.data.scopeKey}
           data={state.data}
-          scope={scope}
+          scope={state.data.scopeKey}
           options={options}
           onTournament={setScope}
         />
@@ -122,28 +126,51 @@ function ScheduleContent({
   const [filter, setFilter] = useState(emptyScheduleFilter)
   const visible = useNativePanelVisible()
   const [today, setToday] = useState(() => nativeMatchDate(new Date().toISOString()))
-  const [listTarget, setListTarget] = useState('')
+  const [listTarget, setListTarget] = useState(`native-schedule-day-${today}`)
   const [listHeight, setListHeight] = useState(0)
+  const [positioned, setPositioned] = useState(false)
+  const initialized = useRef(false)
   const jumpToDay = (date: string) => {
     setListTarget('')
     Taro.nextTick(() => setListTarget(`native-schedule-day-${date}`))
   }
   useDidShow(() => setToday(nativeMatchDate(new Date().toISOString())))
   useEffect(() => {
-    if (visible) {
-      setFilter((current) => ({ ...current, date: '' }))
-      setListTarget('')
-      Taro.nextTick(() =>
-        Taro.createSelectorQuery()
-          .select('.native-schedule-list')
-          .boundingClientRect((rect) => {
-            const height = (rect as { height?: number })?.height
-            if (height) setListHeight(Math.ceil(height))
-          })
-          .exec(() => jumpToDay(today)),
-      )
+    if (!visible || initialized.current) return
+    let cancelled = false
+    // Keep the initial positioning out of view. Once placed, the native scroll view
+    // owns its position; returning to this mounted panel must never issue another jump.
+    Taro.nextTick(() =>
+      Taro.createSelectorQuery()
+        .select('.native-schedule-list')
+        .boundingClientRect((rect) => {
+          if (cancelled) return
+          const height = (rect as { height?: number })?.height
+          if (height) setListHeight(Math.ceil(height))
+          setListTarget('')
+        })
+        .exec(() =>
+          Taro.nextTick(() => {
+            if (cancelled) return
+            setListTarget(`native-schedule-day-${today}`)
+            Taro.nextTick(() =>
+              Taro.createSelectorQuery()
+                .select('.native-schedule-list')
+                .scrollOffset(() => {
+                  if (cancelled) return
+                  initialized.current = true
+                  setPositioned(true)
+                  setListTarget('')
+                })
+                .exec(),
+            )
+          }),
+        ),
+    )
+    return () => {
+      cancelled = true
     }
-  }, [visible, today, data.tournament.id])
+  }, [visible, today])
   const [draft, setDraft] = useState(emptyScheduleFilter)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectOpen, setSelectOpen] = useState(false)
@@ -236,7 +263,7 @@ function ScheduleContent({
         showScrollbar={false}
         enhanced
         scrollIntoView={`native-date-${filter.date || today}`}
-        scrollWithAnimation
+        scrollWithAnimation={false}
       >
         <View className="native-date-rail__items">
           <Button
@@ -272,17 +299,19 @@ function ScheduleContent({
         <Text>
           {`${filter.date ? filter.date.slice(5).replace('-', '/') : '全部日期'} · ${matches.length} 场比赛`}
         </Text>
-        <Button
-          className="native-button native-button--quiet"
-          onClick={openProgress}
-        >
+        <Button className="native-button native-button--quiet" onClick={openProgress}>
           赛事进度 ›
         </Button>
       </View>
       <NativeRefreshScroll
         id="native-guide-schedule-list"
         className="native-schedule-list"
+        style={positioned ? '' : 'visibility:hidden;'}
         scrollIntoView={listTarget}
+        scrollWithAnimation={false}
+        onScroll={() => {
+          if (initialized.current && listTarget) setListTarget('')
+        }}
         scrollY
         showScrollbar={false}
         enhanced
@@ -536,7 +565,9 @@ function WideScheduleAside({
             </View>
           </View>
         ) : (
-          <Text className="native-schedule-aside__empty">登录并选择主队后，这里会显示下一场比赛。</Text>
+          <Text className="native-schedule-aside__empty">
+            登录并选择主队后，这里会显示下一场比赛。
+          </Text>
         )}
         {next && (
           <View className="native-schedule-aside__next">

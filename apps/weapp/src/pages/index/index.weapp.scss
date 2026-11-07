@@ -468,7 +468,8 @@ page .native-search-result-row.native-search-result-row {
 }
 .native-feed-heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  margin-bottom: 20px;
   justify-content: space-between;
   gap: 20px;
 }
@@ -483,14 +484,17 @@ page .native-search-result-row.native-search-result-row {
   gap: 10px;
   flex: none;
   margin: 0;
-  padding: 12px 20px;
-  min-height: 64px;
+  padding: 20px 16px;
+  min-height: 84px;
   border: 0;
   border-radius: 32px;
-  background: #edf3e8;
-  color: #42684a;
+  background: transparent;
+  color: #61745b;
   font-size: 25px;
   line-height: 1.5;
+}
+.native-feed-change:active {
+  background: #edf1e8;
 }
 .native-feed-change::after {
   border: 0;

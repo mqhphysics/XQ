@@ -15,7 +15,9 @@
   padding: 0 24px;
 }
 .native-social-page__header-action {
-  position: absolute;
+  position: relative;
+  flex: none;
+  margin-left: 10px;
   display: flex;
   align-items: center;
   justify-content: center;

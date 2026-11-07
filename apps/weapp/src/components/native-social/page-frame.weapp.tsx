@@ -84,12 +84,7 @@ export function NativeSocialPage({
           </Button>
           <View className="native-social-page__title">{title}</View>
           {headerAction && (
-            <View
-              className="native-social-page__header-action"
-              style={`left:${Math.min(metrics.windowWidth / 2 - 18, metrics.capsule.left - 46)}px;`}
-            >
-              {headerAction}
-            </View>
+            <View className="native-social-page__header-action">{headerAction}</View>
           )}
         </View>
         {action && <View className="native-social-page__action">{action}</View>}

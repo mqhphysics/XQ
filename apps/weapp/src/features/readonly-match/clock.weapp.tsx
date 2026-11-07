@@ -4,7 +4,6 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { NativeDetailActiveContext } from '../native-navigation/detail-context.weapp'
 import { useNativePanelVisible } from '../../components/native-navigation/panel-context.weapp'
 import { readSession } from '../product/session'
-import { leagueDate, leagueTime } from '../product/league-time'
 import { matchClockRepository } from './clock.repository.weapp'
 import { clockDigits, projectMatchClock, type MatchClockSnapshot } from './clock.logic.weapp'
 
@@ -21,8 +20,6 @@ const actionId = () =>
     const value = Math.floor(Math.random() * 16)
     return (char === 'x' ? value : (value & 3) | 8).toString(16)
   })
-const actualTime = (value: string) =>
-  `${leagueTime(value)}:${String(leagueDate(value)?.getUTCSeconds() ?? 0).padStart(2, '0')}`
 export function NativeMatchClock({
   matchId,
   initial,
@@ -137,44 +134,27 @@ export function NativeMatchClock({
     }
   }
   const projected = clock ? projectMatchClock(clock, now - receivedAt) : null
-  const running =
-    projected && ['FIRST_HALF', 'HALF_TIME', 'SECOND_HALF', 'FINISHED'].includes(projected.phase)
+  const running = projected && ['FIRST_HALF', 'HALF_TIME', 'SECOND_HALF'].includes(projected.phase)
   const displaySeconds =
     projected?.phase === 'HALF_TIME'
       ? Math.max(0, (clock?.intervalMinutes || 0) * 60 - projected.phaseElapsedSeconds)
       : projected?.elapsedSeconds || 0
+  const canStart = allowStart && clock?.canStart
+  if (!running && !canStart && !(allowStart && error)) return null
   return (
     <View className={`native-match-clock${compact ? ' native-match-clock--compact' : ''}`}>
-      <View className="native-match-clock__copy">
-        <View className="native-match-clock__main">
-          <Text>
-            {projected ? phaseLabels[projected.phase] : error ? '计时暂不可用' : '正在读取计时'}
-          </Text>
-          {running && <Text>{clockDigits(displaySeconds)}</Text>}
+      {(running || (allowStart && error)) && (
+        <View className="native-match-clock__copy">
+          {running && projected && (
+            <View className="native-match-clock__main">
+              <Text>{phaseLabels[projected.phase]}</Text>
+              <Text>{clockDigits(displaySeconds)}</Text>
+            </View>
+          )}
+          {allowStart && error && <Text className="native-match-clock__error">{error}</Text>}
         </View>
-        {clock && (
-          <Text className="native-match-clock__source">
-            {compact && error
-              ? '计时未刷新'
-              : clock.startedAt
-                ? clock.startSource === 'MANUAL'
-                  ? `实际开球 ${actualTime(clock.startedAt)}`
-                  : `默认开球 ${leagueTime(clock.startedAt)}`
-                : clock.scheduledStartAt
-                  ? `计划 ${leagueTime(clock.scheduledStartAt)}`
-                  : '开球时间待定'}
-          </Text>
-        )}
-        {!compact && clock?.phase === 'PENDING' && clock.autoStartsAt && (
-          <Text className="native-match-clock__note">
-            无人确认时，{leagueTime(clock.autoStartsAt)} 启用默认计时
-          </Text>
-        )}
-        {error && (!compact || !clock) && (
-          <Text className="native-match-clock__error">{compact ? '计时未刷新' : error}</Text>
-        )}
-      </View>
-      {allowStart && clock?.canStart && (
+      )}
+      {canStart && (
         <Button
           className="native-match-clock__start"
           disabled={busy}
@@ -185,7 +165,7 @@ export function NativeMatchClock({
           <Text>比赛开始</Text>
         </Button>
       )}
-      {error && !clock && (
+      {allowStart && error && !clock && (
         <Button className="native-match-clock__retry" onClick={() => void load()}>
           重试
         </Button>

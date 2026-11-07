@@ -11,6 +11,8 @@ import { SelfPlayerProfileController } from './self-player-profile.controller'
 import { SelfPlayerProfileService } from './self-player-profile.service'
 import { FeedService } from '../recommendation/feed.service'
 import { FeedController } from '../recommendation/feed.controller'
+import { FocusMatchesController } from '../recommendation/focus-matches.controller'
+import { FocusMatchesService } from '../recommendation/focus-matches.service'
 import { MatchCheckinController } from './match-checkin.controller'
 import { MatchCheckinService } from './match-checkin.service'
 
@@ -19,9 +21,16 @@ import { MatchCheckinService } from './match-checkin.service'
     ExperienceController,
     SelfPlayerProfileController,
     FeedController,
+    FocusMatchesController,
     MatchCheckinController,
   ],
   imports: [AuthModule, SocialModule, MediaModule, ResultsModule, ImageTransferModule],
-  providers: [ExperienceService, SelfPlayerProfileService, FeedService, MatchCheckinService],
+  providers: [
+    ExperienceService,
+    SelfPlayerProfileService,
+    FeedService,
+    FocusMatchesService,
+    MatchCheckinService,
+  ],
 })
 export class ExperienceModule {}

@@ -37,7 +37,7 @@ import {
   nativeFocusValue,
   type NativeFocusMatch,
 } from './home-display.logic.weapp'
-import { loadNativeFocusPool } from './focus-pool.weapp'
+import { loadNativeFocusPool } from '../../features/recommendation/focus.repository.weapp'
 import { knockoutMatchTime } from '../data-center/knockout-display.logic'
 import {
   loadNativeFeed,
@@ -151,8 +151,38 @@ export default function NativeHomeScreen() {
   const [noticesOpen, setNoticesOpen] = useState(false)
   const [focusPool, setFocusPool] = useState<{
     tournamentId: string
+    userKey: string
     matches: NativeFocusMatch[]
   } | null>(null)
+  const focusSequence = useRef(0)
+  const focusUserKey = `${feedUser?.organizationId || ''}:${feedUser?.id || ''}`
+  const refreshFocus = useCallback(async () => {
+    if (!home) return
+    const ticket = ++focusSequence.current
+    const token = readSession()?.accessToken
+    try {
+      const matches = await loadNativeFocusPool(home.tournament.id)
+      if (ticket === focusSequence.current && token === readSession()?.accessToken)
+        setFocusPool({ tournamentId: home.tournament.id, userKey: focusUserKey, matches })
+    } catch {
+      /* Keep the last shortlist for this account during a temporary outage. */
+    }
+  }, [home?.tournament.id, focusUserKey])
+  useEffect(() => {
+    if (visible && appShown && history.cursor < 0) void refreshFocus()
+    return () => {
+      focusSequence.current++
+    }
+  }, [visible, appShown, history.cursor, refreshFocus])
+  useEffect(() => {
+    const refresh = () => {
+      void refreshFocus()
+    }
+    Taro.eventCenter.on('xiaoqiu:native-team-preferences', refresh)
+    return () => {
+      Taro.eventCenter.off('xiaoqiu:native-team-preferences', refresh)
+    }
+  }, [refreshFocus])
   const sequence = useRef(0),
     homeSequence = useRef(0),
     loaded = useRef(false),
@@ -166,20 +196,13 @@ export default function NativeHomeScreen() {
       setError('')
       loaded.current = true
       markNativeHomeReady()
-      try {
-        const matches = await loadNativeFocusPool(data.tournament.id)
-        if (ticket === homeSequence.current)
-          setFocusPool({ tournamentId: data.tournament.id, matches })
-      } catch {
-        /* Keep the last real shortlist while an additional schedule is unavailable. */
-      }
     } catch (reason) {
       if (ticket === homeSequence.current)
         setError(reason instanceof Error ? reason.message : '首页读取失败')
     }
   }, [routeTournamentId])
   useNativeRefreshTask(async () => {
-    await Promise.all([load(), refreshFeed()])
+    await Promise.all([load(), refreshFeed(), refreshFocus()])
     if (searchMode && query.trim()) await search(query, category)
   })
   useEffect(() => {
@@ -414,12 +437,10 @@ export default function NativeHomeScreen() {
                   onAction={() => void switchNativeSection('schedule', home.tournament.id)}
                 />
                 <View className="native-home-focus">
-                  {nativeFocusMatches(
-                    focusPool?.tournamentId === home.tournament.id
-                      ? focusPool.matches
-                      : home.focusMatches,
-                    Date.now(),
-                    wide ? 3 : 2,
+                  {(focusPool?.tournamentId === home.tournament.id &&
+                  focusPool.userKey === focusUserKey
+                    ? focusPool.matches.slice(0, wide ? 3 : 2)
+                    : nativeFocusMatches(home.focusMatches, Date.now(), wide ? 3 : 2)
                   ).map((match) => (
                     <FocusCard key={match.id} match={match} tournamentName={home.tournament.name} />
                   ))}

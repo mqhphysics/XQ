@@ -331,6 +331,7 @@ model Organization {
   matchAppearances     MatchAppearance[]
   matchReviews         MatchReview[]
   matchCheckins        MatchCheckin[]
+  matchInterests       UserMatchInterest[]
   posts                Post[]
   postLikes            PostLike[]
   postFavorites        PostFavorite[]
@@ -416,6 +417,7 @@ model User {
   postComments                 PostComment[]
   matchReviews                 MatchReview[]
   matchCheckins                MatchCheckin[]
+  matchInterests               UserMatchInterest[]
   playerFollows                UserPlayerFollow[]
   teamMemberships              TeamMembership[]
   teamApplications             TeamJoinApplication[]    @relation("TeamApplicationApplicant")
@@ -1169,6 +1171,7 @@ model Match {
   appearances        MatchAppearance[]
   reviews            MatchReview[]
   checkins           MatchCheckin[]
+  interests          UserMatchInterest[]
 
   reportVersion          Int                     @default(0) @map("report_version")
   confirmedReportVersion Int?                    @map("confirmed_report_version")
@@ -1183,6 +1186,21 @@ model Match {
   @@index([stageId, roundId], map: "matches_stage_id_round_id_idx")
   @@index([scheduleRevisionId, scheduledStartAt], map: "matches_schedule_revision_id_scheduled_start_at_idx")
   @@map("matches")
+}
+
+model UserMatchInterest {
+  organizationId String       @map("organization_id") @db.Uuid
+  matchId        String       @map("match_id") @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  viewCount      Int          @default(1) @map("view_count")
+  lastViewedAt   DateTime     @default(now()) @map("last_viewed_at") @db.Timestamptz(3)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  match          Match        @relation(fields: [matchId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, matchId])
+  @@index([organizationId, userId, lastViewedAt])
+  @@map("user_match_interests")
 }
 
 model MatchCheckin {

@@ -530,6 +530,25 @@ export class ExperienceService {
     )
   }
 
+  async getFocusCandidates(organizationId: string, tournamentId: string) {
+    return this.prisma.$transaction(
+      async (prisma) => {
+        const tournament = await this.getFeaturedTournament(organizationId, tournamentId, prisma)
+        const context = await this.resultContext(organizationId, tournament, prisma)
+        const matches = await prisma.match.findMany({
+          where: {
+            organizationId,
+            tournamentId,
+            status: { in: ['SCHEDULED', 'LIVE', 'FINISHED'] },
+          },
+          include: { ...matchSummaryInclude, stage: true, group: true, round: true },
+        })
+        return matches.map((match) => mapResultMatch(match, context.official))
+      },
+      { isolationLevel: 'RepeatableRead' },
+    )
+  }
+
   private async getCompetitionDataSnapshot(
     organizationId: string,
     tournamentId: string | undefined,

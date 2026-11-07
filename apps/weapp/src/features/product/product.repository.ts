@@ -109,8 +109,10 @@ export const productRepository = {
       `/public/people/${encodeURIComponent(userId)}${tournamentId ? `?tournamentId=${encodeURIComponent(tournamentId)}` : ''}`,
     ),
 
-  getMatch: (matchId: string) =>
-    request<MatchExperienceResponse>(`/public/matches/${encodeURIComponent(matchId)}/experience`),
+  getMatch: (matchId: string, refresh = false) =>
+    request<MatchExperienceResponse>(`/public/matches/${encodeURIComponent(matchId)}/experience`, {
+      refresh,
+    }),
 
   getPost: (postId: string) => request<PostDetail>(`/public/posts/${encodeURIComponent(postId)}`),
 

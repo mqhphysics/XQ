@@ -17,7 +17,8 @@ export function modulesForRoute(route: string): ProductModuleId[] {
     .replace(/^\/api\//i, '')
     .replace(/^\/+|\/+$/g, '')
     .toLowerCase()
-  if (path === 'public/home') return ['home']
+  if (path === 'public/home' || path === 'public/focus-matches') return ['home']
+  if (/^matches\/:[^/]+\/interest$/.test(path)) return ['home', 'schedule']
   if (path === 'public/feed' || path === 'me/feed-events') return ['community']
   if (/^me\/image-transfers\/:[^/]+(?:\/parts\/:[^/]+)?$/.test(path)) return ['community']
   if (path === 'public/competition-catalog') return ['schedule']

@@ -42,6 +42,8 @@ test('module revision is stable, honors explicit server switches and closes inva
 test('registered route mapping covers actual module endpoints and leaves authentication/config/health intact', () => {
   const routes: Array<[string, string[]]> = [
     ['/api/public/home/', ['home']],
+    ['public/focus-matches', ['home']],
+    ['matches/:matchId/interest', ['home', 'schedule']],
     ['public/seasons', ['schedule']],
     ['public/tournaments/:id/schedule', ['schedule']],
     ['public/matches/:matchId/experience', ['schedule']],

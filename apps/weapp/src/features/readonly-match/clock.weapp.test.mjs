@@ -24,7 +24,7 @@ function moduleAt(file, dependencies) {
   })
   return module.exports
 }
-function harness(onChanged) {
+function harness(onChanged, snapshot = {}) {
   const states = [],
     requests = []
   let cursor = 0
@@ -55,6 +55,7 @@ function harness(onChanged) {
     secondHalfStartsAt: '2026-11-07T04:50:00Z',
     endedAt: null,
     canStart: true,
+    ...snapshot,
   }
   const { NativeMatchClock } = moduleAt('./clock.weapp.tsx', {
     'react/jsx-runtime': jsx,
@@ -125,6 +126,24 @@ test('the public display never renders an administrative start button by default
   assert.equal(
     h.render(false).some((node) => node.props?.className === 'native-match-clock__start'),
     false,
+  )
+})
+
+test('public clock is absent before kickoff, after finish and without a usable clock', () => {
+  for (const phase of ['PENDING', 'FINISHED', 'UNAVAILABLE']) {
+    assert.deepEqual(harness(undefined, { phase, canStart: false }).render(false), [])
+  }
+})
+test('in-progress clock shows only phase/progress and disappears at the end boundary', () => {
+  const live = { startedAt: '2026-11-07T04:15:00Z', phase: 'FIRST_HALF', canStart: false }
+  const texts = harness(undefined, live)
+    .render(false)
+    .filter((n) => n.type === 'Text')
+    .map((n) => n.props.children)
+  assert.deepEqual(texts, ['上半场', '05:00'])
+  assert.deepEqual(
+    harness(undefined, { ...live, expectedEndAt: '2026-11-07T04:20:00Z' }).render(false),
+    [],
   )
 })
 test('the parent receives acknowledged snapshots, not an extra callback on each render', async () => {
