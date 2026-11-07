@@ -3,6 +3,7 @@ export interface NativeDraftImage {
   path: string
   mime: string
   owned?: boolean
+  transferId?: string
 }
 export async function copyNativeDraftImage(image: NativeDraftImage): Promise<NativeDraftImage> {
   const suffix =
@@ -58,29 +59,6 @@ export async function chooseNativePostImages(count: number): Promise<NativeDraft
           })
         ).tempFilePath
         info = await Taro.getImageInfo({ src: path })
-        // Keep ordinary multi-photo posts within the cloud transport's single-call budget.
-        for (const quality of [72, 60, 48, 36]) {
-          const bytes = await new Promise<number>((resolve, reject) =>
-            Taro.getFileSystemManager().stat({
-              path,
-              success: (result) =>
-                resolve(Array.isArray(result.stats) ? Infinity : result.stats.size),
-              fail: reject,
-            }),
-          )
-          if (bytes <= 64 * 1024) break
-          const edge = Math.max(640, Math.round((1280 * quality) / 72))
-          const ratio = Math.min(1, edge / Math.max(info.width, info.height))
-          path = (
-            await Taro.compressImage({
-              src: path,
-              quality,
-              compressedWidth: Math.round(info.width * ratio),
-              compressedHeight: Math.round(info.height * ratio),
-            })
-          ).tempFilePath
-          info = await Taro.getImageInfo({ src: path })
-        }
       }
       const mime =
         info.type === 'gif'

@@ -185,6 +185,8 @@ export class ReportTeamViewDto {
   @ApiProperty({ type: [ReportPlayerViewDto] }) players!: ReportPlayerViewDto[]
 }
 export class ReportPermissionsDto {
+  @ApiProperty() isAdministrator!: boolean
+  @ApiProperty() canRecordTechnical!: boolean
   @ApiProperty({ description: '具备直接发布比赛记录的管理员权限，不受当前是否待审核影响' })
   canPublish!: boolean
   @ApiProperty() canEdit!: boolean
@@ -193,6 +195,18 @@ export class ReportPermissionsDto {
   @ApiProperty() canCorrect!: boolean
   @ApiProperty() canConfirm!: boolean
   @ApiProperty() canReturn!: boolean
+}
+export class ReportRecordingWindowDto {
+  @ApiProperty() serverNow!: string
+  @ApiProperty({ type: String, nullable: true }) opensAt!: string | null
+  @ApiProperty({ type: String, nullable: true }) estimatedEndAt!: string | null
+  @ApiProperty({ type: String, nullable: true }) endedAt!: string | null
+  @ApiProperty({ type: String, nullable: true, enum: ['ACTUAL', 'ESTIMATED'] }) endedAtSource!:
+    | 'ACTUAL'
+    | 'ESTIMATED'
+    | null
+  @ApiProperty({ type: String, nullable: true }) technicalClosesAt!: string | null
+  @ApiProperty({ type: String, nullable: true }) reportCompletedAt!: string | null
 }
 export class ReportRevisionViewDto {
   @ApiProperty() version!: number
@@ -231,6 +245,7 @@ export class ReportWorkspaceResponseDto {
   @ApiProperty({ type: ReportTeamViewDto }) homeTeam!: ReportTeamViewDto
   @ApiProperty({ type: ReportTeamViewDto }) awayTeam!: ReportTeamViewDto
   @ApiProperty({ type: ReportPermissionsDto }) permissions!: ReportPermissionsDto
+  @ApiProperty({ type: ReportRecordingWindowDto }) recordingWindow!: ReportRecordingWindowDto
   @ApiProperty({ type: ReportRevisionViewDto, nullable: true })
   latest!: ReportRevisionViewDto | null
   @ApiProperty({ type: String, nullable: true }) reviewNote!: string | null

@@ -116,7 +116,7 @@ export function NativeRegistrationForm() {
   const currentCheck = check?.key === key ? check : null
   useEffect(() => {
     if (!consent) return
-    if (value.realName.trim().length < 2 || !/^\d{10}$/.test(value.studentId.trim())) return
+    if (value.realName.trim().length < 2 || !/^20\d{8}$/.test(value.studentId.trim())) return
     let active = true
     const timer = setTimeout(() => {
       setCheck({ key })
@@ -266,19 +266,21 @@ export function NativeRegistrationForm() {
                 }}
               />
             </View>
-            {field === 'studentId' && currentCheck && (
-              <Text
-                className={
-                  currentCheck.result?.eligible
-                    ? 'native-note'
-                    : currentCheck.message || currentCheck.result
-                      ? 'native-register__error'
-                      : 'native-note'
-                }
-              >
-                {currentCheck.result?.message || currentCheck.message || '正在匹配学生名单…'}
-              </Text>
-            )}
+            {field === 'studentId' &&
+              currentCheck &&
+              (!currentCheck.result || Boolean(currentCheck.result.message)) && (
+                <Text
+                  className={
+                    currentCheck.result?.eligible
+                      ? 'native-note'
+                      : currentCheck.message || currentCheck.result
+                        ? 'native-register__error'
+                        : 'native-note'
+                  }
+                >
+                  {currentCheck.result?.message || currentCheck.message || '正在匹配学生名单…'}
+                </Text>
+              )}
             {field === 'email' && showCode ? (
               <View className="auth-code-row">
                 <Input

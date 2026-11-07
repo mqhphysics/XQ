@@ -3,5 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type TechnicalStatisticsQueryDto = {
-    schemaVersion?: 1 | 2;
+    schemaVersion?: 1 | 2 | 3;
 };

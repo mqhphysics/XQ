@@ -93,6 +93,17 @@ export class PostTagQueryDto {
 }
 
 export class CreatePostDto {
+  @ApiPropertyOptional({
+    type: [String],
+    maxItems: 9,
+    description: '本人上传完成的分片图片标识；与内联图片互斥',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(9)
+  @ArrayUnique()
+  @IsUUID('all', { each: true })
+  imageUploadIds?: string[]
   @ApiPropertyOptional({ type: String, format: 'uuid', description: '引用的已发布动态' })
   @IsOptional()
   @IsUUID()
@@ -157,6 +168,17 @@ export class CreatePostDto {
 }
 
 export class CreateCommentDto {
+  @ApiPropertyOptional({
+    type: [String],
+    maxItems: 3,
+    description: '本人上传完成的分片图片标识；与内联图片互斥',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(3)
+  @ArrayUnique()
+  @IsUUID('all', { each: true })
+  imageUploadIds?: string[]
   @ApiPropertyOptional({ type: Boolean, description: '发表评论时同步发布引用原帖的动态，不带标签' })
   @IsOptional()
   @IsBoolean()

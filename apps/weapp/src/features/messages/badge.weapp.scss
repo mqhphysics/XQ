@@ -1,0 +1,41 @@
+.native-message-badge {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  z-index: 2;
+  box-sizing: border-box;
+  background: #dc5a50;
+  border: 3px solid #f7f8f4;
+  pointer-events: none;
+}
+.native-message-badge.native-message-badge--dot {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  padding: 0;
+  border-radius: 50%;
+}
+.native-message-badge.native-message-badge--count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 7px;
+  border-radius: 18px;
+  color: #fff;
+}
+.native-message-badge--count > text {
+  display: block;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 26px;
+  text-align: center;
+}
+.native-message-icon-wrap {
+  display: inline-flex;
+  position: relative;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}

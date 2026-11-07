@@ -2,7 +2,6 @@ import { Button, Text, View } from '@tarojs/components'
 import { openPlayer } from '../../features/product/player-navigation'
 import { openTeam } from '../../features/product/team-navigation'
 import type { PostTagsProps } from './index'
-import '../native-social/social.weapp.scss'
 export function PostTags({ tags, tournamentId }: PostTagsProps) {
   if (!tags?.length) return null
   return (

@@ -57,6 +57,14 @@ function loginService(users: ReturnType<typeof user>[]) {
             where.OR.some((condition) =>
               Object.entries(condition).every(([key, value]) => {
                 const actual = (candidate as Record<string, unknown>)[key]
+                if (key === 'loginAliases' && value && typeof value === 'object' && 'some' in value)
+                  return (
+                    (actual as Array<{ aliasNormalized: string }> | undefined)?.some(
+                      (alias) =>
+                        alias.aliasNormalized ===
+                        (value.some as { aliasNormalized: string }).aliasNormalized,
+                    ) || false
+                  )
                 return typeof value === 'object' && value !== null && 'equals' in value
                   ? String(actual).toLowerCase() === String(value.equals).toLowerCase()
                   : actual === value
@@ -73,6 +81,19 @@ function loginService(users: ReturnType<typeof user>[]) {
   }
   return { service: new AuthService(prisma as unknown as PrismaService), created }
 }
+
+test('a migrated account still signs in with its reserved old username', async () => {
+  const { service } = loginService([
+    user('owner', {
+      loginNameNormalized: 'dengdeyang123',
+      loginAliases: [{ aliasNormalized: 'old-user-2025' }],
+    }),
+  ])
+  assert.equal(
+    (await service.login('old-user-2025', PASSWORD, ORGANIZATION_ID, {})).user.username,
+    'dengdeyang123',
+  )
+})
 
 test("a unique username cannot be shadowed by someone else's nickname", async () => {
   const otherDigest = hashPassword('Other-fictional-password!')

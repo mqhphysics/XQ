@@ -27,7 +27,7 @@ export async function openNativeComposer(
     .join('&')
   await openNativeDetail(`/pages/compose/index${query ? `?${query}` : ''}`)
 }
-export async function finishNativeSocialPage() {
+export async function finishNativeSocialPage(tournamentId?: string) {
   await Taro.hideKeyboard().catch(() => {})
   const pages = Taro.getCurrentPages(),
     current = pages[pages.length - 1]
@@ -37,5 +37,10 @@ export async function finishNativeSocialPage() {
   )
     await stepNativeDetail(-1)
   else if (pages.length > 1) await Taro.navigateBack()
-  else await Taro.reLaunch({ url: '/pages/index/index' })
+  else
+    await Taro.reLaunch({
+      url:
+        '/pages/index/index' +
+        (tournamentId ? '?tournamentId=' + encodeURIComponent(tournamentId) : ''),
+    })
 }

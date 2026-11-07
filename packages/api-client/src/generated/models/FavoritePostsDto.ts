@@ -5,4 +5,6 @@
 import type { PostSummaryDto } from './PostSummaryDto';
 export type FavoritePostsDto = {
     items: Array<PostSummaryDto>;
+    nextCursor: string | null;
+    totalCount: number;
 };

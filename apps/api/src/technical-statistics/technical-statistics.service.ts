@@ -3,6 +3,7 @@ import {
   ERROR_CODES,
   technicalState,
   technicalV2Required,
+  technicalV3Required,
   TECHNICAL_TOTAL_KEYS,
   type TechnicalTotals,
   type TechnicalOperation,
@@ -14,6 +15,7 @@ import { PrismaService } from '../database/prisma.service'
 import type { Prisma } from '../generated/prisma/client'
 import { requireActiveReporter } from '../campus/reporter-quality.service'
 import { MatchReportService } from '../match-report/match-report.service'
+import { reportingWindow } from '../match-report/reporting-window'
 import { confirmedMatchLineup } from '../experience/confirmed-match-lineup'
 import { playerAvatar } from '../media/player-avatar'
 import type {
@@ -163,11 +165,38 @@ export class TechnicalStatisticsService {
     }
     if (!administrator) {
       await requireActiveReporter(tx, session.organizationId, session.userId)
-      if (match.scheduledStartAt) {
-        const midnight =
-          Math.floor((match.scheduledStartAt.getTime() + 28800000) / 86400000) * 86400000 + 57600000
-        if (Date.now() >= midnight) throw failure(403, '比赛当日已结束，技术记录请交由管理员修正')
-      }
+      const binding =
+        match.confirmedReportVersion === null
+          ? null
+          : await tx.matchReportRevision.findFirst({
+              where: {
+                organizationId: session.organizationId,
+                matchId: match.id,
+                version: match.confirmedReportVersion,
+              },
+              select: { ruleVersionId: true },
+            })
+      const rule = await tx.competitionRuleVersion.findFirst({
+        where: {
+          organizationId: session.organizationId,
+          tournamentId: match.tournamentId,
+          status: 'PUBLISHED',
+          ...(binding ? { id: binding.ruleVersionId } : {}),
+        },
+        orderBy: { version: 'desc' },
+        select: { rules: true },
+      })
+      const window = reportingWindow(
+        match.scheduledStartAt,
+        rule?.rules,
+        this.clockNow(),
+        match.actualEndedAt,
+        match.status,
+        match.actualStartedAt,
+      )
+      if (!window) throw failure(403, '请先设置比赛开赛时间')
+      if (!window.opened) throw failure(403, '比赛开始前30分钟开放技术统计')
+      if (!window.technicalOpen) throw failure(403, '比赛结束已超过30分钟，技术统计请由管理员更正')
     }
     if (
       ['DRAFT', 'CANCELLED', 'POSTPONED'].includes(match.status) ||
@@ -175,6 +204,9 @@ export class TechnicalStatisticsService {
       !match.awayTeamId
     )
       throw failure(403, '当前比赛尚不能记录技术统计')
+  }
+  private clockNow() {
+    return Date.now()
   }
   private response(
     context: Awaited<ReturnType<TechnicalStatisticsService['context']>>,
@@ -229,10 +261,15 @@ export class TechnicalStatisticsService {
       },
     })
     if (
-      schemaVersion !== 2 &&
+      schemaVersion < 2 &&
       technicalV2Required((record?.operations || []) as TechnicalOperation[])
     )
       throw failure(409, '这场已有新版技术记录，请更新到0.7.1或更新版本后查看')
+    if (
+      schemaVersion < 3 &&
+      technicalV3Required((record?.operations || []) as TechnicalOperation[])
+    )
+      throw failure(409, '这场包含角球记录，请更新到0.9.0或更新版本后查看')
     return this.response(context, record, reason)
   }
   async record(
@@ -256,14 +293,18 @@ export class TechnicalStatisticsService {
         }
         const previous = await tx.matchTechnicalLog.findUnique({ where })
         const operations = (previous?.operations || []) as TechnicalOperation[]
-        if (body.schemaVersion !== 2 && technicalV2Required(operations))
+        if ((body.schemaVersion ?? 1) < 2 && technicalV2Required(operations))
           throw failure(409, '这场已有新版技术记录，请更新小程序后继续')
+        if ((body.schemaVersion ?? 1) < 3 && technicalV3Required(operations))
+          throw failure(409, '这场包含角球记录，请更新到0.9.0或更新版本后继续')
         const known = new Map(operations.map((op) => [op.id, op]))
         const append: TechnicalOperation[] = []
         for (const item of body.operations) {
           const operation = normalize(item)
-          if (body.schemaVersion !== 2 && technicalV2Required([operation]))
+          if ((body.schemaVersion ?? 1) < 2 && technicalV2Required([operation]))
             throw failure(409, '请更新小程序后使用新版技术记录')
+          if ((body.schemaVersion ?? 1) < 3 && technicalV3Required([operation]))
+            throw failure(409, '请更新到0.9.0或更新版本后记录角球')
           const existing = known.get(operation.id)
           if (existing) {
             if (
@@ -361,7 +402,10 @@ function normalize(op: TechnicalOperationDto): TechnicalOperation {
       teamId: op.teamId.toLowerCase(),
       playerId: op.playerId?.toLowerCase() || null,
       totals: Object.fromEntries(
-        TECHNICAL_TOTAL_KEYS.map((key) => [key, op.totals![key]]),
+        TECHNICAL_TOTAL_KEYS.map((key) => [
+          key,
+          key === 'corners' ? (op.totals!.corners ?? 0) : op.totals![key],
+        ]),
       ) as TechnicalTotals,
       ...(op.reason?.trim() ? { reason: op.reason.trim() } : {}),
     }

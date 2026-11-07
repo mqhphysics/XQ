@@ -15,7 +15,7 @@ const valid = {
   email: '',
 }
 test('exactly ten numeric student digits are required, without silently truncating an extra digit', () => {
-  for (const studentId of ['123', '12345678901', '123456789x'])
+  for (const studentId of ['123', '12345678901', '123456789x', '1234567890'])
     assert.ok(registrationErrors({ ...valid, studentId }).studentId)
   assert.equal(registrationErrors(valid).studentId, undefined)
 })

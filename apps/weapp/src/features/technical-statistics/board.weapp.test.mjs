@@ -87,6 +87,8 @@ test('row board: seven players on top, full/精简 rows, recent strip, persisted
     '../../components/native-ui/index.weapp': { NativeDialog: 'Dialog' },
     '../../components/native-ui/match-lineups.weapp': { NativePlayerPortrait: 'Portrait' },
     './lineup-sort.weapp': { NativeLineupSort: 'LineupSort' },
+    '../readonly-match/clock.weapp': { NativeMatchClock: 'Clock' },
+    './corner-icon.weapp': { NativeCornerIcon: 'CornerIcon' },
     '../product/session': { readSession: () => ({ user: { id: 'user', organizationId: 'org' } }) },
     '../native-navigation/index.weapp': { nativeBack: async () => {} },
     '../native-navigation/detail-context.weapp': {
@@ -148,6 +150,30 @@ test('row board: seven players on top, full/精简 rows, recent strip, persisted
   tree = render()
   const recent = nodes(tree).find((node) => node.props?.className === 'native-record-recent')
   assert.match(JSON.stringify(recent.props.children), /1 a球员1 · 传球✓/)
+  // Corners always count for the selected team, even with an individual player selected.
+  nodes(tree)
+    .find((node) => node.props?.className === 'native-record-corner')
+    .props.onClick()
+  assert.equal(writes.at(-1).metric, 'CORNER')
+  assert.equal(writes.at(-1).playerId, null)
+  assert.equal(writes.at(-1).teamId, 'a')
+  tree = render()
+  assert.match(
+    JSON.stringify(
+      nodes(tree).find((node) => node.props?.className === 'native-record-corner').props.children,
+    ),
+    /全队.*1/,
+  )
+  nodes(tree)
+    .find((node) => node.props?.className === 'native-record-undo')
+    .props.onClick()
+  tree = render()
+  assert.match(
+    JSON.stringify(
+      nodes(tree).find((node) => node.props?.className === 'native-record-corner').props.children,
+    ),
+    /全队.*0/,
+  )
   // 精简 keeps only 犯规/机会/射门, grows the rows and is remembered locally.
   nodes(tree)
     .find(

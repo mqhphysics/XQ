@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type TechnicalTotalsDto = {
+    corners?: number;
     passSuccess: number;
     passFailure: number;
     tackleSuccess: number;

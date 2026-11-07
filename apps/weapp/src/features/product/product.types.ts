@@ -1,4 +1,5 @@
 import type { IdentityBadgeKind } from './identity-badges'
+import type { MatchClockDto } from '../../../../../packages/api-client/src/generated'
 
 export type MatchStatus =
   | 'DRAFT'
@@ -347,6 +348,7 @@ export interface PlayerDetailResponse {
 }
 
 export interface MatchExperienceResponse extends MatchSummary {
+  clock?: MatchClockDto
   officials?: Array<{
     role: 'REFEREE' | 'ASSISTANT_REFEREE_1' | 'ASSISTANT_REFEREE_2' | 'FOURTH_OFFICIAL'
     displayName: string

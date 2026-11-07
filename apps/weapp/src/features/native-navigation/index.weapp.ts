@@ -1,4 +1,6 @@
 import { parseNativeDetailUrl } from './detail-route.weapp'
+import { nativeTechnicalUrl, redirectedTechnicalUrl } from './technical-route.logic.weapp'
+import { redirectedSocialUrl } from './social-route.logic.weapp'
 import { useNativeViewport } from './viewport.weapp'
 import { nativeWideWindow } from './viewport.logic.weapp'
 import { createMotionFrame } from './motion-frame.weapp'
@@ -186,6 +188,17 @@ export async function switchNativeSection(
 ) {
   if (mainController) {
     if (!(await allowNativeLeave()) || !isCurrent()) return
+    if (!isNativeRootPage()) {
+      const pages = Taro.getCurrentPages()
+      const root = pages
+        .map((page) =>
+          Object.values(nativeTabPaths).includes(`/${(page.route || '').replace(/^\/+/, '')}`),
+        )
+        .lastIndexOf(true)
+      if (root >= 0 && root < pages.length - 1)
+        await Taro.navigateBack({ delta: pages.length - 1 - root })
+      if (!isCurrent()) return
+    }
     if (section === 'data' && direction) dataEntry = direction
     setNativeTournamentId(id)
     history = { entries: [], cursor: -1 }
@@ -226,9 +239,20 @@ export async function switchNativeSection(
   }
 }
 export async function openNativeDetail(url: string, preload?: () => Promise<unknown>) {
+  const physical = redirectedTechnicalUrl(url) || redirectedSocialUrl(url)
+  if (physical) {
+    if (!(await allowNativeLeave(true))) return
+    if (keyboardOpen) await Taro.hideKeyboard().catch(() => {})
+    await Taro.navigateTo({ url: physical })
+    return
+  }
   if (!parseNativeDetailUrl(url)) {
-    if (/^\/pages\/readonly-(?:tournaments|tournament-detail|teams)\/index(?:\?|$)/.test(url)) { await Taro.navigateTo({ url }); return }
-    await Taro.showToast({ title: '链接无效或该功能已退出', icon: 'none' }); return
+    if (/^\/pages\/readonly-(?:tournaments|tournament-detail|teams)\/index(?:\?|$)/.test(url)) {
+      await Taro.navigateTo({ url })
+      return
+    }
+    await Taro.showToast({ title: '链接无效或页面暂不可用', icon: 'none' })
+    return
   }
   if (!(await allowNativeLeave(true))) return
   if (preload) void preload().catch(() => {})
@@ -240,6 +264,13 @@ export async function openNativeDetail(url: string, preload?: () => Promise<unkn
     notify()
   } else await Taro.navigateTo({ url })
 }
+export async function openNativeTechnical(matchId: string) {
+  if (!matchId.trim()) {
+    await Taro.showToast({ title: '缺少比赛信息', icon: 'none' })
+    return
+  }
+  await openNativeDetail(nativeTechnicalUrl(matchId))
+}
 export async function nativeBack() {
   if (keyboardOpen) {
     await Taro.hideKeyboard()
@@ -247,6 +278,11 @@ export async function nativeBack() {
   }
   if (await closeNativeBackLayer()) return 'handled' as const
   if (!(await allowNativeLeave())) return 'handled' as const
+  // The main pager stays mounted beneath a physical subpackage page.
+  if (!isNativeRootPage() && Taro.getCurrentPages().length > 1) {
+    await Taro.navigateBack()
+    return 'handled' as const
+  }
   if (isNativeRootPage() && history.cursor >= 0) {
     history = moveDetail(history, -1)
     notify()
@@ -266,6 +302,7 @@ export async function nativeBack() {
   return 'handled' as const
 }
 export function nativeForward() {
+  if (!isNativeRootPage()) return false
   if (moveDetail(history, 1) === history) return false
   void stepNativeDetail(1)
   return true

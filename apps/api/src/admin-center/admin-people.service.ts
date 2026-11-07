@@ -4,6 +4,7 @@ import { AdminCenterService } from './admin-center.service'
 import { centerError, maskIdentity } from './admin-center.policy'
 import type { AdminCenterEditDto, AdminCenterPageDto, AdminSanctionDto } from './admin-center.dto'
 import type { Prisma } from '../generated/prisma/client'
+import { reserveLoginAlias } from '../auth/usernames'
 
 @Injectable()
 export class AdminPeopleService {
@@ -179,6 +180,11 @@ export class AdminPeopleService {
           if (!profile) throw centerError(400, '球员档案不属于当前组织')
         }
         try {
+          if (typeof patch.loginNameNormalized === 'string') {
+            if (member.user.loginNameNormalized)
+              await reserveLoginAlias(tx, id, member.user.loginNameNormalized)
+            await reserveLoginAlias(tx, id, patch.loginNameNormalized)
+          }
           const changed = await tx.user.updateMany({
             where: { id, updatedAt: new Date(input.expectedUpdatedAt) },
             data: patch,

@@ -16,6 +16,7 @@ import {
 } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 export class TechnicalTotalsDto {
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) @Max(100000) corners?: number
   @ApiProperty() @IsInt() @Min(0) @Max(100000) passSuccess!: number
   @ApiProperty() @IsInt() @Min(0) @Max(100000) passFailure!: number
   @ApiProperty() @IsInt() @Min(0) @Max(100000) tackleSuccess!: number
@@ -33,10 +34,10 @@ export class TechnicalTotalsDto {
   @ApiProperty() @IsInt() @Min(0) @Max(100000) chancesMissed!: number
 }
 export class TechnicalStatisticsQueryDto {
-  @ApiPropertyOptional({ enum: [1, 2] })
+  @ApiPropertyOptional({ enum: [1, 2, 3] })
   @IsOptional()
   @Type(() => Number)
-  @IsIn([1, 2])
+  @IsIn([1, 2, 3])
   schemaVersion?: number
 }
 
@@ -50,10 +51,10 @@ export class TechnicalOperationDto {
   @ApiPropertyOptional({ format: 'uuid', nullable: true }) @IsOptional() @IsUUID() playerId?:
     | string
     | null
-  @ApiPropertyOptional({ enum: ['PASS', 'TACKLE', 'DRIBBLE', 'SHOT', 'FOUL', 'CHANCE'] })
+  @ApiPropertyOptional({ enum: ['PASS', 'TACKLE', 'DRIBBLE', 'SHOT', 'FOUL', 'CHANCE', 'CORNER'] })
   @IsOptional()
-  @IsIn(['PASS', 'TACKLE', 'DRIBBLE', 'SHOT', 'FOUL', 'CHANCE'])
-  metric?: 'PASS' | 'TACKLE' | 'DRIBBLE' | 'SHOT' | 'FOUL' | 'CHANCE'
+  @IsIn(['PASS', 'TACKLE', 'DRIBBLE', 'SHOT', 'FOUL', 'CHANCE', 'CORNER'])
+  metric?: 'PASS' | 'TACKLE' | 'DRIBBLE' | 'SHOT' | 'FOUL' | 'CHANCE' | 'CORNER'
   @ApiPropertyOptional({
     enum: [
       'SUCCESS',
@@ -99,7 +100,7 @@ export class TechnicalOperationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(240) reason?: string
 }
 export class RecordTechnicalStatisticsDto {
-  @ApiPropertyOptional({ enum: [1, 2] }) @IsOptional() @IsIn([1, 2]) schemaVersion?: number
+  @ApiPropertyOptional({ enum: [1, 2, 3] }) @IsOptional() @IsIn([1, 2, 3]) schemaVersion?: number
   @ApiProperty({ minimum: 0 }) @IsInt() @Min(0) expectedVersion!: number
   @ApiProperty({ type: [TechnicalOperationDto], minItems: 1, maxItems: 100 })
   @IsArray()

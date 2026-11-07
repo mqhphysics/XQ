@@ -1,5 +1,10 @@
 import { publicSearchPlan, rankPublicSearch } from './search-relevance'
 import { playerAvatar } from '../media/player-avatar'
+import {
+  clockAdministrator,
+  clockStartPermission,
+  matchClockView,
+} from '../schedule/match-clock.logic'
 import { createHash } from 'node:crypto'
 import { defaultAvatar, defaultCover } from '../media/default-media'
 import { matchReportTagKey } from './match-report-tag'
@@ -22,6 +27,7 @@ import { fixedCaptainFacts, matchOfficials } from '../common/official-personnel'
 import { isDemoFixtureOrganization } from '../common/demo-fixture-organization'
 import { PrismaService } from '../database/prisma.service'
 import { MediaService, postImageUrls, commentImageUrls } from '../media/media.service'
+import { ImageTransferService } from '../media-transfer/image-transfer.service'
 import {
   AuditActorType,
   MatchEventType,
@@ -41,6 +47,12 @@ import {
 } from './post-tags'
 import { parseResultsRules } from '../results/parse-rules'
 import { SocialService } from '../social/social.service'
+import {
+  assertInteractionAllowed,
+  blockedUserIds,
+  visiblePostWhere,
+} from '../social/interaction-policy'
+import { decodeFavoriteCursor, encodeFavoriteCursor } from './favorite-pagination'
 import { calculateOfficialTeamRecord } from './official-team-record'
 import { confirmedMatchLineup } from './confirmed-match-lineup'
 import { defaultMatchLineup } from './default-match-lineup'
@@ -74,6 +86,9 @@ export class ExperienceService {
     @Inject(MediaService) private readonly mediaService: MediaService,
     @Optional() @Inject(ResultsService) private readonly resultsService?: ResultsService,
     @Optional() @Inject(AiModerationService) private readonly aiModeration?: AiModerationService,
+    @Optional()
+    @Inject(ImageTransferService)
+    private readonly imageTransfers?: ImageTransferService,
   ) {}
 
   async getHome(
@@ -83,6 +98,11 @@ export class ExperienceService {
     selection?: { competitionDefinitionId?: string | undefined; seasonId?: string | undefined },
   ) {
     const session = await this.authService.getSession(authorization)
+    const blocked = await blockedUserIds(
+      this.prisma,
+      organizationId,
+      session?.organizationId === organizationId ? session.userId : undefined,
+    )
     const tournament = await this.getFeaturedTournament(
       organizationId,
       tournamentId,
@@ -103,6 +123,7 @@ export class ExperienceService {
         }),
         this.prisma.post.findMany({
           where: {
+            ...visiblePostWhere(blocked),
             organizationId,
             status: PostStatus.PUBLISHED,
             OR: [
@@ -133,25 +154,27 @@ export class ExperienceService {
               },
             ],
           },
-          include: postSummaryInclude(session?.userId),
+          include: postSummaryInclude(session?.userId, blocked),
           orderBy: { publishedAt: 'desc' },
           take: 20,
         }),
         this.prisma.team.findMany({ where: { organizationId }, orderBy: { name: 'asc' } }),
         this.prisma.post.findMany({
           where: {
+            ...visiblePostWhere(blocked),
             organizationId,
             tournamentId: null,
             type: PostType.OFFICIAL,
             status: PostStatus.PUBLISHED,
             tags: { none: { key: { startsWith: 'competition-announcement:' } } },
           },
-          include: postSummaryInclude(session?.userId),
+          include: postSummaryInclude(session?.userId, blocked),
           orderBy: { publishedAt: 'desc' },
           take: 4,
         }),
         this.prisma.post.findMany({
           where: {
+            ...visiblePostWhere(blocked),
             organizationId,
             status: PostStatus.PUBLISHED,
             type: PostType.OFFICIAL,
@@ -171,7 +194,7 @@ export class ExperienceService {
               },
             ],
           },
-          include: postSummaryInclude(session?.userId),
+          include: postSummaryInclude(session?.userId, blocked),
           orderBy: { publishedAt: 'desc' },
           take: 3,
         }),
@@ -213,6 +236,7 @@ export class ExperienceService {
     selection?: { competitionDefinitionId?: string | undefined; seasonId?: string | undefined },
     batchPostIds?: string[],
   ) {
+    const blocked = await blockedUserIds(this.prisma, organizationId, userId)
     const tournament = await this.getFeaturedTournament(
       organizationId,
       tournamentId,
@@ -221,6 +245,7 @@ export class ExperienceService {
     )
     const rows = await this.prisma.post.findMany({
       where: {
+        ...visiblePostWhere(blocked),
         organizationId,
         status: PostStatus.PUBLISHED,
         ...(batchPostIds ? { id: { in: batchPostIds } } : {}),
@@ -240,7 +265,7 @@ export class ExperienceService {
           },
         ],
       },
-      include: postSummaryInclude(userId),
+      include: postSummaryInclude(userId, blocked),
       orderBy: [{ publishedAt: 'desc' }, { id: 'asc' }],
       take: 400,
     })
@@ -257,7 +282,14 @@ export class ExperienceService {
     input: SearchQueryDto,
     tournamentId?: string,
     selection?: { competitionDefinitionId?: string | undefined; seasonId?: string | undefined },
+    authorization?: string,
   ) {
+    const session = await this.authService.getSession(authorization)
+    const blocked = await blockedUserIds(
+      this.prisma,
+      organizationId,
+      session?.organizationId === organizationId ? session.userId : undefined,
+    )
     const tournament = await this.getFeaturedTournament(
       organizationId,
       tournamentId,
@@ -383,6 +415,7 @@ export class ExperienceService {
       wants('POST')
         ? this.prisma.post.findMany({
             where: {
+              ...visiblePostWhere(blocked),
               organizationId,
               tournamentId: tournament.id,
               status: PostStatus.PUBLISHED,
@@ -392,7 +425,7 @@ export class ExperienceService {
                 { tags: { some: { organizationId, label: like(term) } } },
               ]),
             },
-            include: postSummaryInclude(),
+            include: postSummaryInclude(session?.userId, blocked),
             orderBy: { publishedAt: 'desc' },
             take: 250,
           })
@@ -685,6 +718,7 @@ export class ExperienceService {
   ) {
     const session = await this.authService.getSession(authorization)
     const viewerUserId = session?.organizationId === organizationId ? session.userId : undefined
+    const blocked = await blockedUserIds(prisma, organizationId, viewerUserId)
     const selectedTournament = await this.getFeaturedTournament(
       organizationId,
       tournamentId,
@@ -770,12 +804,13 @@ export class ExperienceService {
       }),
       prisma.post.findMany({
         where: {
+          ...visiblePostWhere(blocked),
           organizationId,
           tournamentId: selectedTournamentId,
           OR: [{ teamId: team.id }, { tags: { some: { organizationId, teamId: team.id } } }],
           status: PostStatus.PUBLISHED,
         },
-        include: postSummaryInclude(viewerUserId),
+        include: postSummaryInclude(viewerUserId, blocked),
         orderBy: { publishedAt: 'desc' },
         take: 20,
       }),
@@ -888,6 +923,7 @@ export class ExperienceService {
     prisma: Prisma.TransactionClient,
     viewerUserId?: string,
   ) {
+    const blocked = await blockedUserIds(prisma, organizationId, viewerUserId)
     const selectedTournament = await this.getFeaturedTournament(
       organizationId,
       tournamentId,
@@ -931,9 +967,17 @@ export class ExperienceService {
             organizationId,
             rosterSnapshot: snapshotScope,
           },
-          include: { rosterSnapshot: { include: { team: true, tournament: true, entries: {
-            include: { playerProfile: { select: { position: true, avatarUrl: true } } },
-          } } } },
+          include: {
+            rosterSnapshot: {
+              include: {
+                team: true,
+                tournament: true,
+                entries: {
+                  include: { playerProfile: { select: { position: true, avatarUrl: true } } },
+                },
+              },
+            },
+          },
           orderBy: { rosterSnapshot: { snapshotVersion: 'desc' } },
           take: 1,
         },
@@ -962,44 +1006,98 @@ export class ExperienceService {
     ])
     const stats = buildPlayerStats(events, appearances).find((item) => item.id === playerId)
     const snapshot = player.snapshotEntries[0]
-    const teamIds = snapshot ? [snapshot.rosterSnapshot.teamId] : player.teamMemberships.map(m => m.teamId)
+    const teamIds = snapshot
+      ? [snapshot.rosterSnapshot.teamId]
+      : player.teamMemberships.map((m) => m.teamId)
     const [fixtures, documented, confirmedPlans] = await Promise.all([
-      prisma.match.findMany({ where: { organizationId, tournamentId: selectedTournamentId, status: { not: 'DRAFT' } },
-        include: matchSummaryInclude, orderBy: [{ scheduledStartAt: { sort: 'desc', nulls: 'last' } }, { id: 'asc' }] }),
-      prisma.auditLog.findMany({ where: { organizationId, action: { in: ['MATCH_DOCUMENT_LINEUP_RECORDED', 'MATCH_DOCUMENT_PARTICIPATION_RECORDED'] },
-        targetType: 'Match', actorType: 'ADMIN', source: 'OFFICIAL_MATCH_DOCUMENT',
-        afterSummary: { path: ['tournamentId'], equals: selectedTournamentId } },
-        orderBy: { createdAt: 'desc' }, select: { targetId: true, afterSummary: true } }),
-      prisma.teamLineupPlan.findMany({ where: { organizationId, tournamentId: selectedTournamentId,
-        kind: 'MATCH_LINEUP', confirmedAt: { not: null } }, include: { confirmedRevision: {
-          include: { rosterSnapshot: { include: { entries: { include: {
-            playerProfile: { select: { position: true, avatarUrl: true } },
-          } } } } },
-        } } }),
+      prisma.match.findMany({
+        where: { organizationId, tournamentId: selectedTournamentId, status: { not: 'DRAFT' } },
+        include: matchSummaryInclude,
+        orderBy: [{ scheduledStartAt: { sort: 'desc', nulls: 'last' } }, { id: 'asc' }],
+      }),
+      prisma.auditLog.findMany({
+        where: {
+          organizationId,
+          action: {
+            in: ['MATCH_DOCUMENT_LINEUP_RECORDED', 'MATCH_DOCUMENT_PARTICIPATION_RECORDED'],
+          },
+          targetType: 'Match',
+          actorType: 'ADMIN',
+          source: 'OFFICIAL_MATCH_DOCUMENT',
+          afterSummary: { path: ['tournamentId'], equals: selectedTournamentId },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { targetId: true, afterSummary: true },
+      }),
+      prisma.teamLineupPlan.findMany({
+        where: {
+          organizationId,
+          tournamentId: selectedTournamentId,
+          kind: 'MATCH_LINEUP',
+          confirmedAt: { not: null },
+        },
+        include: {
+          confirmedRevision: {
+            include: {
+              rosterSnapshot: {
+                include: {
+                  entries: {
+                    include: {
+                      playerProfile: { select: { position: true, avatarUrl: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
     ])
     const starters = new Map<string, boolean | null>()
     for (const row of documented) {
       if (!row.targetId || starters.has(row.targetId) || !snapshot) continue
       const evidence = row.afterSummary as Record<string, unknown> | null
-      if (evidence?.matchId === row.targetId && evidence.tournamentId === selectedTournamentId &&
-        evidence.teamId === snapshot.rosterSnapshot.teamId && Array.isArray(evidence.playerIds) &&
-        evidence.playerIds.includes(playerId)) {
+      if (
+        evidence?.matchId === row.targetId &&
+        evidence.tournamentId === selectedTournamentId &&
+        evidence.teamId === snapshot.rosterSnapshot.teamId &&
+        Array.isArray(evidence.playerIds) &&
+        evidence.playerIds.includes(playerId)
+      ) {
         starters.set(row.targetId, null)
         continue
       }
-      const lineup = documentMatchLineup(snapshot.rosterSnapshot.entries, row.afterSummary,
-        { matchId: row.targetId, teamId: snapshot.rosterSnapshot.teamId, tournamentId: selectedTournamentId })
-      if (lineup?.players.some(p => p.id === playerId && p.starter)) starters.set(row.targetId, true)
+      const lineup = documentMatchLineup(snapshot.rosterSnapshot.entries, row.afterSummary, {
+        matchId: row.targetId,
+        teamId: snapshot.rosterSnapshot.teamId,
+        tournamentId: selectedTournamentId,
+      })
+      if (lineup?.players.some((p) => p.id === playerId && p.starter))
+        starters.set(row.targetId, true)
     }
     for (const plan of confirmedPlans) {
-      const lineup = confirmedMatchLineup(plan, { organizationId, tournamentId: selectedTournamentId, teamId: plan.teamId })
-      if (plan.matchId && !starters.has(plan.matchId) && lineup?.players.some(p => p.id === playerId && p.starter)) starters.set(plan.matchId, true)
+      const lineup = confirmedMatchLineup(plan, {
+        organizationId,
+        tournamentId: selectedTournamentId,
+        teamId: plan.teamId,
+      })
+      if (
+        plan.matchId &&
+        !starters.has(plan.matchId) &&
+        lineup?.players.some((p) => p.id === playerId && p.starter)
+      )
+        starters.set(plan.matchId, true)
     }
     const schedule = playerSchedule(fixtures, teamIds, playerId, appearances, events, starters)
     const playerStats = stats ?? emptyPlayerStats(player.id, player.displayName)
-    const finished = schedule.filter(row => row.participationConfirmed && row.match.status === 'FINISHED')
+    const finished = schedule.filter(
+      (row) => row.participationConfirmed && row.match.status === 'FINISHED',
+    )
     playerStats.appearances = Math.max(playerStats.appearances, finished.length)
-    playerStats.starts = Math.max(playerStats.starts, finished.filter(row => row.starter === true).length)
+    playerStats.starts = Math.max(
+      playerStats.starts,
+      finished.filter((row) => row.starter === true).length,
+    )
     const account =
       player.linkedUser?.status === 'ACTIVE' &&
       player.linkedUser.memberships.some(
@@ -1008,8 +1106,11 @@ export class ExperienceService {
         ? publicIdentity(player.linkedUser, organizationId, viewerUserId)
         : null
     const posts = await prisma.post.findMany({
-      where: identityPostWhere(organizationId, account?.id ?? null, playerId),
-      include: postSummaryInclude(viewerUserId),
+      where: {
+        ...identityPostWhere(organizationId, account?.id ?? null, playerId),
+        ...visiblePostWhere(blocked),
+      },
+      include: postSummaryInclude(viewerUserId, blocked),
       orderBy: { publishedAt: 'desc' },
       take: 50,
     })
@@ -1053,7 +1154,9 @@ export class ExperienceService {
       appearanceRecording: resultContext.mode === 'DEMO' ? 'DEMO' : 'EXISTING_MATCH_RECORDS',
       recentMatches: schedule.map(({ match, starter, minutesPlayed, appearanceRecorded }) => ({
         ...mapResultMatch(match, resultContext.official),
-        starter, minutesPlayed, appearanceRecorded,
+        starter,
+        minutesPlayed,
+        appearanceRecorded,
       })),
     }
   }
@@ -1073,6 +1176,11 @@ export class ExperienceService {
         message: '人物标识不可用',
       })
     const session = await this.authService.getSession(authorization)
+    const blocked = await blockedUserIds(
+      this.prisma,
+      organizationId,
+      session?.organizationId === organizationId ? session.userId : undefined,
+    )
     return this.prisma.$transaction(
       async (prisma) => {
         const tournament = await this.getFeaturedTournament(organizationId, tournamentId, prisma)
@@ -1108,12 +1216,17 @@ export class ExperienceService {
         }
         const posts = (
           await prisma.post.findMany({
-            where: identityPostWhere(
-              organizationId,
-              user?.id ?? null,
-              user?.playerProfile?.organizationId === organizationId ? user.playerProfile.id : null,
-            ),
-            include: postSummaryInclude(session?.userId),
+            where: {
+              ...identityPostWhere(
+                organizationId,
+                user?.id ?? null,
+                user?.playerProfile?.organizationId === organizationId
+                  ? user.playerProfile.id
+                  : null,
+              ),
+              ...visiblePostWhere(blocked),
+            },
+            include: postSummaryInclude(session?.userId, blocked),
             orderBy: { publishedAt: 'desc' },
             take: 50,
           })
@@ -1146,6 +1259,11 @@ export class ExperienceService {
     prisma: Prisma.TransactionClient,
   ) {
     const session = await this.authService.getSession(authorization)
+    const blocked = await blockedUserIds(
+      this.prisma,
+      organizationId,
+      session?.organizationId === organizationId ? session.userId : undefined,
+    )
     const match = await prisma.match.findFirst({
       where: {
         id: matchId,
@@ -1336,18 +1454,28 @@ export class ExperienceService {
     })
     const flashReports = await prisma.post.findMany({
       where: {
+        ...visiblePostWhere(blocked),
         organizationId,
         type: PostType.OFFICIAL,
         status: PostStatus.PUBLISHED,
         tags: { some: { key: matchReportTagKey(match.id) } },
       },
-      include: postSummaryInclude(session?.userId),
+      include: postSummaryInclude(session?.userId, blocked),
       orderBy: { publishedAt: 'desc' },
       take: 5,
     })
 
+    let canStartClock = clockStartPermission(session, match, Date.now())
+    if (canStartClock && session && !clockAdministrator(session, match)) {
+      const reporter = await prisma.reporterProfile.findUnique({
+        where: { organizationId_userId: { organizationId, userId: session.userId } },
+        select: { status: true },
+      })
+      if (reporter && !['ACTIVE', 'PROBATION'].includes(reporter.status)) canStartClock = false
+    }
     return {
       ...mapResultMatch(match, resultContext.official),
+      clock: matchClockView(match, selectedRules?.rules, Date.now(), canStartClock),
       flashReports: flashReports.map((post) => mapPost(post, session?.userId)),
       officials,
       periodMinutes: periodMinutes(selectedRules?.rules),
@@ -1450,7 +1578,7 @@ export class ExperienceService {
           ? { rating: viewerReview.rating, body: viewerReview.body }
           : null,
         comments: match.reviews
-          .filter((review) => Boolean(review.body))
+          .filter((review) => Boolean(review.body) && !blocked.includes(review.userId))
           .map((review) => ({
             id: review.id,
             rating: review.rating,
@@ -1593,10 +1721,20 @@ export class ExperienceService {
 
   async listPosts(organizationId: string, authorization?: string, tournamentId?: string) {
     const session = await this.authService.getSession(authorization)
+    const blocked = await blockedUserIds(
+      this.prisma,
+      organizationId,
+      session?.organizationId === organizationId ? session.userId : undefined,
+    )
     const tournament = await this.getFeaturedTournament(organizationId, tournamentId)
     const posts = await this.prisma.post.findMany({
-      where: { organizationId, tournamentId: tournament.id, status: PostStatus.PUBLISHED },
-      include: postSummaryInclude(session?.userId),
+      where: {
+        organizationId,
+        tournamentId: tournament.id,
+        status: PostStatus.PUBLISHED,
+        ...visiblePostWhere(blocked),
+      },
+      include: postSummaryInclude(session?.userId, blocked),
       orderBy: { publishedAt: 'desc' },
       take: 50,
     })
@@ -1605,18 +1743,24 @@ export class ExperienceService {
 
   async getPost(organizationId: string, postId: string, authorization?: string) {
     const session = await this.authService.getSession(authorization)
+    const blocked = await blockedUserIds(
+      this.prisma,
+      organizationId,
+      session?.organizationId === organizationId ? session.userId : undefined,
+    )
     const post = await this.prisma.post.findFirst({
       where: {
         id: postId,
         organizationId,
+        ...visiblePostWhere(blocked),
         ...(session?.organizationId === organizationId
           ? { OR: [{ status: PostStatus.PUBLISHED }, { authorUserId: session.userId }] }
           : { status: PostStatus.PUBLISHED }),
       },
       include: {
-        ...postSummaryInclude(session?.userId),
+        ...postSummaryInclude(session?.userId, blocked),
         comments: {
-          where: { hiddenAt: null },
+          where: { hiddenAt: null, ...(blocked.length ? { userId: { notIn: blocked } } : {}) },
           include: commentInclude(session?.userId),
           orderBy: { createdAt: 'asc' },
         },
@@ -1696,12 +1840,14 @@ export class ExperienceService {
     publicationSource: 'USER' | 'SYSTEM' = 'USER',
   ) {
     const session = await this.authService.requireSession(authorization)
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
     const tournament = await this.getFeaturedTournament(session.organizationId, input.tournamentId)
     const quotedPostId = input.quotedPostId ?? null
     if (
       quotedPostId &&
       !(await this.prisma.post.findFirst({
         where: {
+          ...visiblePostWhere(blocked),
           id: quotedPostId,
           organizationId: session.organizationId,
           status: PostStatus.PUBLISHED,
@@ -1754,7 +1900,11 @@ export class ExperienceService {
     const body = input.body.trim()
     const teamId = input.teamId ?? null
     if (input.imageDataUrl && input.imageDataUrls) throw conflict('请只提交一种图片格式')
-    const imageDataUrls = input.imageDataUrls ?? (input.imageDataUrl ? [input.imageDataUrl] : [])
+    if (input.imageUploadIds?.length && (input.imageDataUrl || input.imageDataUrls?.length))
+      throw conflict('请只提交一种图片格式')
+    const imageDataUrls = input.imageUploadIds?.length
+      ? await this.imageTransfers!.resolveImages(session, input.imageUploadIds, 9)
+      : (input.imageDataUrls ?? (input.imageDataUrl ? [input.imageDataUrl] : []))
     if (!body && imageDataUrls.length === 0 && !quotedPostId)
       throw new ApiHttpException(HttpStatus.BAD_REQUEST, {
         code: ERROR_CODES.BAD_REQUEST,
@@ -1767,7 +1917,7 @@ export class ExperienceService {
     )
     const imageUrl = storedImage?.imageUrl ?? null
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         const tags = await resolvePostTags(tx, session.organizationId, tournament.id, input.tags)
         const preReview = await this.aiModeration?.requiresPreReview(
           tx,
@@ -1800,7 +1950,7 @@ export class ExperienceService {
               clientPostId: input.clientPostId,
             },
           },
-          include: postSummaryInclude(session.userId),
+          include: postSummaryInclude(session.userId, blocked),
         })
         if (
           !post ||
@@ -1856,7 +2006,7 @@ export class ExperienceService {
             },
           })
         }
-        if (inserted.count === 1) {
+        if (inserted.count === 1 && !preReview) {
           const ids = tags.flatMap((tag) => (tag.playerId ? [tag.playerId] : []))
           if (ids.length) {
             const mentioned = await tx.playerProfile.findMany({
@@ -1885,7 +2035,7 @@ export class ExperienceService {
                     title: '有人在动态中提到了你',
                     body: `${session.user.displayName} 在动态中提到了你：${body.slice(0, 160)}`,
                     linkPath: `/pages/post-detail/index?postId=${encodeURIComponent(post.id)}`,
-                    metadata: { messageCategory: 'mentions' },
+                    metadata: { messageCategory: 'mentions', postId: post.id, targetKind: 'POST' },
                     deduplicationKey: `post-mentioned:${post.id}:${player.linkedUser.id}`,
                   },
                   tx,
@@ -1899,6 +2049,8 @@ export class ExperienceService {
           publicationState: post.status === 'PUBLISHED' ? 'PUBLISHED' : 'PENDING_REVIEW',
         }
       })
+      await this.imageTransfers?.completeImages(session, input.imageUploadIds ?? [])
+      return result
     } catch (error) {
       if (imageUrl) await this.mediaService.cleanupPostImageIfUnreferenced(imageUrl)
       throw error
@@ -1907,8 +2059,14 @@ export class ExperienceService {
 
   async setLike(authorization: string | undefined, postId: string, liked: boolean) {
     const session = await this.authService.requireSession(authorization)
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
     const post = await this.prisma.post.findFirst({
-      where: { id: postId, organizationId: session.organizationId, status: PostStatus.PUBLISHED },
+      where: {
+        id: postId,
+        organizationId: session.organizationId,
+        status: PostStatus.PUBLISHED,
+        ...visiblePostWhere(blocked),
+      },
     })
     if (!post) throw notFound('动态不存在')
     return this.prisma.$transaction(async (tx) => {
@@ -1933,6 +2091,7 @@ export class ExperienceService {
               recipientUserId: post.authorUserId,
               title: '动态收到新的点赞',
               type: NotificationType.POST_LIKED,
+              metadata: { postId, targetKind: 'POST' },
             },
             tx,
           )
@@ -1951,8 +2110,14 @@ export class ExperienceService {
 
   async createComment(authorization: string | undefined, postId: string, input: CreateCommentDto) {
     const session = await this.authService.requireSession(authorization)
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
     const post = await this.prisma.post.findFirst({
-      where: { id: postId, organizationId: session.organizationId, status: PostStatus.PUBLISHED },
+      where: {
+        id: postId,
+        organizationId: session.organizationId,
+        status: PostStatus.PUBLISHED,
+        ...visiblePostWhere(blocked),
+      },
     })
     if (!post) throw notFound('动态不存在')
 
@@ -1963,6 +2128,7 @@ export class ExperienceService {
             postId,
             organizationId: session.organizationId,
             hiddenAt: null,
+            ...(blocked.length ? { userId: { notIn: blocked } } : {}),
           },
           include: { user: { select: publicIdentitySelect } },
         })
@@ -1972,7 +2138,11 @@ export class ExperienceService {
     const body = input.body.trim()
     const parentCommentId = parent?.id ?? null
     const recipientUserId = parent?.userId ?? post.authorUserId
-    const images = input.imageDataUrls ?? []
+    if (input.imageUploadIds?.length && input.imageDataUrls?.length)
+      throw conflict('请只提交一种图片格式')
+    const images = input.imageUploadIds?.length
+      ? await this.imageTransfers!.resolveImages(session, input.imageUploadIds, 3)
+      : (input.imageDataUrls ?? [])
     if (images.length > 3 || body.length > 300 || (!body && images.length === 0))
       throw new ApiHttpException(HttpStatus.BAD_REQUEST, {
         code: ERROR_CODES.BAD_REQUEST,
@@ -2003,6 +2173,10 @@ export class ExperienceService {
             ?.imageUrl ?? null)
     try {
       const result = await this.prisma.$transaction(async (tx) => {
+        await assertInteractionAllowed(tx, session.organizationId, session.userId, [
+          post.authorUserId,
+          parent?.userId,
+        ])
         const preReview = await this.aiModeration?.requiresPreReview(
           tx,
           session.organizationId,
@@ -2047,7 +2221,7 @@ export class ExperienceService {
         const clientPostId = `comment-repost:${stored.id}`
         let repostedPost = await tx.post.findUnique({
           where: { authorUserId_clientPostId: { authorUserId: session.userId, clientPostId } },
-          include: postSummaryInclude(session.userId),
+          include: postSummaryInclude(session.userId, blocked),
         })
         if (inserted.count === 0 && Boolean(repostedPost) !== Boolean(input.repostToFeed)) {
           throw conflict('同一提交编号已用于不同的同步转发选项，请重新发布')
@@ -2069,7 +2243,7 @@ export class ExperienceService {
               publicationSource: 'USER',
               status: repostPreReview ? PostStatus.DRAFT : PostStatus.PUBLISHED,
             },
-            include: postSummaryInclude(session.userId),
+            include: postSummaryInclude(session.userId, blocked),
           })
           await tx.auditLog.create({
             data: {
@@ -2102,6 +2276,7 @@ export class ExperienceService {
               recipientUserId,
               title: parent ? '有人回复了你的评论' : '你的动态收到新评论',
               type: parent ? NotificationType.COMMENT_REPLIED : NotificationType.POST_COMMENTED,
+              metadata: { postId, commentId: stored.id, targetKind: 'COMMENT' },
             },
             tx,
           )
@@ -2123,6 +2298,7 @@ export class ExperienceService {
             }
           : {}),
       }
+      await this.imageTransfers?.completeImages(session, input.imageUploadIds ?? [])
       return mappedComment
     } catch (error) {
       if (imageUrl) await this.mediaService.cleanupPostImageIfUnreferenced(imageUrl)
@@ -2130,30 +2306,70 @@ export class ExperienceService {
     }
   }
 
-  async listFavoritePosts(authorization: string | undefined) {
+  async listFavoritePosts(authorization: string | undefined, before?: string, limit = 30) {
     const session = await this.authService.requireSession(authorization)
-    const favorites = await this.prisma.postFavorite.findMany({
-      where: {
-        organizationId: session.organizationId,
-        userId: session.userId,
-        post: { organizationId: session.organizationId, status: PostStatus.PUBLISHED },
-      },
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      include: { post: { include: postSummaryInclude(session.userId) } },
-    })
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
+    const where = { organizationId: session.organizationId, userId: session.userId }
+    const anchor = before
+      ? (decodeFavoriteCursor(before, session.organizationId, session.userId) ??
+        (await this.prisma.postFavorite.findFirst({
+          where: { ...where, id: before },
+          select: { id: true, createdAt: true },
+        })))
+      : null
+    if (before && !anchor) throw notFound('收藏游标不存在')
+    const visible = {
+      organizationId: session.organizationId,
+      status: PostStatus.PUBLISHED,
+      ...visiblePostWhere(blocked),
+    }
+    const [favorites, totalCount] = await Promise.all([
+      this.prisma.postFavorite.findMany({
+        where: {
+          ...where,
+          post: {
+            organizationId: session.organizationId,
+            status: PostStatus.PUBLISHED,
+            ...visiblePostWhere(blocked),
+          },
+          ...(anchor
+            ? {
+                OR: [
+                  { createdAt: { lt: anchor.createdAt } },
+                  { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit + 1,
+        include: { post: { include: postSummaryInclude(session.userId, blocked) } },
+      }),
+      this.prisma.postFavorite.count({ where: { ...where, post: visible } }),
+    ])
     return {
-      items: favorites.map(({ post }) => ({
-        ...mapPost(post, session.userId),
-        favoritedByMe: true,
-      })),
+      items: favorites
+        .slice(0, limit)
+        .map(({ post }) => ({ ...mapPost(post, session.userId), favoritedByMe: true })),
+      nextCursor:
+        favorites.length > limit
+          ? encodeFavoriteCursor(favorites[limit - 1]!, session.organizationId, session.userId)
+          : null,
+      totalCount,
     }
   }
 
   async setPostFavorite(authorization: string | undefined, postId: string, favorited: boolean) {
     const session = await this.authService.requireSession(authorization)
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
     return this.prisma.$transaction(async (tx) => {
       const post = await tx.post.findFirst({
-        where: { id: postId, organizationId: session.organizationId, status: PostStatus.PUBLISHED },
+        where: {
+          id: postId,
+          organizationId: session.organizationId,
+          status: PostStatus.PUBLISHED,
+          ...visiblePostWhere(blocked),
+        },
         select: { id: true },
       })
       if (!post) throw notFound('动态不存在')
@@ -2178,6 +2394,7 @@ export class ExperienceService {
     liked: boolean,
   ) {
     const session = await this.authService.requireSession(authorization)
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
     return this.prisma.$transaction(async (tx) => {
       const comment = await tx.postComment.findFirst({
         where: {
@@ -2185,17 +2402,37 @@ export class ExperienceService {
           postId,
           organizationId: session.organizationId,
           hiddenAt: null,
-          post: { status: PostStatus.PUBLISHED, organizationId: session.organizationId },
+          ...(blocked.length ? { userId: { notIn: blocked } } : {}),
+          post: {
+            status: PostStatus.PUBLISHED,
+            organizationId: session.organizationId,
+            ...visiblePostWhere(blocked),
+          },
         },
-        select: { id: true },
+        select: { id: true, userId: true },
       })
       if (!comment) throw notFound('评论不存在')
-      if (liked)
-        await tx.postCommentLike.createMany({
+      if (liked) {
+        const inserted = await tx.postCommentLike.createMany({
           data: [{ organizationId: session.organizationId, commentId, userId: session.userId }],
           skipDuplicates: true,
         })
-      else
+        if (inserted.count)
+          await this.socialService.notify(
+            {
+              organizationId: session.organizationId,
+              recipientUserId: comment.userId,
+              actorUserId: session.userId,
+              type: NotificationType.POST_LIKED,
+              title: '评论收到新的点赞',
+              body: `${session.user.displayName} 点赞了你的评论`,
+              linkPath: `/pages/post-detail/index?postId=${postId}`,
+              metadata: { postId, commentId, targetKind: 'COMMENT' },
+              deduplicationKey: `comment-like:${commentId}:${session.userId}`,
+            },
+            tx,
+          )
+      } else
         await tx.postCommentLike.deleteMany({
           where: { organizationId: session.organizationId, commentId, userId: session.userId },
         })
@@ -2319,10 +2556,18 @@ export class ExperienceService {
           hiddenAt: null,
           post: { status: PostStatus.PUBLISHED },
         },
-        include: commentInclude(session.userId),
+        include: {
+          ...commentInclude(session.userId),
+          post: { select: { authorUserId: true } },
+          parentComment: { select: { userId: true } },
+        },
       })
       if (!comment) throw notFound('评论不存在')
       if (comment.userId !== session.userId) throw forbidden('只能编辑自己的评论')
+      await assertInteractionAllowed(tx, session.organizationId, session.userId, [
+        comment.post.authorUserId,
+        comment.parentComment?.userId,
+      ])
       const body = input.body.trim()
       if (comment.body === body) return mapComment(comment, session.organizationId, session.userId)
       if (comment.updatedAt.toISOString() !== input.expectedUpdatedAt)
@@ -2499,19 +2744,26 @@ const matchSummaryInclude = {
   venue: true,
 } as const
 
-function postSummaryInclude(userId?: string) {
+function postSummaryInclude(userId?: string, blocked: string[] = []) {
   return {
-    ...postBaseInclude(userId),
-    quotedPost: { include: postBaseInclude(userId) },
+    ...postBaseInclude(userId, blocked),
+    quotedPost: { include: postBaseInclude(userId, blocked) },
   } as const
 }
 
-function postBaseInclude(userId?: string) {
+function postBaseInclude(userId?: string, blocked: string[] = []) {
   return {
     author: { select: publicIdentitySelect },
     team: true,
     tags: { orderBy: { position: 'asc' } },
-    _count: { select: { likes: true, comments: { where: { hiddenAt: null } } } },
+    _count: {
+      select: {
+        likes: true,
+        comments: {
+          where: { hiddenAt: null, ...(blocked.length ? { userId: { notIn: blocked } } : {}) },
+        },
+      },
+    },
     likes: userId
       ? { where: { userId }, select: { id: true } }
       : { where: { userId: '00000000-0000-4000-8000-000000000000' }, select: { id: true } },

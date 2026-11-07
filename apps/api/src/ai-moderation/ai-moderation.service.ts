@@ -1,4 +1,5 @@
 import { Inject, Injectable, type OnModuleInit, type OnModuleDestroy } from '@nestjs/common'
+import { notifyPublishedPostMentions } from '../social/post-mentions'
 import { createHash, randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -40,7 +41,21 @@ type Source = {
   recipientId?: string | null
   previousUrl?: string | null
 }
-const mediaProfileSlots: Record<string, [string, string, string | null]> = {
+type MediaProfileModel = 'user' | 'playerProfile' | 'team'
+type MediaProfileField = 'avatarUrl' | 'portraitUrl' | 'coverUrl' | 'crestUrl'
+type MediaProfileValues = Partial<Record<MediaProfileField, string | null>>
+type MediaProfileDelegate = {
+  findUnique(input: {
+    where: { id: string }
+    select?: Partial<Record<MediaProfileField, boolean>>
+  }): Promise<MediaProfileValues | null>
+  updateMany(input: {
+    where: { id: string } & Partial<Record<MediaProfileField, string | null | undefined>>
+    data: MediaProfileValues
+  }): Promise<{ count: number }>
+}
+type MediaProfileDelegates = Record<MediaProfileModel, MediaProfileDelegate>
+const mediaProfileSlots: Record<string, [MediaProfileModel, MediaProfileField, string | null]> = {
   USER_AVATAR: ['user', 'avatarUrl', null],
   PLAYER_AVATAR: ['playerProfile', 'avatarUrl', null],
   USER_BACKGROUND: ['user', 'coverUrl', DEFAULT_COVERS.user],
@@ -379,7 +394,7 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
       const row = await db.managedMediaAsset.findFirst({ where: { id, organizationId: org } })
       const slot = row && mediaProfileSlots[row.purpose]
       const target = slot
-        ? await (db as any)[slot[0]].findUnique({
+        ? await (db as unknown as MediaProfileDelegates)[slot[0]].findUnique({
             where: { id: row!.targetId },
             select: { [slot[1]]: true },
           })
@@ -561,7 +576,9 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
       signal: AbortSignal.timeout(12000),
     })
     if (!response.ok) throw Error(`审核服务返回 HTTP ${response.status}`)
-    const answer = (await response.json()) as Record<string, any>
+    const answer = (await response.json()) as Record<string, unknown> & {
+      choices?: Array<{ message?: { content?: unknown } }>
+    }
     let data: Record<string, unknown>
     try {
       data = chat
@@ -714,6 +731,7 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
         where: { id: job.targetId, updatedAt: new Date(source.version) },
         data: { status: allow ? 'PUBLISHED' : 'HIDDEN' },
       })
+      if (allow) await notifyPublishedPostMentions(tx, job.organizationId, job.targetId)
       return row.updatedAt.toISOString()
     }
     if (job.resourceType === 'COMMENT') {
@@ -748,7 +766,7 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
           version: { increment: 1 },
         },
       })
-      const fields: Record<string, [string, string, string | null]> = {
+      const fields: Record<string, [MediaProfileModel, MediaProfileField, string | null]> = {
         USER_AVATAR: ['user', 'avatarUrl', defaultAvatar('user', asset.targetId)],
         USER_BACKGROUND: ['user', 'coverUrl', DEFAULT_COVERS.user],
         PLAYER_PORTRAIT: ['playerProfile', 'portraitUrl', null],
@@ -760,7 +778,7 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
       const slot = fields[asset.purpose]
       if (slot) {
         const [model, field, fallback] = slot,
-          delegate = (tx as any)[model],
+          delegate = (tx as unknown as MediaProfileDelegates)[model],
           target = await delegate.findUnique({ where: { id: asset.targetId } }),
           url = `/api/media-assets/${asset.id}/content`
         const original = job.source as unknown as Source
@@ -797,7 +815,7 @@ export class AiModerationService implements OnModuleInit, OnModuleDestroy {
             orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           })
           await delegate.updateMany({
-            where: { id: asset.targetId, [field]: target[field] },
+            where: { id: asset.targetId, [field]: target![field] },
             data: { [field]: latest ? `/api/media-assets/${latest.id}/content` : fallback },
           })
         }

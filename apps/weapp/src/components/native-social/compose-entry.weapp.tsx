@@ -4,7 +4,6 @@ import { useNativeCurrentUser } from '../../features/product/current-user.weapp'
 import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
 import { openNativeComposer } from '../../features/native-social/routing.weapp'
 import photoIcon from '../../assets/post-icons/photo.svg'
-import './social.weapp.scss'
 export function NativeComposeEntry({
   tournamentId,
   teamId,

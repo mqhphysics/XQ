@@ -42,9 +42,6 @@ import NativeMatchDetail from '../../pages/readonly-match-detail/screen.weapp'
 import NativePostDetail from '../../pages/post-detail/screen.weapp'
 import NativeTeamManage from '../../pages/team-manage/screen.weapp'
 import NativePersonDetail from '../../pages/person-detail/screen.weapp'
-import NativeMessages from '../../pages/messages/screen.weapp'
-import NativeCompose from '../../pages/compose/screen.weapp'
-import NativeFavorites from '../../pages/favorites/screen.weapp'
 import {
   NativeRefreshScope,
   NativeRefreshScroll,
@@ -289,28 +286,9 @@ function NativeDetailScene({
   const parsed = parseNativeDetailUrl(entry.url)
   const path = parsed?.path || '',
     params = parsed?.params || {}
-  const fullScreen =
-    path?.includes('/messages/') || path?.includes('/compose/') || path?.includes('/favorites/')
   const page = useMemo(
     () =>
-      path?.includes('/favorites/') ? (
-        <NativeFavorites />
-      ) : path?.includes('/messages/') ? (
-        <NativeMessages
-          conversationId={params.conversationId}
-          userId={params.userId}
-          notificationId={params.notificationId}
-          new={params.new}
-          private={params.private}
-          category={params.category}
-        />
-      ) : path?.includes('/compose/') ? (
-        <NativeCompose
-          tournamentId={params.tournamentId}
-          teamId={params.teamId}
-          quotePostId={params.quotePostId}
-        />
-      ) : path?.includes('/team-manage/') ? (
+      path?.includes('/team-manage/') ? (
         <NativeTeamManage teamId={params.teamId} tournamentId={params.tournamentId} />
       ) : path?.includes('/readonly-team-detail/') ? (
         <NativeTeamDetail teamId={params.teamId} tournamentId={params.tournamentId} />
@@ -325,7 +303,7 @@ function NativeDetailScene({
           {parsed && path === '/pages/post-detail/index' ? (
             <NativePostDetail postId={params.postId} />
           ) : (
-            <DataState kind="error" title="链接无效或该页面已退出" />
+            <DataState kind="error" title="链接无效或页面暂不可用" />
           )}
         </>
       ),
@@ -337,34 +315,26 @@ function NativeDetailScene({
       style={`left:${index * 100}%;pointer-events:${active ? 'auto' : 'none'};`}
       onTouchEnd={(event) => event.stopPropagation()}
     >
-      {fullScreen ? (
-        <NativeDetailEntryContext.Provider value={entry}>
-          <NativeDetailActiveContext.Provider value={active}>
-            {page}
-          </NativeDetailActiveContext.Provider>
-        </NativeDetailEntryContext.Provider>
-      ) : (
-        <NativeRefreshScope
-          active={active && !dragging && !locked && !path?.includes('/team-manage/')}
+      <NativeRefreshScope
+        active={active && !dragging && !locked && !path?.includes('/team-manage/')}
+      >
+        <NativeRefreshScroll
+          key={entry.id}
+          className={`native-detail-viewport${locked ? ' is-scroll-locked' : ''}`}
+          scrollY={!dragging && !locked}
+          showScrollbar={false}
+          enhanced
+          bounces={!locked}
+          scrollTop={top}
+          onScroll={(event) => saveDetailScroll(event.detail.scrollTop, entry.id)}
         >
-          <NativeRefreshScroll
-            key={entry.id}
-            className={`native-detail-viewport${locked ? ' is-scroll-locked' : ''}`}
-            scrollY={!dragging && !locked}
-            showScrollbar={false}
-            enhanced
-            bounces={!locked}
-            scrollTop={top}
-            onScroll={(event) => saveDetailScroll(event.detail.scrollTop, entry.id)}
-          >
-            <NativeDetailEntryContext.Provider value={entry}>
-              <NativeDetailActiveContext.Provider value={active}>
-                {page}
-              </NativeDetailActiveContext.Provider>
-            </NativeDetailEntryContext.Provider>
-          </NativeRefreshScroll>
-        </NativeRefreshScope>
-      )}
+          <NativeDetailEntryContext.Provider value={entry}>
+            <NativeDetailActiveContext.Provider value={active}>
+              {page}
+            </NativeDetailActiveContext.Provider>
+          </NativeDetailEntryContext.Provider>
+        </NativeRefreshScroll>
+      </NativeRefreshScope>
     </View>
   )
 }

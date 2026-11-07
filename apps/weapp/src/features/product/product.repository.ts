@@ -228,6 +228,7 @@ export const productRepository = {
     tags?: PostTag[],
     tournamentId?: string,
     quotedPostId?: string,
+    imageUploadIds?: string[],
   ) =>
     request<PostSummary>('/community/posts', {
       method: 'POST',
@@ -241,6 +242,7 @@ export const productRepository = {
         ...(tags ? { tags } : {}),
         ...(tournamentId ? { tournamentId } : {}),
         ...(quotedPostId ? { quotedPostId } : {}),
+        ...(imageUploadIds?.length ? { imageUploadIds } : {}),
       },
     }),
 

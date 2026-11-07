@@ -51,7 +51,7 @@ export function publicReadModule(path: string, method = 'GET'): ProductModuleId 
   if (pathname === '/public/seasons' || pathname === '/public/tournaments') return 'schedule'
   if (
     new RegExp(`^/public/tournaments/${id}(?:/schedule)?$`).test(pathname) ||
-    new RegExp(`^/public/matches/${id}(?:/experience)?$`).test(pathname)
+    new RegExp(`^/public/matches/${id}(?:/experience|/clock)?$`).test(pathname)
   )
     return 'schedule'
   if (new RegExp(`^/public/tournaments/${id}/competition-data$`).test(pathname)) return 'data'

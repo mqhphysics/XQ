@@ -63,6 +63,7 @@ function fixture(account = false) {
       return {
         ...React,
         useCallback: (callback) => callback,
+        useContext: () => null,
         useEffect: noop,
         useLayoutEffect: noop,
         useRef: (current) => ({ current }),

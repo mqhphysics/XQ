@@ -1,10 +1,11 @@
 import { PageContainer, View } from '@tarojs/components'
-import Taro, { useDidShow } from '@tarojs/taro'
+import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
 import { nativeBack } from '../../features/native-navigation/index.weapp'
 export function NativeBackGuard() {
   const [show, setShow] = useState(true)
   const alive = useRef(true),
+    visible = useRef(true),
     suppress = useRef(false),
     processing = useRef(false),
     until = useRef(0),
@@ -16,6 +17,7 @@ export function NativeBackGuard() {
     setShow(true)
   }
   const handle = async (native: boolean) => {
+    if (!visible.current) return
     if (processing.current) return
     processing.current = true
     let result
@@ -65,7 +67,13 @@ export function NativeBackGuard() {
       Taro.eventCenter.off('xiaoqiu:native-main-section', activity)
     }
   }, [])
-  useDidShow(rearm)
+  useDidShow(() => {
+    visible.current = true
+    rearm()
+  })
+  useDidHide(() => {
+    visible.current = false
+  })
   return (
     <PageContainer
       show={show}
@@ -73,7 +81,7 @@ export function NativeBackGuard() {
       duration={0}
       customStyle="height:0;min-height:0;background:transparent;pointer-events:none;"
       onAfterLeave={() => {
-        if (!alive.current) return
+        if (!alive.current || !visible.current) return
         if (suppress.current) {
           suppress.current = false
           return

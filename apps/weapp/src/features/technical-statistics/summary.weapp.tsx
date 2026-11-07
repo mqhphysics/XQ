@@ -63,6 +63,7 @@ const groups: Array<{ name: string; fields: Array<[keyof TechnicalTotals, string
       ['chancesMissed', '错失'],
     ],
   },
+  { name: '角球', fields: [['corners', '全队角球']] },
 ]
 export function NativeTechnicalSummary({
   workspace,
@@ -86,9 +87,16 @@ export function NativeTechnicalSummary({
   const [values, setValues] = useState<Fields>(() => {
     try {
       const saved = Taro.getStorageSync<{ values: Fields }>(key)
-      if (saved?.values && TECHNICAL_TOTAL_KEYS.every((k) => typeof saved.values[k] === 'string')) {
+      if (
+        saved?.values &&
+        TECHNICAL_TOTAL_KEYS.every(
+          (k) =>
+            typeof saved.values[k] === 'string' ||
+            (k === 'corners' && saved.values[k] === undefined),
+        )
+      ) {
         edited.current = true
-        return saved.values
+        return { ...strings(base), ...saved.values }
       }
     } catch {
       /* Keep the available local/default value when device services are unavailable. */
@@ -152,34 +160,36 @@ export function NativeTechnicalSummary({
           {playerId ? '一次填写这名球员的所有项目' : '球队合计已包含球员记录，避免重复录入'}
         </Text>
       </View>
-      {groups.map((group) => (
-        <View className="native-technical-form__group" key={group.name}>
-          <Text>{group.name}</Text>
-          <View
-            className={`native-technical-form__fields${group.fields.length === 3 ? ' has-three' : ''}`}
-          >
-            {group.fields.map(([field, label]) => (
-              <View key={field}>
-                <Text>{label}</Text>
-                <Input
-                  type="number"
-                  maxlength={6}
-                  disabled={!workspace.canRecord}
-                  value={values[field]}
-                  placeholder="0"
-                  onInput={(event) => {
-                    if (/^\d{0,6}$/.test(event.detail.value)) {
-                      edited.current = true
-                      setValues((current) => ({ ...current, [field]: event.detail.value }))
-                      setSaved(false)
-                    }
-                  }}
-                />
-              </View>
-            ))}
+      {groups
+        .filter((group) => !playerId || group.name !== '角球')
+        .map((group) => (
+          <View className="native-technical-form__group" key={group.name}>
+            <Text>{group.name}</Text>
+            <View
+              className={`native-technical-form__fields${group.fields.length === 3 ? ' has-three' : ''}`}
+            >
+              {group.fields.map(([field, label]) => (
+                <View key={field}>
+                  <Text>{label}</Text>
+                  <Input
+                    type="number"
+                    maxlength={6}
+                    disabled={!workspace.canRecord}
+                    value={values[field]}
+                    placeholder="0"
+                    onInput={(event) => {
+                      if (/^\d{0,6}$/.test(event.detail.value)) {
+                        edited.current = true
+                        setValues((current) => ({ ...current, [field]: event.detail.value }))
+                        setSaved(false)
+                      }
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      ))}
+        ))}
       {base.unclassifiedShots > 0 && (
         <View className="native-technical-form__legacy">
           <Text>旧记录中未分类的射门</Text>

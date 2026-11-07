@@ -4,6 +4,10 @@
 /* eslint-disable */
 export type CreateCommentDto = {
     /**
+     * 本人上传完成的分片图片标识；与内联图片互斥
+     */
+    imageUploadIds?: Array<string>;
+    /**
      * 发表评论时同步发布引用原帖的动态，不带标签
      */
     repostToFeed?: boolean;
@@ -21,4 +25,3 @@ export type CreateCommentDto = {
      */
     imageDataUrls?: Array<string>;
 };
-

@@ -286,6 +286,8 @@ enum ReportStatus {
 }
 
 model Organization {
+  messagePreferences UserMessagePreference[]
+  userBlocks UserBlock[]
   technicalLogs MatchTechnicalLog[]
   aiModerationSetting AiModerationSetting?
   aiModerationProviders AiModerationProvider[]
@@ -358,6 +360,10 @@ model Organization {
 }
 
 model User {
+  loginAliases UserLoginAlias[]
+  messagePreferences UserMessagePreference[]
+  blockedUsers UserBlock[] @relation("UserBlocker")
+  blockedByUsers UserBlock[] @relation("UserBlocked")
   technicalLogs MatchTechnicalLog[]
   showPlayerIdentity Boolean @default(true) @map("show_player_identity")
   profileCohort                String                   @default("LEGACY") @map("profile_cohort") @db.VarChar(64)
@@ -433,6 +439,49 @@ model User {
   @@map("app_users")
   feedEvents PostFeedEvent[]
 
+}
+
+model UserLoginAlias {
+  aliasNormalized String @id @map("alias_normalized") @db.VarChar(120)
+  userId String @map("user_id") @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId])
+  @@map("user_login_aliases")
+}
+
+model UserMessagePreference {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  likes String @default("ALL") @db.VarChar(16)
+  replies String @default("ALL") @db.VarChar(16)
+  directMessages Boolean @default(true) @map("direct_messages")
+  systemMessages Boolean @default(true) @map("system_messages")
+  badges Boolean @default(true)
+  version Int @default(1)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId], map: "user_message_preferences_org_user_key")
+  @@map("user_message_preferences")
+}
+
+model UserBlock {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  blockerUserId String @map("blocker_user_id") @db.Uuid
+  blockedUserId String @map("blocked_user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  blocker User @relation("UserBlocker", fields: [blockerUserId], references: [id], onDelete: Cascade)
+  blocked User @relation("UserBlocked", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, blockerUserId, blockedUserId], map: "user_blocks_org_blocker_blocked_key")
+  @@index([organizationId, blockedUserId, blockerUserId], map: "user_blocks_org_blocked_blocker_idx")
+  @@map("user_blocks")
 }
 
 model EmailAuthCode {
@@ -1077,6 +1126,9 @@ model ScheduleRevision {
 }
 
 model Match {
+  actualStartedAt DateTime? @map("actual_started_at") @db.Timestamptz(3)
+  actualEndedAt DateTime? @map("actual_ended_at") @db.Timestamptz(3)
+  reporterCompletedAt DateTime? @map("reporter_completed_at") @db.Timestamptz(3)
   technicalLogs MatchTechnicalLog[]
   id                 String            @id @default(uuid()) @db.Uuid
   organizationId     String            @map("organization_id") @db.Uuid
@@ -1593,6 +1645,8 @@ model DirectConversation {
 }
 
 model DirectMessage {
+  kind            String             @default("USER") @db.VarChar(24)
+  metadata        Json?
   id              String             @id @default(uuid()) @db.Uuid
   organizationId  String             @map("organization_id") @db.Uuid
   conversationId  String             @map("conversation_id") @db.Uuid

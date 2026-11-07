@@ -53,6 +53,7 @@ export class AuthController {
       getOrganizationId(request),
       body.realName,
       body.studentId,
+      body.registrationSource,
     )
   }
   @Post('registration-feedback')

@@ -30,6 +30,7 @@ import type {
 import { hashPassword, verifyPassword } from './password'
 import { assertRegistrationOpen } from './registration-policy'
 import { registrationCheck } from './registration-check'
+import { allocateUsername, reserveLoginAlias } from './usernames'
 import {
   EmailCodeService,
   invalidCode,
@@ -89,6 +90,7 @@ export class AuthService {
         ...activeUserWhere,
         OR: [
           { loginNameNormalized: normalizedIdentifier },
+          { loginAliases: { some: { aliasNormalized: normalizedIdentifier } } },
           { studentId: identifier.trim() },
           { emailNormalized: normalizedIdentifier },
           ...(/^\d{10}$/.test(identifier.trim())
@@ -351,9 +353,7 @@ export class AuthService {
     },
   ): Promise<LoginResponseDto> {
     assertRegistrationOpen()
-    const username = body.username
-      ? normalizeIdentifier(body.username)
-      : `u_${randomBytes(8).toString('hex')}`
+    const requestedUsername = body.username ? normalizeIdentifier(body.username) : undefined
     const email = body.email ? normalizeIdentifier(body.email) : undefined
     const studentId = typeof body.studentId === 'string' ? body.studentId.trim().slice(0, 32) : ''
     const realName =
@@ -371,7 +371,15 @@ export class AuthService {
 
     const existing = await this.prisma.user.findFirst({
       where: {
-        OR: [{ loginNameNormalized: username }, ...(email ? [{ emailNormalized: email }] : [])],
+        OR: [
+          ...(requestedUsername
+            ? [
+                { loginNameNormalized: requestedUsername },
+                { loginAliases: { some: { aliasNormalized: requestedUsername } } },
+              ]
+            : []),
+          ...(email ? [{ emailNormalized: email }] : []),
+        ],
       },
       select: {
         loginNameNormalized: true,
@@ -380,12 +388,7 @@ export class AuthService {
       },
     })
     if (existing) {
-      const field =
-        existing.loginNameNormalized === username
-          ? '用户名'
-          : existing.studentId === studentId
-            ? '学号'
-            : '邮箱'
+      const field = email && existing.emailNormalized === email ? '邮箱' : '用户名'
       throw new ApiHttpException(HttpStatus.CONFLICT, {
         code: ERROR_CODES.CONFLICT,
         message: `${field}已被使用`,
@@ -395,13 +398,22 @@ export class AuthService {
     const credential = hashPassword(body.password)
     const create = async (tx: Prisma.TransactionClient) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${organizationId + ':registration:' + studentId},0))`
-      const check = await registrationCheck(tx, organizationId, realName, studentId)
+      const check = await registrationCheck(
+        tx,
+        organizationId,
+        realName,
+        studentId,
+        body.registrationSource,
+      )
       if (!check.eligible)
         throw new ApiHttpException(HttpStatus.CONFLICT, {
           code: ERROR_CODES.CONFLICT,
           message: check.message,
           details: { reason: check.reason },
         })
+      const username = realName
+        ? await allocateUsername(tx, realName)
+        : requestedUsername || `u_${randomBytes(8).toString('hex')}`
       const user = await tx.user.create({
         data: {
           loginNameNormalized: username,
@@ -418,6 +430,9 @@ export class AuthService {
           status: UserStatus.ACTIVE,
         },
       })
+      await reserveLoginAlias(tx, user.id, username)
+      if (requestedUsername && requestedUsername !== username)
+        await reserveLoginAlias(tx, user.id, requestedUsername)
       await attachRegisteredStudent(tx, organizationId, user.id, realName, studentId)
       if (body.displayName?.trim())
         await queueProfileReview(tx, organizationId, user.id, {
@@ -475,9 +490,14 @@ export class AuthService {
     ).catch((error: unknown) => rethrowUniqueConflict(error, '用户名、学号或邮箱已被使用'))
   }
 
-  checkRegistration(organizationId: string, realName: string, studentId: string) {
+  checkRegistration(
+    organizationId: string,
+    realName: string,
+    studentId: string,
+    registrationSource?: 'WEAPP' | 'WEB',
+  ) {
     assertRegistrationOpen()
-    return registrationCheck(this.prisma, organizationId, realName, studentId)
+    return registrationCheck(this.prisma, organizationId, realName, studentId, registrationSource)
   }
 
   submitRegistrationFeedback(

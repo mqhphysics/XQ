@@ -9,13 +9,22 @@ import {
   Post,
   Req,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiBody, ApiHeader, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiHeader,
+  ApiTags,
+  ApiOkResponse,
+  ApiCreatedResponse,
+} from '@nestjs/swagger'
 import { AuthorizeInApplicationService } from '../auth/application-authorization'
 import type { RequestWithId } from '../common/request-context'
 import { StudentRegistrationService } from './student-registration.service'
 import {
   StudentRegistrationCorrectionDto,
   StudentRegistrationReviewDto,
+  StudentRegistrationListDto,
+  StudentRegistrationSavedDto,
 } from './student-registration.dto'
 
 @Controller()
@@ -24,15 +33,20 @@ import {
 @AuthorizeInApplicationService()
 export class StudentRegistrationController {
   constructor(@Inject(StudentRegistrationService) readonly service: StudentRegistrationService) {}
-  @Get('admin/campus/registrations') admin(@Headers('authorization') auth?: string) {
+  @Get('admin/campus/registrations')
+  @ApiOkResponse({ type: StudentRegistrationListDto })
+  admin(@Headers('authorization') auth?: string) {
     return this.service.list(auth, true)
   }
-  @Get('me/campus/registration') mine(@Headers('authorization') auth?: string) {
+  @Get('me/campus/registration')
+  @ApiOkResponse({ type: StudentRegistrationListDto })
+  mine(@Headers('authorization') auth?: string) {
     return this.service.list(auth, false)
   }
   @Post('admin/campus/registrations/:id/review')
   @ApiHeader({ name: 'Idempotency-Key', required: true, description: '8–128字符的幂等键' })
   @ApiBody({ type: StudentRegistrationReviewDto })
+  @ApiCreatedResponse({ type: StudentRegistrationSavedDto })
   review(
     @Headers('authorization') auth: string | undefined,
     @Headers('idempotency-key') key: string | undefined,
@@ -45,6 +59,7 @@ export class StudentRegistrationController {
   @Post('me/campus/registration')
   @ApiHeader({ name: 'Idempotency-Key', required: true, description: '8–128字符的幂等键' })
   @ApiBody({ type: StudentRegistrationCorrectionDto })
+  @ApiCreatedResponse({ type: StudentRegistrationSavedDto })
   correct(
     @Headers('authorization') auth: string | undefined,
     @Headers('idempotency-key') key: string | undefined,

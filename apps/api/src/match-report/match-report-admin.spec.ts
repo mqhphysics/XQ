@@ -8,7 +8,12 @@ import type { Prisma } from '../generated/prisma/client'
 const org = '10000000-0000-4000-8000-000000000001'
 const tournament = '20000000-0000-4000-8000-000000000001'
 const match = '30000000-0000-4000-8000-000000000001'
-async function permissions(role: string, scopeType: string, scopeId: string) {
+async function permissions(
+  role: string,
+  scopeType: string,
+  scopeId: string,
+  reporterStatus = 'ACTIVE',
+) {
   const tx = {
     organizationMembership: { findFirst: async () => ({ id: 'active-member' }) },
     roleAssignment: {
@@ -16,13 +21,22 @@ async function permissions(role: string, scopeType: string, scopeId: string) {
     },
     match: { findFirst: async () => ({ id: match, tournamentId: tournament }) },
     tournament: { findFirst: async () => ({ id: tournament }) },
+    reporterProfile: {
+      findUnique: async () => ({
+        id: 'profile',
+        organizationId: org,
+        status: reporterStatus,
+        activitySince: new Date(0),
+      }),
+    },
+    season: { findMany: async () => [] },
   } as unknown as Prisma.TransactionClient
   const service = new MatchReportService({} as PrismaService, {} as AuthService)
   const privilege = Reflect.get(service, 'privilege').bind(service) as (
     tx: Prisma.TransactionClient,
     session: AuthenticatedSession,
     match: { id: string; tournamentId: string },
-  ) => Promise<{ administrator: boolean; inlineEditor: boolean }>
+  ) => Promise<{ administrator: boolean; inlineEditor: boolean; reporterReason: string | null }>
   return privilege(
     tx,
     {
@@ -54,4 +68,10 @@ test('reporter permissions remain limited to the assigned tournament or match', 
   await assert.rejects(
     permissions('TOURNAMENT_ADMIN', 'TOURNAMENT', '20000000-0000-4000-8000-000000000002'),
   )
+})
+
+test('a frozen reporter is identified separately from scoped read permission', async () => {
+  const result = await permissions('MATCH_REPORTER', 'MATCH', match, 'FROZEN')
+  assert.equal(result.administrator, false)
+  assert.match(result.reporterReason || '', /冻结/)
 })

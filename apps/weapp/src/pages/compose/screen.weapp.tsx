@@ -25,13 +25,13 @@ import { finishNativeSocialPage } from '../../features/native-social/routing.wea
 import {
   chooseNativePostImages,
   copyNativeDraftImage,
-  nativeImageData,
   releaseNativePostImages,
   type NativeDraftImage,
 } from '../../features/native-social/images.weapp'
 import photoIcon from '../../assets/post-icons/photo.svg'
 import smileIcon from '../../assets/post-icons/mood-smile.svg'
 import { NativeKeyboardTools } from '../../components/native-social/keyboard-tools.weapp'
+import { nativeImageSubmission } from '../../features/native-social/image-transfer.weapp'
 
 interface Draft {
   body: string
@@ -62,6 +62,7 @@ export default function NativeComposeScreen(
     [processing, setProcessing] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false),
     [cursor, setCursor] = useState(-1)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const cursorAt = useRef(draft.body.length),
     lock = useRef(false),
     processingLock = useRef(false)
@@ -141,10 +142,10 @@ export default function NativeComposeScreen(
     setBusy(true)
     setError('')
     try {
-      const images = await Promise.all(data.images.map(nativeImageData))
+      const images = await nativeImageSubmission(data.images, setUploadProgress, () =>
+        update({ images: data.images }),
+      )
       if (token !== readSession()?.accessToken) throw new Error('账号已切换，请重新打开页面')
-      if (images.reduce((sum, image) => sum + image.length, 0) > 24_000_000)
-        throw new Error('图片合计过大，请减少图片后再发布')
       const signature = JSON.stringify([
         data.body.trim(),
         data.tags,
@@ -162,10 +163,11 @@ export default function NativeComposeScreen(
         undefined,
         teamId || undefined,
         undefined,
-        images,
+        images.imageDataUrls,
         data.tags,
         tournamentId || undefined,
         quoteId || undefined,
+        images.imageUploadIds,
       )
       if (post.publicationState !== 'PENDING_REVIEW')
         Taro.eventCenter.trigger('xiaoqiu:native-post-published', post)
@@ -173,7 +175,7 @@ export default function NativeComposeScreen(
       lock.current = false
       setBusy(false)
       await new Promise<void>((resolve) => Taro.nextTick(resolve))
-      await finishNativeSocialPage()
+      await finishNativeSocialPage(tournamentId)
       await Taro.showToast({
         title:
           post.publicationState === 'PENDING_REVIEW' ? '已提交，审核通过后公开展示' : '发布成功',
@@ -184,6 +186,7 @@ export default function NativeComposeScreen(
     } finally {
       lock.current = false
       setBusy(false)
+      setUploadProgress(null)
     }
   }
   const allowed = nativeWriteEnabled('publishPosts') && Boolean(user)
@@ -336,6 +339,9 @@ export default function NativeComposeScreen(
             onChange={(tags) => update({ tags })}
           />
           {error && <Text className="native-social-error">{error}</Text>}
+          {busy && uploadProgress !== null && (
+            <Text className="native-note">正在上传图片 {uploadProgress}%</Text>
+          )}
         </View>
       </ScrollView>
     </NativeSocialPage>

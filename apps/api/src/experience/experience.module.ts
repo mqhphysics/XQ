@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 
 import { AuthModule } from '../auth/auth.module'
+import { ImageTransferModule } from '../media-transfer/image-transfer.module'
 import { SocialModule } from '../social/social.module'
 import { MediaModule } from '../media/media.module'
 import { ResultsModule } from '../results/results.module'
@@ -14,8 +15,13 @@ import { MatchCheckinController } from './match-checkin.controller'
 import { MatchCheckinService } from './match-checkin.service'
 
 @Module({
-  controllers: [ExperienceController, SelfPlayerProfileController, FeedController, MatchCheckinController],
-  imports: [AuthModule, SocialModule, MediaModule, ResultsModule],
+  controllers: [
+    ExperienceController,
+    SelfPlayerProfileController,
+    FeedController,
+    MatchCheckinController,
+  ],
+  imports: [AuthModule, SocialModule, MediaModule, ResultsModule, ImageTransferModule],
   providers: [ExperienceService, SelfPlayerProfileService, FeedService, MatchCheckinService],
 })
 export class ExperienceModule {}

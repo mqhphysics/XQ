@@ -8,7 +8,6 @@ import { NativeEmojiPanel } from './emoji.weapp'
 import { reportNativeKeyboardHeight, useNativeKeyboardViewport } from './page-frame.weapp'
 import smileIcon from '../../assets/post-icons/mood-smile.svg'
 import photoIcon from '../../assets/post-icons/photo.svg'
-import './social.weapp.scss'
 import { NativeKeyboardTools } from './keyboard-tools.weapp'
 
 interface CommentComposerProps {

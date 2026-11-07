@@ -12,7 +12,7 @@ export const nativeRegistration = {
     request<RegistrationCheck>('/auth/registration-check', {
       method: 'POST',
       authenticated: false,
-      data: { realName, studentId },
+      data: { realName, studentId, registrationSource: 'WEAPP' },
     }),
   register: async (input: {
     realName: string
@@ -24,7 +24,7 @@ export const nativeRegistration = {
     const session = await request<AuthSession>('/auth/register', {
       method: 'POST',
       authenticated: false,
-      data: input,
+      data: { ...input, registrationSource: 'WEAPP' },
     })
     saveSession(session)
   },

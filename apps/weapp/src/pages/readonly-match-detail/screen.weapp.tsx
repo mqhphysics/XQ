@@ -12,7 +12,7 @@ import {
   NativeContentPager,
   measureNativeContent,
 } from '../../components/native-navigation/content-pager.weapp'
-import { Button, Image, PageMeta, Text, Video, View } from '@tarojs/components'
+import { Button, Image, Text, Video, View } from '@tarojs/components'
 import Taro, { getCurrentInstance, useDidShow } from '@tarojs/taro'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { PublicShell } from '../../components/public-shell'
@@ -46,14 +46,18 @@ import { minuteLabel } from '../../features/readonly-match/lineup.logic'
 import { NativeLineups } from '../../components/native-ui/match-lineups.weapp'
 import { NativeMatchIcon } from '../../features/readonly-match/match-icons.weapp'
 import { NativeMatchCheckin } from '../../features/readonly-match/checkin.weapp'
+import { NativeMatchClock } from '../../features/readonly-match/clock.weapp'
 import { isGoalEventType } from '../../features/readonly-match/match-bulletin.logic'
 import { knockoutMatchTime } from '../data-center/knockout-display.logic'
 import './index.weapp.scss'
 import { openPost } from '../../features/product/post-navigation'
 
-import { useNativeRouteState } from '../../features/native-navigation/index.weapp'
+import {
+  openNativeTechnical,
+  useNativeRouteState,
+} from '../../features/native-navigation/index.weapp'
+import { nativeTechnicalUrl } from '../../features/native-navigation/technical-route.logic.weapp'
 import { NativeTechnicalEntry } from '../../features/technical-statistics/entry.weapp'
-import { NativeTechnicalScreen } from '../../features/technical-statistics/screen.weapp'
 
 type State =
   | { phase: 'loading' }
@@ -65,6 +69,22 @@ export default function NativeMatchScreen({
 }: { matchId?: string | undefined; technical?: boolean } = {}) {
   const matchId = suppliedMatch || getCurrentInstance().router?.params.matchId || ''
   const technical = suppliedTechnical || getCurrentInstance().router?.params.technical === '1'
+  const [technicalError, setTechnicalError] = useState('')
+  const openTechnical = useCallback(async () => {
+    if (!matchId) {
+      setTechnicalError('缺少比赛信息')
+      return
+    }
+    try {
+      if (suppliedTechnical) await openNativeTechnical(matchId)
+      else await Taro.redirectTo({ url: nativeTechnicalUrl(matchId) })
+    } catch {
+      setTechnicalError('技术统计暂未打开，请重试')
+    }
+  }, [matchId, suppliedTechnical])
+  useEffect(() => {
+    if (technical) void openTechnical()
+  }, [technical, openTechnical])
   const cachedMatch = peekNativeProduct<MatchExperienceResponse>(
     `/public/matches/${encodeURIComponent(matchId)}/experience`,
   )
@@ -116,19 +136,28 @@ export default function NativeMatchScreen({
   }, [load, technical])
   if (technical)
     return (
-      <PublicShell active="schedule" showBack nativeWorkbench>
-        {/* Opened as its own route (not inside the detail layer): the board fits the screen, so
-            the page itself must not scroll or bounce. */}
-        {suppliedTechnical === undefined ? (
-          <PageMeta pageStyle="height:100%;overflow:hidden;" />
-        ) : null}
-        <NativeTechnicalScreen key={matchId} matchId={matchId} />
+      <PublicShell active="schedule" showBack>
+        <DataState
+          kind={technicalError ? 'error' : 'loading'}
+          title={technicalError || '正在打开技术统计'}
+          onRetry={() => void openTechnical()}
+        />
       </PublicShell>
     )
   return (
     <PublicShell
       active="schedule"
       showBack
+      nativeBackActions={
+        state.phase === 'ready' ? (
+          <NativeTechnicalEntry
+            matchId={state.match.id}
+            tournamentId={state.match.tournamentId}
+            match={state.match}
+            onUpdated={(match) => setState({ phase: 'ready', match })}
+          />
+        ) : undefined
+      }
       {...(state.phase === 'ready' ? { tournamentId: state.match.tournamentId } : {})}
     >
       {state.phase === 'loading' && <DataState kind="loading" title="正在读取比赛" />}
@@ -153,6 +182,7 @@ export default function NativeMatchScreen({
           key={state.match.id}
           match={state.match}
           onUpdated={(match) => setState({ phase: 'ready', match })}
+          onRefresh={load}
         />
       )}
     </PublicShell>
@@ -162,9 +192,11 @@ export default function NativeMatchScreen({
 function NativeMatchContent({
   match,
   onUpdated,
+  onRefresh,
 }: {
   match: MatchExperienceResponse
   onUpdated: (match: MatchExperienceResponse) => void
+  onRefresh: () => Promise<void>
 }) {
   const [tab, setTab] = useNativeRouteState<'events' | 'lineups' | 'ratings'>(
     'match-tab',
@@ -199,14 +231,22 @@ function NativeMatchContent({
         <Text className="native-match-kickoff">
           {knockoutMatchTime(match.scheduledStartAt)} · {match.venue?.name || '场地待定'}
         </Text>
+        <NativeMatchClock
+          matchId={match.id}
+          initial={match.clock}
+          onChanged={(clock) => {
+            const running = ['FIRST_HALF', 'HALF_TIME', 'SECOND_HALF', 'FINISHED'].includes(
+              clock.phase,
+            )
+            if (
+              (match.status === 'SCHEDULED' && running) ||
+              (match.status === 'LIVE' && clock.phase === 'FINISHED')
+            )
+              void onRefresh()
+          }}
+        />
         {match.statusReason && <Text className="native-match-reason">{match.statusReason}</Text>}
       </View>
-      <NativeTechnicalEntry
-        matchId={match.id}
-        tournamentId={match.tournamentId}
-        match={match}
-        onUpdated={onUpdated}
-      />
       <View className="native-match-tabs" role="tablist">
         {(
           [
@@ -575,6 +615,9 @@ function NativeRatings({
             <Text>比赛评分</Text>
             <Text>{match.reviews.ratingCount} 人评分</Text>
           </View>
+          <Text className="native-match-rating-summary__prompt">
+            {saved ? '我的评分' : '为这场比赛评分'}
+          </Text>
         </View>
         {Boolean(saved) &&
           (match.reviews.ratingDistribution || []).map((item) => (
@@ -588,7 +631,6 @@ function NativeRatings({
               <Text>{item.count}</Text>
             </View>
           ))}
-        <Text className="native-match-section-title">{saved ? '我的评分' : '为这场比赛评分'}</Text>
         <View className="native-rating-stars" role="group" aria-label="1至5星评分">
           {[1, 2, 3, 4, 5].map((value) => (
             <Button
@@ -619,6 +661,7 @@ function NativeRatings({
           <Text className="native-note">比赛结束后可以评分</Text>
         )}
       </View>
+      <NativeMatchCheckin matchId={match.id} />
       <View className="native-review-card">
         <Text className="native-match-section-title">评论</Text>
         {commentsEnabled && finished && readSession() && (
@@ -654,7 +697,6 @@ function NativeRatings({
           <Text className="native-note">暂无评论</Text>
         )}
       </View>
-      <NativeMatchCheckin matchId={match.id} />
     </View>
   )
 }

@@ -38,10 +38,16 @@ import {
   UpdatePostDto,
 } from './experience.dto'
 import { ExperienceService } from './experience.service'
-import { CommentResponseDto, FavoritePostsDto, PostDetailDto } from './post-response.dto'
+import {
+  CommentResponseDto,
+  FavoritePostsDto,
+  FavoritePostsQueryDto,
+  PostDetailDto,
+} from './post-response.dto'
 import { MatchOfficialDto } from './match-personnel.dto'
 
 @ApiTags('experience')
+@ApiExtraModels(SearchQueryDto, PostTagQueryDto)
 @Controller()
 export class ExperienceController {
   constructor(@Inject(ExperienceService) private readonly experienceService: ExperienceService) {}
@@ -70,7 +76,11 @@ export class ExperienceController {
   @Get('public/search')
   @PublicOrganizationHeader()
   @ApiOperation({ summary: '按球员、球队、比赛和动态搜索' })
-  search(@Req() request: RequestWithId, @Query() query: SearchQueryDto) {
+  search(
+    @Req() request: RequestWithId,
+    @Query() query: SearchQueryDto,
+    @Headers('authorization') authorization: string | undefined,
+  ) {
     return this.experienceService.search(
       getOrganizationId(request),
       query,
@@ -78,6 +88,7 @@ export class ExperienceController {
       query.competitionId || query.seasonId
         ? { competitionDefinitionId: query.competitionId, seasonId: query.seasonId }
         : undefined,
+      authorization,
     )
   }
 
@@ -159,9 +170,15 @@ export class ExperienceController {
 
   @Get('public/matches/:matchId/experience')
   @ApiExtraModels(MatchOfficialDto)
-  @ApiOkResponse({ schema: { type: 'object', additionalProperties: true, properties: {
-    officials: { type: 'array', items: { $ref: getSchemaPath(MatchOfficialDto) } },
-  } } })
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      properties: {
+        officials: { type: 'array', items: { $ref: getSchemaPath(MatchOfficialDto) } },
+      },
+    },
+  })
   @PublicOrganizationHeader()
   @ApiOperation({ summary: '读取评分、比分、事件时间轴和阵容' })
   match(
@@ -292,11 +309,15 @@ export class ExperienceController {
   }
 
   @Get('me/favorite-posts')
+  @ApiExtraModels(FavoritePostsQueryDto)
   @ApiOkResponse({ type: FavoritePostsDto })
   @ApiBearerAuth()
   @ApiOperation({ summary: '按收藏时间倒序读取本人当前组织内可访问的动态' })
-  favoritePosts(@Headers('authorization') authorization: string | undefined) {
-    return this.experienceService.listFavoritePosts(authorization)
+  favoritePosts(
+    @Headers('authorization') authorization: string | undefined,
+    @Query() query: FavoritePostsQueryDto,
+  ) {
+    return this.experienceService.listFavoritePosts(authorization, query.before, query.limit)
   }
 
   @Delete('community/posts/:postId/favorite')

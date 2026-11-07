@@ -40,6 +40,11 @@ export function useWideProfileData(
   const [data, setData] = useState<WideData>({ posts: null, schedule: null, favorites: null })
   const [errors, setErrors] = useState<Partial<Record<keyof WideData, string>>>({})
   const [loading, setLoading] = useState(true)
+  const [favoriteCursor, setFavoriteCursor] = useState<string | null>(null)
+  const [favoriteCount, setFavoriteCount] = useState<number | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false),
+    [moreError, setMoreError] = useState('')
+  const moreLock = useRef(false)
   const epoch = useRef(0)
   const load = useCallback(async () => {
     if (!wide) return
@@ -48,7 +53,9 @@ export function useWideProfileData(
     const [person, competition, favorites] = await Promise.allSettled([
       productRepository.getPerson(user.id, home.tournament.id),
       productRepository.getCompetitionData(home.tournament.id),
-      productRequest<{ items: PostSummary[] }>('/me/favorite-posts'),
+      productRequest<{ items: PostSummary[]; nextCursor: string | null; totalCount: number }>(
+        '/me/favorite-posts?limit=30',
+      ),
     ])
     if (ticket !== epoch.current) return
     const issues: Partial<Record<keyof WideData, string>> = {}
@@ -63,8 +70,40 @@ export function useWideProfileData(
       favorites: favorites.status === 'fulfilled' ? favorites.value.items : null,
     })
     setErrors(issues)
+    setFavoriteCursor(favorites.status === 'fulfilled' ? favorites.value.nextCursor : null)
+    setFavoriteCount(favorites.status === 'fulfilled' ? favorites.value.totalCount : null)
+    setMoreError('')
     setLoading(false)
   }, [wide, user.id, home.tournament.id])
+  const loadMoreFavorites = async () => {
+    if (!favoriteCursor || loading || moreLock.current) return
+    const ticket = epoch.current
+    moreLock.current = true
+    setLoadingMore(true)
+    setMoreError('')
+    try {
+      const page = await productRequest<{
+        items: PostSummary[]
+        nextCursor: string | null
+        totalCount: number
+      }>(`/me/favorite-posts?limit=30&before=${encodeURIComponent(favoriteCursor)}`)
+      if (ticket !== epoch.current) return
+      setData((current) => ({
+        ...current,
+        favorites: [
+          ...(current.favorites || []),
+          ...page.items.filter((post) => !current.favorites?.some((item) => item.id === post.id)),
+        ],
+      }))
+      setFavoriteCursor(page.nextCursor)
+      setFavoriteCount(page.totalCount)
+    } catch (issue) {
+      if (ticket === epoch.current) setMoreError(message(issue, '更多收藏读取失败'))
+    } finally {
+      moreLock.current = false
+      setLoadingMore(false)
+    }
+  }
   useEffect(() => {
     void load()
     const changed = () => void load()
@@ -85,7 +124,18 @@ export function useWideProfileData(
       (match.homeTeam && watched.has(match.homeTeam.id)) ||
       (match.awayTeam && watched.has(match.awayTeam.id)),
   )
-  return { data, errors, loading, load, followedMatches }
+  return {
+    data,
+    errors,
+    loading,
+    load,
+    followedMatches,
+    favoriteCursor,
+    favoriteCount,
+    loadingMore,
+    moreError,
+    loadMoreFavorites,
+  }
 }
 export type WideProfileData = ReturnType<typeof useWideProfileData>
 
@@ -268,6 +318,19 @@ export function WideProfileStream({
             {posts.map((post) => (
               <PostCard key={post.id} post={post} onOpen={() => void openPost(post.id)} />
             ))}
+            {tab === 'bookmarks' && state.moreError && (
+              <Text className="native-error">{state.moreError}</Text>
+            )}
+            {tab === 'bookmarks' && state.favoriteCursor && (
+              <Button
+                className="native-button"
+                disabled={state.loadingMore}
+                loading={state.loadingMore}
+                onClick={() => void state.loadMoreFavorites()}
+              >
+                {state.moreError ? '重试加载' : '加载更多收藏'}
+              </Button>
+            )}
             {!posts.length &&
               (tab === 'posts' ? (
                 <Empty
@@ -281,7 +344,7 @@ export function WideProfileStream({
               ) : (
                 <Empty
                   title="把喜欢的足球故事留下来"
-                  note="点击动态右下角的三个点即可收藏，下次在这里继续看。"
+                  note="打开动态后点击收藏图标，下次在这里继续看。"
                   action="去首页看看"
                   onAction={() => void switchNativeSection('home')}
                 />

@@ -1,4 +1,4 @@
-declare module '*stadium-particle-plate.weapp.webp' {
+declare module '*stadium-particle-plate.weapp.png' {
   const source: string
   export default source
 }

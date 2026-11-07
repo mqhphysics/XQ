@@ -5,6 +5,9 @@
 import type { CreateDirectMessageDto } from '../models/CreateDirectMessageDto';
 import type { CreateReportDto } from '../models/CreateReportDto';
 import type { CreateTeamApplicationDto } from '../models/CreateTeamApplicationDto';
+import type { DirectConversationListDto } from '../models/DirectConversationListDto';
+import type { DirectMessageSendResultDto } from '../models/DirectMessageSendResultDto';
+import type { DirectThreadDto } from '../models/DirectThreadDto';
 import type { NotificationItemDto } from '../models/NotificationItemDto';
 import type { NotificationPageDto } from '../models/NotificationPageDto';
 import type { ReviewReportDto } from '../models/ReviewReportDto';
@@ -404,10 +407,10 @@ export class SocialService {
     }
     /**
      * 读取私信会话
-     * @returns any
+     * @returns DirectConversationListDto
      * @throws ApiError
      */
-    public static socialControllerConversations(): CancelablePromise<any> {
+    public static socialControllerConversations(): CancelablePromise<DirectConversationListDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/messages/conversations',
@@ -416,12 +419,12 @@ export class SocialService {
     /**
      * 读取私信消息
      * @param conversationId
-     * @returns any
+     * @returns DirectThreadDto
      * @throws ApiError
      */
     public static socialControllerMessages(
         conversationId: string,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<DirectThreadDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/messages/conversations/{conversationId}',
@@ -433,12 +436,12 @@ export class SocialService {
     /**
      * 标记会话已读
      * @param conversationId
-     * @returns any
+     * @returns DirectThreadDto
      * @throws ApiError
      */
     public static socialControllerReadConversation(
         conversationId: string,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<DirectThreadDto> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/messages/conversations/{conversationId}/read',
@@ -451,13 +454,13 @@ export class SocialService {
      * 向同组织用户发送幂等私信
      * @param recipientUserId
      * @param requestBody
-     * @returns any
+     * @returns DirectMessageSendResultDto
      * @throws ApiError
      */
     public static socialControllerSendMessage(
         recipientUserId: string,
         requestBody: CreateDirectMessageDto,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<DirectMessageSendResultDto> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/messages/direct/{recipientUserId}',

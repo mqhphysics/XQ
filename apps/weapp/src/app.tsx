@@ -8,6 +8,13 @@ import { AppOverlays, PublicAppOverlays } from './components/app-overlays'
 import { useNativeUpdate } from './features/product/update.weapp'
 
 import './app.scss'
+import './components/native-loading/index.weapp.scss'
+import './features/product/native-refresh.weapp.scss'
+import './components/native-navigation/content-pager.weapp.scss'
+// Shared native social primitives have one stylesheet owner across embedded and physical pages.
+import './components/native-social/social.weapp.scss'
+import './features/technical-statistics/entry.weapp.scss'
+import './features/readonly-match/clock.weapp.scss'
 import './app-box-sizing'
 import './components/viewport-page'
 

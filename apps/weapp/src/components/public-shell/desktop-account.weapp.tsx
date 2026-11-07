@@ -6,6 +6,9 @@ import { VerificationBadge } from '../verification-badge'
 import { EditProfile } from '../../pages/me/desktop-profile.weapp'
 import { peekNativeProduct, productRepository } from '../../features/product/product.repository'
 import { readSession } from '../../features/product/session'
+import { useStudentNumberLabel } from '../../features/product/student-registration-display.weapp'
+import { useInbox } from '../../features/messages/inbox.weapp'
+import { MessageBadge } from '../../features/messages/badge.weapp'
 import { refreshNativeCurrentUser } from '../../features/product/current-user.weapp'
 import { holdNativeOverlay } from '../../features/native-navigation/overlay.weapp'
 import {
@@ -56,6 +59,7 @@ export function DesktopAccount({
   onFeedback,
   onLogout,
 }: DesktopAccountProps) {
+  const { summary: inbox } = useInbox()
   const [open, setOpen] = useState(false)
   const drawer = useRef<NativeSwipeDrawerHandle>(null),
     afterClose = useRef<(() => void) | null>(null)
@@ -66,6 +70,7 @@ export function DesktopAccount({
   }, open)
   const [edit, setEdit] = useState(false)
   const [current, setCurrent] = useState<AuthUser | null>(user)
+  const studentNumber = useStudentNumberLabel(current, open)
   const [data, setData] = useState<AccountData>({
     owner: '',
     player: null,
@@ -215,7 +220,12 @@ export function DesktopAccount({
                 aria-label="打开信箱"
                 onClick={() => select(onMessages)}
               >
-                <View />
+                <View style="position:relative;">
+                  <MessageBadge
+                    count={inbox?.badgeCount || 0}
+                    dot={inbox?.hasNotificationDot === true}
+                  />
+                </View>
               </Button>
             )}
           </View>
@@ -254,7 +264,6 @@ export function DesktopAccount({
                               roles={current.roles}
                             />
                           </View>
-                          <Text>@{current.username}</Text>
                         </View>
                       </View>
                     </View>
@@ -274,7 +283,7 @@ export function DesktopAccount({
                     <Text>姓名</Text>
                     <Text>{current.realName || '未填写'}</Text>
                     <Text>学号</Text>
-                    <Text>{current.studentId || '未填写'}</Text>
+                    <Text>{studentNumber || '未填写'}</Text>
                     <Text>邮箱</Text>
                     <Text>{current.email || '未绑定'}</Text>
                     <Text>简介</Text>

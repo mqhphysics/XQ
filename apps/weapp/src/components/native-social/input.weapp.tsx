@@ -2,7 +2,6 @@ import { Button, Textarea, View } from '@tarojs/components'
 import { useRef, useState } from 'react'
 import { appendEmoji } from '../../features/native-social/interaction.logic.weapp'
 import { NativeEmojiPicker } from './emoji.weapp'
-import './social.weapp.scss'
 import { reportNativeKeyboardHeight } from './page-frame.weapp'
 
 export function NativeSocialInput({
@@ -32,6 +31,7 @@ export function NativeSocialInput({
       <View className="native-social-input__row">
         <Textarea
           className="native-social-input__text"
+          autoHeight
           value={value}
           cursor={cursor}
           maxlength={maximum}

@@ -77,17 +77,24 @@ export function recorderRows(mode: RecorderMode) {
 export const recorderModeOf = (value: unknown): RecorderMode => (value === 'lite' ? 'lite' : 'full')
 /** Toolbar, player strip, recent strip, footer and gaps. */
 export const RECORDER_CHROME = 232
-export function recorderGeometry(availableHeight: number, mode: RecorderMode = 'full') {
+export function recorderGeometry(
+  availableHeight: number,
+  mode: RecorderMode = 'full',
+  matchControls = false,
+) {
   const rows = recorderRows(mode).length,
+    compact = matchControls && availableHeight < 570,
+    chrome = RECORDER_CHROME + (matchControls ? 50 : 0) - (compact ? 48 : 0),
     /* The board never scrolls: on small phones rows shrink towards these floors instead. */
     minimum = mode === 'lite' ? 56 : 36
   const rowHeight = Math.max(
     minimum,
-    Math.floor((availableHeight - RECORDER_CHROME - (rows - 1) * 7) / rows),
+    Math.floor((availableHeight - chrome - (rows - 1) * 7) / rows),
   )
   return {
     rowHeight,
-    height: Math.max(availableHeight, RECORDER_CHROME + rows * rowHeight + (rows - 1) * 7),
+    height: Math.max(availableHeight, chrome + rows * rowHeight + (rows - 1) * 7),
+    compact,
   }
 }
 export function recorderTeamState(
@@ -196,6 +203,7 @@ const outcomeText: Partial<Record<TechnicalMetric, Partial<Record<TechnicalOutco
   SHOT: { ATTEMPT: '射门', ON_TARGET: '射正', OFF_TARGET: '射偏', GOAL: '进球' },
   FOUL: { FOUL: '犯规', YELLOW_CARD: '黄牌', RED_CARD: '红牌' },
   CHANCE: { SUCCESS: '创造机会', FAILURE: '错失机会' },
+  CORNER: { SUCCESS: '角球' },
 }
 /** The newest three still-active operations, newest first, as short labels. */
 export function recentRecords(

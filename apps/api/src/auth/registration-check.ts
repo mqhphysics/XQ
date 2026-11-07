@@ -7,35 +7,40 @@ export async function registrationCheck(
   organizationId: string,
   rawName: string,
   studentNumber: string,
+  registrationSource?: 'WEAPP' | 'WEB',
 ) {
-  if (registrationOpenToEveryone())
+  const open = registrationOpenToEveryone()
+  const name = typeof rawName === 'string' ? rawName.normalize('NFKC').trim() : ''
+  studentNumber = typeof studentNumber === 'string' ? studentNumber.trim() : ''
+  if (open && registrationSource !== 'WEAPP' && (!name || !studentNumber))
     return {
       eligible: true,
       reason: 'OPEN_REGISTRATION',
-      message: '路演期间开放注册，姓名和学号不影响注册。',
+      message: '',
     }
+  if (name.length < 2 || name.length > 120)
+    return { eligible: false, reason: 'INVALID_NAME', message: '请填写真实姓名。' }
   if (!/^20\d{8}$/.test(studentNumber))
     return { eligible: false, reason: 'INVALID_NUMBER', message: '请填写以20开头的10位学号。' }
-  const name = rawName.normalize('NFKC').trim()
   const records = await db.studentRecord.findMany({
     where: { organizationId, status: 'ACTIVE', OR: [{ realName: name }, { studentNumber }] },
     select: { id: true, realName: true, studentNumber: true, user: { select: { id: true } } },
   })
   const names = records.filter((record) => record.realName === name)
-  if (!names.length)
+  if (!open && !names.length)
     return {
       eligible: false,
       reason: 'NAME_NOT_LISTED',
       message: '姓名不能匹配，请核对姓名，或提交注册问题反馈。',
     }
   const numbered = records.find((record) => record.studentNumber === studentNumber)
-  if (!numbered && !names.some((record) => !record.studentNumber))
+  if (!open && !numbered && !names.some((record) => !record.studentNumber))
     return {
       eligible: false,
       reason: 'NAME_NUMBER_MISMATCH',
       message: '姓名与已收录学号不能匹配，请核对后重试。',
     }
-  if (numbered && numbered.realName !== name)
+  if (!open && numbered && numbered.realName !== name)
     return {
       eligible: false,
       reason: 'NAME_NUMBER_MISMATCH',
@@ -70,7 +75,7 @@ export async function registrationCheck(
     }
   return {
     eligible: true,
-    reason: numbered ? 'MATCHED' : 'NUMBER_PENDING',
-    message: numbered ? '姓名与学号已匹配。' : '姓名已匹配，提交的学号将由管理员核验。',
+    reason: numbered?.realName === name ? 'MATCHED' : open ? 'UNMATCHED' : 'NUMBER_PENDING',
+    message: numbered?.realName === name ? '姓名与学号已匹配。' : '',
   }
 }

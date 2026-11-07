@@ -19,7 +19,9 @@ import type { StudentCatalogDto } from '../models/StudentCatalogDto';
 import type { StudentPlayerLinkDto } from '../models/StudentPlayerLinkDto';
 import type { StudentRecordDto } from '../models/StudentRecordDto';
 import type { StudentRegistrationCorrectionDto } from '../models/StudentRegistrationCorrectionDto';
+import type { StudentRegistrationListDto } from '../models/StudentRegistrationListDto';
 import type { StudentRegistrationReviewDto } from '../models/StudentRegistrationReviewDto';
+import type { StudentRegistrationSavedDto } from '../models/StudentRegistrationSavedDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -605,12 +607,12 @@ export class CampusService {
     }
     /**
      * @param authorization
-     * @returns any
+     * @returns StudentRegistrationListDto
      * @throws ApiError
      */
     public static studentRegistrationControllerAdmin(
         authorization: string,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<StudentRegistrationListDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/admin/campus/registrations',
@@ -621,12 +623,12 @@ export class CampusService {
     }
     /**
      * @param authorization
-     * @returns any
+     * @returns StudentRegistrationListDto
      * @throws ApiError
      */
     public static studentRegistrationControllerMine(
         authorization: string,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<StudentRegistrationListDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/me/campus/registration',
@@ -638,13 +640,13 @@ export class CampusService {
     /**
      * @param idempotencyKey 8–128字符的幂等键
      * @param requestBody
-     * @returns any
+     * @returns StudentRegistrationSavedDto
      * @throws ApiError
      */
     public static studentRegistrationControllerCorrect(
         idempotencyKey: string,
         requestBody: StudentRegistrationCorrectionDto,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<StudentRegistrationSavedDto> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/me/campus/registration',
@@ -659,14 +661,14 @@ export class CampusService {
      * @param id
      * @param idempotencyKey 8–128字符的幂等键
      * @param requestBody
-     * @returns any
+     * @returns StudentRegistrationSavedDto
      * @throws ApiError
      */
     public static studentRegistrationControllerReview(
         id: string,
         idempotencyKey: string,
         requestBody: StudentRegistrationReviewDto,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<StudentRegistrationSavedDto> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/campus/registrations/{id}/review',

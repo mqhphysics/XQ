@@ -10,6 +10,9 @@ test('login return keeps public identity only and cannot replay management opera
     'https://evil.test',
     '/pages/team-manage/index?teamId=t',
     '/pages/me/index?panel=admin',
+    '/social/messages/index?conversationId=private-old-account',
+    '/social/compose/index?quotePostId=post',
+    '/social/favorites/index',
     '/pages/player-detail/index?playerId=..%2Fsecret',
   ])
     assert.equal(safeLoginReturn(path), '/pages/index/index')

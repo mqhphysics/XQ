@@ -1,4 +1,12 @@
-export const TECHNICAL_METRICS = ['PASS', 'TACKLE', 'DRIBBLE', 'SHOT', 'FOUL', 'CHANCE'] as const
+export const TECHNICAL_METRICS = [
+  'PASS',
+  'TACKLE',
+  'DRIBBLE',
+  'SHOT',
+  'FOUL',
+  'CHANCE',
+  'CORNER',
+] as const
 export type TechnicalMetric = (typeof TECHNICAL_METRICS)[number]
 export const TECHNICAL_TOTAL_KEYS = [
   'passSuccess',
@@ -16,6 +24,7 @@ export const TECHNICAL_TOTAL_KEYS = [
   'redCards',
   'chancesCreated',
   'chancesMissed',
+  'corners',
 ] as const
 export type TechnicalTotals = Record<(typeof TECHNICAL_TOTAL_KEYS)[number], number>
 export type TechnicalOutcome =
@@ -150,6 +159,7 @@ function fold(active: Active[]) {
               ? 'redCards'
               : 'fouls'
         ]++
+      else if (op.metric === 'CORNER') totals.corners++
       else if (op.metric === 'CHANCE')
         totals[op.outcome === 'SUCCESS' ? 'chancesCreated' : 'chancesMissed']++
       else {
@@ -179,9 +189,12 @@ export function technicalState(operations: readonly TechnicalOperation[]) {
           ? ['ATTEMPT', 'ON_TARGET', 'OFF_TARGET', 'GOAL']
           : op.metric === 'FOUL'
             ? ['FOUL', 'YELLOW_CARD', 'RED_CARD']
-            : ['SUCCESS', 'FAILURE']
+            : op.metric === 'CORNER'
+              ? ['SUCCESS']
+              : ['SUCCESS', 'FAILURE']
       if (!TECHNICAL_METRICS.includes(op.metric) || !allowed.includes(op.outcome))
         throw Error('统计项目和结果不匹配')
+      if (op.metric === 'CORNER' && op.playerId) throw Error('角球按球队记录，请选择全队')
       active.push(op)
     } else if (op.kind === 'GOAL') {
       const state = fold(active),
@@ -189,8 +202,10 @@ export function technicalState(operations: readonly TechnicalOperation[]) {
       if (!shot || state.goals.has(shot.id)) throw Error('请先记录这次射门，不能重复标记进球')
       active.push(op)
     } else {
-      validateTotals(op.totals)
-      active.push(op)
+      const normalized = { ...op, totals: { ...op.totals, corners: op.totals.corners ?? 0 } }
+      if (op.playerId && normalized.totals.corners) throw Error('角球按球队记录，请选择全队')
+      validateTotals(normalized.totals)
+      active.push(normalized)
       fold(active)
     }
   }
@@ -221,7 +236,9 @@ export function technicalSummary(
               ? totals.chancesCreated
               : metric === 'SHOT'
                 ? totals.shotsOnTarget
-                : totals.fouls
+                : metric === 'CORNER'
+                  ? totals.corners
+                  : totals.fouls
     const failure =
       metric === 'PASS'
         ? totals.passFailure
@@ -252,5 +269,13 @@ export function technicalV2Required(operations: readonly TechnicalOperation[]) {
       (op.kind === 'COUNT' &&
         (!['PASS', 'TACKLE', 'DRIBBLE', 'SHOT'].includes(op.metric) ||
           !['SUCCESS', 'FAILURE', 'ATTEMPT'].includes(op.outcome))),
+  )
+}
+
+export function technicalV3Required(operations: readonly TechnicalOperation[]) {
+  return operations.some(
+    (op) =>
+      (op.kind === 'COUNT' && op.metric === 'CORNER') ||
+      (op.kind === 'SET_TOTALS' && (op.totals.corners ?? 0) > 0),
   )
 }

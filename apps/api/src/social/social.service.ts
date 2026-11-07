@@ -8,6 +8,8 @@ import { AuthService, type AuthenticatedSession } from '../auth/auth.service'
 import { ApiHttpException } from '../common/api-http.exception'
 import { commandHash, publicProfilePatch } from '../admin-center/admin-center.policy'
 import { PrismaService } from '../database/prisma.service'
+import { blockedUserIds } from './interaction-policy'
+import { isInteractionNotification, visibleNotificationTargets } from './notification-targets'
 import {
   AuditActorType,
   NotificationType,
@@ -44,7 +46,7 @@ export interface NotificationInput {
   type: NotificationType
 }
 
-type NotificationClient = Pick<Prisma.TransactionClient, 'userNotification'>
+type NotificationClient = Pick<Prisma.TransactionClient, 'userNotification' | 'userBlock'>
 
 @Injectable()
 export class SocialService {
@@ -744,9 +746,31 @@ export class SocialService {
     notificationId?: string,
   ) {
     const session = await this.authService.requireSession(authorization)
+    const blocked = await blockedUserIds(this.prisma, session.organizationId, session.userId)
     const where = {
       organizationId: session.organizationId,
       recipientUserId: session.userId,
+      ...(blocked.length
+        ? {
+            AND: [
+              {
+                OR: [
+                  {
+                    type: {
+                      notIn: [
+                        NotificationType.POST_LIKED,
+                        NotificationType.POST_COMMENTED,
+                        NotificationType.COMMENT_REPLIED,
+                      ],
+                    },
+                  },
+                  { actorUserId: null },
+                  { actorUserId: { notIn: blocked } },
+                ],
+              },
+            ],
+          }
+        : {}),
     }
     const anchor = before
       ? await this.prisma.userNotification.findFirst({
@@ -776,10 +800,17 @@ export class SocialService {
       }),
       this.prisma.userNotification.count({ where: { ...where, readAt: null } }),
     ])
+    const selected = items.slice(0, 100)
+    const targets = await visibleNotificationTargets(
+      this.prisma,
+      session.organizationId,
+      selected,
+      blocked,
+    )
     return {
       unreadCount,
       nextCursor: items.length > 100 ? items[99]!.id : null,
-      items: items.slice(0, 100).map((item) => ({
+      items: selected.map((item) => ({
         id: item.id,
         type: item.type,
         messageCategory:
@@ -790,8 +821,12 @@ export class SocialService {
             ? 'mentions'
             : null,
         title: item.title,
-        body: item.body,
-        linkPath: item.linkPath,
+        body:
+          isInteractionNotification(item.type) && !targets.has(item.id)
+            ? '内容已删除或暂不可访问'
+            : item.body,
+        linkPath:
+          isInteractionNotification(item.type) && !targets.has(item.id) ? null : item.linkPath,
         readAt: item.readAt?.toISOString() ?? null,
         createdAt: item.createdAt.toISOString(),
         actor: item.actor
@@ -827,14 +862,28 @@ export class SocialService {
 
   async markAllNotificationsRead(authorization: string | undefined) {
     const session = await this.authService.requireSession(authorization)
-    await this.prisma.userNotification.updateMany({
-      where: {
-        organizationId: session.organizationId,
-        recipientUserId: session.userId,
-        readAt: null,
-      },
-      data: { readAt: new Date() },
-    })
+    const readAt = new Date()
+    await this.prisma.$transaction([
+      this.prisma.userNotification.updateMany({
+        where: {
+          organizationId: session.organizationId,
+          recipientUserId: session.userId,
+          readAt: null,
+          createdAt: { lte: readAt },
+        },
+        data: { readAt },
+      }),
+      this.prisma.directMessage.updateMany({
+        where: {
+          organizationId: session.organizationId,
+          senderUserId: { not: session.userId },
+          readAt: null,
+          createdAt: { lte: readAt },
+          conversation: { OR: [{ userOneId: session.userId }, { userTwoId: session.userId }] },
+        },
+        data: { readAt },
+      }),
+    ])
     return this.listNotifications(authorization)
   }
 
@@ -1179,6 +1228,26 @@ export class SocialService {
 
   async notify(input: NotificationInput, client: NotificationClient = this.prisma): Promise<void> {
     if (input.actorUserId && input.actorUserId === input.recipientUserId) return
+    if (
+      input.actorUserId &&
+      [
+        NotificationType.POST_LIKED,
+        NotificationType.POST_COMMENTED,
+        NotificationType.COMMENT_REPLIED,
+      ].includes(input.type as 'POST_LIKED' | 'POST_COMMENTED' | 'COMMENT_REPLIED')
+    ) {
+      const blocked = await client.userBlock.findFirst({
+        where: {
+          organizationId: input.organizationId,
+          OR: [
+            { blockerUserId: input.recipientUserId, blockedUserId: input.actorUserId },
+            { blockerUserId: input.actorUserId, blockedUserId: input.recipientUserId },
+          ],
+        },
+        select: { id: true },
+      })
+      if (blocked) return
+    }
     if (input.deduplicationKey) {
       await client.userNotification.upsert({
         where: {

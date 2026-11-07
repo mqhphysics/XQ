@@ -1,4 +1,4 @@
-import { ScrollView, Text, View } from '@tarojs/components'
+import { Button, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { NativeSocialPage } from '../../components/native-social/page-frame.weapp'
@@ -13,6 +13,10 @@ export default function NativeFavoritesScreen() {
   const [posts, setPosts] = useState<PostSummary[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState('')
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [moreLoading, setMoreLoading] = useState(false),
+    [moreError, setMoreError] = useState('')
+  const moreLock = useRef(false)
   const sequence = useRef(0)
   const load = useCallback(async () => {
     const ticket = ++sequence.current,
@@ -24,9 +28,13 @@ export default function NativeFavoritesScreen() {
     }
     setLoading(true)
     try {
-      const data = await productRequest<{ items: PostSummary[] }>('/me/favorite-posts')
+      const data = await productRequest<{ items: PostSummary[]; nextCursor: string | null }>(
+        '/me/favorite-posts?limit=30',
+      )
       if (ticket === sequence.current && owner === readSession()?.user.id) {
         setPosts(data.items)
+        setNextCursor(data.nextCursor)
+        setMoreError('')
         setError('')
       }
     } catch (issue) {
@@ -36,6 +44,31 @@ export default function NativeFavoritesScreen() {
       if (ticket === sequence.current) setLoading(false)
     }
   }, [])
+  const more = async () => {
+    if (!nextCursor || loading || moreLock.current) return
+    const owner = readSession()?.accessToken,
+      ticket = sequence.current
+    moreLock.current = true
+    setMoreLoading(true)
+    setMoreError('')
+    try {
+      const page = await productRequest<{ items: PostSummary[]; nextCursor: string | null }>(
+        `/me/favorite-posts?limit=30&before=${encodeURIComponent(nextCursor)}`,
+      )
+      if (owner !== readSession()?.accessToken || ticket !== sequence.current) return
+      setPosts((current) => [
+        ...current,
+        ...page.items.filter((item) => !current.some((post) => post.id === item.id)),
+      ])
+      setNextCursor(page.nextCursor)
+    } catch (issue) {
+      if (owner === readSession()?.accessToken && ticket === sequence.current)
+        setMoreError(issue instanceof Error ? issue.message : '下一页读取失败，请重试')
+    } finally {
+      moreLock.current = false
+      setMoreLoading(false)
+    }
+  }
   useEffect(() => {
     void load()
     const changed = () => {
@@ -49,7 +82,12 @@ export default function NativeFavoritesScreen() {
   }, [load])
   return (
     <NativeSocialPage title="我的收藏">
-      <ScrollView className="native-social-scroll" scrollY showScrollbar={false}>
+      <ScrollView
+        className="native-social-scroll"
+        scrollY
+        showScrollbar={false}
+        onScrollToLower={() => void more()}
+      >
         <View className="native-favorites-list">
           {loading && !posts.length && <DataState kind="loading" title="正在读取收藏" />}
           {error && (
@@ -63,8 +101,21 @@ export default function NativeFavoritesScreen() {
           {posts.map((post) => (
             <PostCard key={post.id} post={post} onOpen={() => void openPost(post.id)} />
           ))}
+          {moreError && <Text className="native-error">{moreError}</Text>}
+          {nextCursor && (
+            <Button
+              className="native-button"
+              loading={moreLoading}
+              disabled={loading || moreLoading}
+              onClick={() => void more()}
+            >
+              {moreError ? '重试加载' : '加载更多收藏'}
+            </Button>
+          )}
           {!loading && !error && !posts.length && (
-            <Text className="native-mail-empty">还没有收藏，点击动态右下角的三个点即可收藏。</Text>
+            <Text className="native-favorites-empty">
+              还没有收藏，打开动态后点击收藏图标即可保存。
+            </Text>
           )}
         </View>
       </ScrollView>

@@ -15,20 +15,52 @@ import type { PrismaService } from '../database/prisma.service'
 import type { AuthService } from '../auth/auth.service'
 import type { SocialService } from '../social/social.service'
 import type { AiModerationService } from '../ai-moderation/ai-moderation.service'
+import type { Prisma } from '../generated/prisma/client'
 
 const org = '00000000-0000-4000-8000-000000000001'
 const user = '00000000-0000-4000-8000-000000000002'
 const commentId = '00000000-0000-4000-8000-000000000003'
+type CommentFixture = Prisma.PostCommentCreateManyInput & {
+  id: string
+  createdAt: Date
+  updatedAt: Date
+  user: { id: string; displayName: string; avatarUrl: null; verificationLevel: string }
+  _count: { likes: number }
+  likes: Array<{ id: string }>
+}
+type RepostFixture = Prisma.PostCreateManyInput & {
+  id: string
+  publishedAt: Date
+  updatedAt: Date
+  author: null
+  team: null
+  tags: []
+  _count: { likes: number; comments: number }
+  likes: []
+}
 
 test('retrying a comment cannot requeue or republish a subsequently hidden repost', async () => {
-  const date = new Date('2026-01-01'), source = { id: commentId, authorUserId: user, tournamentId: null }
-  let comment: any = null, repost: any = null, notices = 0
+  const date = new Date('2026-01-01'),
+    source = { id: commentId, authorUserId: user, tournamentId: null }
+  let comment: CommentFixture | null = null,
+    repost: RepostFixture | null = null,
+    notices = 0
   const queued: string[] = []
   const tx = {
+    userBlock: { findMany: async () => [], findFirst: async () => null },
+    $executeRaw: async () => 0,
     postComment: {
-      createMany: async ({ data }: any) => {
+      createMany: async ({ data }: { data: [Prisma.PostCommentCreateManyInput] }) => {
         if (comment) return { count: 0 }
-        comment = { ...data[0], id: commentId, createdAt: date, updatedAt: date, user: { id: user, displayName: 'fixture', avatarUrl: null, verificationLevel: 'NONE' }, _count: { likes: 0 }, likes: [] }
+        comment = {
+          ...data[0],
+          id: commentId,
+          createdAt: date,
+          updatedAt: date,
+          user: { id: user, displayName: 'fixture', avatarUrl: null, verificationLevel: 'NONE' },
+          _count: { likes: 0 },
+          likes: [],
+        }
         return { count: 1 }
       },
       findUnique: async () => comment,
@@ -36,23 +68,51 @@ test('retrying a comment cannot requeue or republish a subsequently hidden repos
     post: {
       findFirst: async () => source,
       findUnique: async () => repost,
-      create: async ({ data }: any) => repost = { ...data, id: 'fixture-post', publishedAt: date, updatedAt: date, author: null, team: null, tags: [], _count: { likes: 0, comments: 0 }, likes: [] },
+      create: async ({ data }: { data: Prisma.PostCreateManyInput }) =>
+        (repost = {
+          ...data,
+          id: 'fixture-post',
+          publishedAt: date,
+          updatedAt: date,
+          author: null,
+          team: null,
+          tags: [],
+          _count: { likes: 0, comments: 0 },
+          likes: [],
+        }),
     },
     auditLog: { create: async () => ({}) },
   }
-  const db = { ...tx, $transaction: async (action: any) => action(tx) } as unknown as PrismaService
-  const service = new ExperienceService(db,
-    { requireSession: async () => ({ userId: user, organizationId: org, user: { roles: [] } }) } as unknown as AuthService,
-    { notify: async () => { notices++ } } as unknown as SocialService,
-    { storePostImages: async () => null } as unknown as MediaService, undefined,
-    { requiresPreReview: async () => false, enqueue: async (_tx: unknown, _org: string, type: string) => { queued.push(type) } } as unknown as AiModerationService)
+  const db = {
+    ...tx,
+    $transaction: async (action: (transaction: typeof tx) => Promise<unknown>) => action(tx),
+  } as unknown as PrismaService
+  const service = new ExperienceService(
+    db,
+    {
+      requireSession: async () => ({ userId: user, organizationId: org, user: { roles: [] } }),
+    } as unknown as AuthService,
+    {
+      notify: async () => {
+        notices++
+      },
+    } as unknown as SocialService,
+    { storePostImages: async () => null } as unknown as MediaService,
+    undefined,
+    {
+      requiresPreReview: async () => false,
+      enqueue: async (_tx: unknown, _org: string, type: string) => {
+        queued.push(type)
+      },
+    } as unknown as AiModerationService,
+  )
   const input = { clientCommentId: 'comment-retry-fixture', body: 'fixture', repostToFeed: true }
   await service.createComment('token', commentId, input)
   assert.deepEqual(queued, ['COMMENT', 'POST'])
-  repost.status = 'HIDDEN'
+  ;(repost as unknown as RepostFixture).status = 'HIDDEN'
   const retry = await service.createComment('token', commentId, input)
   assert.equal(retry.repostedPost, null)
-  assert.equal(repost.status, 'HIDDEN')
+  assert.equal((repost as unknown as RepostFixture).status, 'HIDDEN')
   assert.equal(notices, 1)
   assert.deepEqual(queued, ['COMMENT', 'POST'])
 })
@@ -149,7 +209,9 @@ test('favorite list requires a session and queries only its user, organization a
   let query: unknown
   const service = new ExperienceService(
     {
+      userBlock: { findMany: async () => [] },
       postFavorite: {
+        count: async () => 0,
         findMany: async (input: unknown) => {
           query = input
           return []
@@ -165,7 +227,11 @@ test('favorite list requires a session and queries only its user, organization a
     {} as SocialService,
     {} as MediaService,
   )
-  assert.deepEqual(await service.listFavoritePosts('Bearer current'), { items: [] })
+  assert.deepEqual(await service.listFavoritePosts('Bearer current'), {
+    items: [],
+    totalCount: 0,
+    nextCursor: null,
+  })
   const input = query as { where: unknown; orderBy: unknown }
   assert.deepEqual(input.where, {
     organizationId: org,

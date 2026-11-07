@@ -1,8 +1,15 @@
 import { Text, View } from '@tarojs/components'
 import { openPost } from '../../features/product/post-navigation'
 import type { PostQuoteProps } from './index'
-import '../native-social/social.weapp.scss'
+import { useNativeBlockedAuthor } from '../../features/native-social/blocking.weapp'
 export function PostQuote({ post, sourceId, interactive = true }: PostQuoteProps) {
+  const hidden = useNativeBlockedAuthor(post?.author.id || '')
+  if (hidden)
+    return (
+      <View className="native-compose-quote">
+        <Text>原动态暂不可见</Text>
+      </View>
+    )
   if (!post && !sourceId) return null
   return (
     <View

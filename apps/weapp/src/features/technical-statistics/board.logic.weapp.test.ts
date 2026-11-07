@@ -90,6 +90,15 @@ test('rows run top-to-bottom with high-frequency actions lowest; 精简 keeps �
   assert.equal(recorderTeamState(0, 0, 'player'), 'player')
   assert.equal(recorderTeamState(1, 0, 'player'), 'idle')
 })
+test('the added clock and corner control bar keeps all existing rows on smaller screens', () => {
+  for (const height of [500, 520, 560, 600, 704, 760]) {
+    for (const mode of ['full', 'lite'] as const) {
+      const geometry = recorderGeometry(height, mode, true)
+      assert.equal(geometry.height, height)
+      assert.ok(geometry.rowHeight >= (mode === 'lite' ? 56 : 36))
+    }
+  }
+})
 const squad = (
   count: number,
   extra: Record<string, { starter?: boolean; position?: string }> = {},

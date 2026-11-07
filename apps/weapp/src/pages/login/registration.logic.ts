@@ -33,7 +33,8 @@ export function registrationErrors(
     if (fieldMissing(field, value[field])) errors[field] = `${registrationLabels[field]}还未填写`
   }
   if (value.realName.trim() && value.realName.trim().length < 2) errors.realName = '请填写完整姓名'
-  if (value.studentId && !/^\d{10}$/.test(value.studentId)) errors.studentId = '学号应为10位数字'
+  if (value.studentId && !/^20\d{8}$/.test(value.studentId))
+    errors.studentId = '学号应为20开头的10位数字'
   if (
     value.password &&
     (Array.from(value.password).length < 6 || Array.from(value.password).length > 128)

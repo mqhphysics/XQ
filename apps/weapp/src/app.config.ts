@@ -20,6 +20,10 @@ export default defineAppConfig({
     'pages/compose/index',
     'pages/favorites/index',
   ],
+  subPackages: [
+    { root: 'recording', pages: ['technical/index'] },
+    { root: 'social', pages: ['messages/index', 'compose/index', 'favorites/index'] },
+  ],
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#f7f8f4',

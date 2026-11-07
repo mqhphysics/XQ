@@ -14,7 +14,6 @@ import { nativeHeaderMetrics } from '../public-shell/native-header-metrics.weapp
 import backIcon from '../../assets/post-icons/chevron-left.svg'
 import { NativeDetailEntryContext } from '../../features/native-navigation/detail-context.weapp'
 import { NativeBackGuard } from '../native-navigation/native-back-guard.weapp'
-import './social.weapp.scss'
 
 export function reportNativeKeyboardHeight(height: number) {
   Taro.eventCenter.trigger('xiaoqiu:native-keyboard-height', height)
@@ -50,11 +49,15 @@ export function NativeSocialPage({
   footer,
   onBack,
   action,
+  headerAction,
+  centerTitle = false,
 }: PropsWithChildren<{
   title: string
   footer?: ReactNode
   onBack?: () => void
   action?: ReactNode
+  headerAction?: ReactNode
+  centerTitle?: boolean
 }>) {
   const { height, keyboard } = useNativeKeyboardViewport()
   const entry = useContext(NativeDetailEntryContext)
@@ -64,7 +67,7 @@ export function NativeSocialPage({
     <>
       <PageMeta pageStyle="height:100%;overflow:hidden;" />
       <View
-        className={`native-social-page${keyboard ? ' is-keyboard' : ''}`}
+        className={`native-social-page${keyboard ? ' is-keyboard' : ''}${centerTitle ? ' native-social-page--center-title' : ''}`}
         style={`height:${height}px;padding-top:${metrics.top}px;`}
         {...touchHandlers}
       >
@@ -80,6 +83,14 @@ export function NativeSocialPage({
             <Image src={backIcon} mode="aspectFit" />
           </Button>
           <View className="native-social-page__title">{title}</View>
+          {headerAction && (
+            <View
+              className="native-social-page__header-action"
+              style={`left:${Math.min(metrics.windowWidth / 2 - 18, metrics.capsule.left - 46)}px;`}
+            >
+              {headerAction}
+            </View>
+          )}
         </View>
         {action && <View className="native-social-page__action">{action}</View>}
         <View className="native-social-page__body">{children}</View>

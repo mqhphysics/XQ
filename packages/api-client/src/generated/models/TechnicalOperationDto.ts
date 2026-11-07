@@ -9,7 +9,7 @@ export type TechnicalOperationDto = {
     occurredAt: string;
     teamId?: string;
     playerId?: Record<string, any> | null;
-    metric?: 'PASS' | 'TACKLE' | 'DRIBBLE' | 'SHOT' | 'FOUL' | 'CHANCE';
+    metric?: 'PASS' | 'TACKLE' | 'DRIBBLE' | 'SHOT' | 'FOUL' | 'CHANCE' | 'CORNER';
     outcome?: 'SUCCESS' | 'FAILURE' | 'ATTEMPT' | 'ON_TARGET' | 'OFF_TARGET' | 'GOAL' | 'FOUL' | 'YELLOW_CARD' | 'RED_CARD';
     shotId?: string;
     targetId?: string;

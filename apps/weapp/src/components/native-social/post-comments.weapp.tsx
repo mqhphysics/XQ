@@ -22,13 +22,18 @@ import { NativeCommentComposer } from './comment-composer.weapp'
 import {
   chooseNativePostImages,
   copyNativeDraftImage,
-  nativeImageData,
   releaseNativePostImages,
   type NativeDraftImage,
 } from '../../features/native-social/images.weapp'
 import { UserAvatar } from '../product-ui'
 import { PersonTrigger } from '../person-trigger'
 import { ReportModal } from '../report-modal'
+import {
+  blockNativeUser,
+  isNativeAuthorBlocked,
+  useNativeBlockUpdates,
+} from '../../features/native-social/blocking.weapp'
+import { nativeImageSubmission } from '../../features/native-social/image-transfer.weapp'
 interface CommentDraft {
   body: string
   reply: { id: string; name: string } | null
@@ -52,6 +57,7 @@ export function NativePostComments({
   post: PostDetail
   onChanged: (comment: PostComment) => void
 }) {
+  useNativeBlockUpdates()
   const scope = `comment:${post.id}`
   const [draft, setDraft] = useState(() => ({ ...blank(), ...readNativeDraft(scope, blank()) })),
     draftRef = useRef(draft)
@@ -62,6 +68,7 @@ export function NativePostComments({
   const [editorOpen, setEditorOpen] = useState(false),
     [processing, setProcessing] = useState(false)
   const [likes, setLikes] = useState<Record<string, { count: number; liked: boolean }>>({})
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const lock = useRef(false),
     imageLock = useRef(false),
     likeLocks = useRef(new Set<string>())
@@ -129,7 +136,9 @@ export function NativePostComments({
       value.signature === signature && value.id ? value.id : createClientActionId('native-comment')
     update({ id, signature })
     try {
-      const imageData = await Promise.all(value.images.map(nativeImageData))
+      const images = await nativeImageSubmission(value.images, setUploadProgress, () =>
+        update({ images: value.images }),
+      )
       if (token !== readSession()?.accessToken) throw new Error('账号已切换，请重新打开页面')
       const comment = await nativeSocialApi.commentPost(
         post.id,
@@ -137,7 +146,8 @@ export function NativePostComments({
         id,
         value.reply?.id,
         value.repost && nativeWriteEnabled('publishPosts'),
-        imageData,
+        images.imageDataUrls,
+        images.imageUploadIds,
       )
       onChanged(comment)
       if (comment.repostedPost)
@@ -150,6 +160,7 @@ export function NativePostComments({
     } finally {
       lock.current = false
       setBusy(false)
+      setUploadProgress(null)
     }
   }
   const like = async (comment: PostComment) => {
@@ -212,82 +223,103 @@ export function NativePostComments({
         </>
       )}
       {error && <Text className="native-social-error">{error}</Text>}
-      {post.comments.map((comment) => (
-        <View className="native-social-comment" key={comment.id}>
-          <View className="native-social-comment__avatar">
-            <UserAvatar
-              name={comment.author.displayName}
-              avatarUrl={comment.author.avatarUrl}
-              userId={comment.author.id}
-              size="small"
-            />
-          </View>
-          <View className="native-social-comment__content">
-            <PersonTrigger userId={comment.author.id} name={comment.author.displayName}>
-              <Text className="native-social-comment__name">{comment.author.displayName}</Text>
-            </PersonTrigger>
-            {comment.parentCommentId && (
-              <Text className="native-note">
-                回复 @
-                {post.comments.find((item) => item.id === comment.parentCommentId)?.author
-                  .displayName || '评论'}
+      {busy && uploadProgress !== null && (
+        <Text className="native-note">正在上传图片 {uploadProgress}%</Text>
+      )}
+      {post.comments
+        .filter((comment) => !isNativeAuthorBlocked(comment.author.id))
+        .map((comment) => (
+          <View className="native-social-comment" key={comment.id}>
+            <View className="native-social-comment__avatar">
+              <UserAvatar
+                name={comment.author.displayName}
+                avatarUrl={comment.author.avatarUrl}
+                userId={comment.author.id}
+                size="small"
+              />
+            </View>
+            <View className="native-social-comment__content">
+              <PersonTrigger userId={comment.author.id} name={comment.author.displayName}>
+                <Text className="native-social-comment__name">{comment.author.displayName}</Text>
+              </PersonTrigger>
+              {comment.parentCommentId && (
+                <Text className="native-note">
+                  回复 @
+                  {post.comments.find((item) => item.id === comment.parentCommentId)?.author
+                    .displayName || '评论'}
+                </Text>
+              )}
+              <Text className="native-social-comment__body" selectable>
+                {comment.body}
               </Text>
-            )}
-            <Text className="native-social-comment__body" selectable>
-              {comment.body}
-            </Text>
-            {Boolean((comment as NativePostComment).imageUrls?.length) && (
-              <View className="native-social-comment__images">
-                {(comment as NativePostComment).imageUrls!.map((url) => (
-                  <Image
-                    key={url}
-                    src={resolveMediaUrl(url) || url}
-                    mode="aspectFit"
-                    lazyLoad
-                    onClick={() =>
-                      void Taro.previewImage({
-                        current: resolveMediaUrl(url) || url,
-                        urls: (comment as NativePostComment).imageUrls!.map(
-                          (value) => resolveMediaUrl(value) || value,
-                        ),
-                      })
-                    }
-                  />
-                ))}
+              {Boolean((comment as NativePostComment).imageUrls?.length) && (
+                <View className="native-social-comment__images">
+                  {(comment as NativePostComment).imageUrls!.map((url) => (
+                    <Image
+                      key={url}
+                      src={resolveMediaUrl(url) || url}
+                      mode="aspectFit"
+                      lazyLoad
+                      onClick={() =>
+                        void Taro.previewImage({
+                          current: resolveMediaUrl(url) || url,
+                          urls: (comment as NativePostComment).imageUrls!.map(
+                            (value) => resolveMediaUrl(value) || value,
+                          ),
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+              )}
+              <Text className="native-note">{formatRelativeTime(comment.createdAt)}</Text>
+              <View className="native-social-comment__tools">
+                <Button
+                  className="native-button native-button--quiet"
+                  onClick={() => void like(comment)}
+                >
+                  {(likes[comment.id]?.liked ?? comment.likedByMe) ? '已赞' : '赞'}{' '}
+                  {likes[comment.id]?.count ?? comment.likeCount ?? 0}
+                </Button>
+                {nativeWriteEnabled('postComments') && readSession() && (
+                  <Button
+                    className="native-button native-button--quiet"
+                    onClick={() => {
+                      update({ reply: { id: comment.id, name: comment.author.displayName } })
+                      setEditorOpen(true)
+                    }}
+                  >
+                    回复
+                  </Button>
+                )}
+                {readSession() && (
+                  <Button
+                    className="native-button native-button--quiet"
+                    aria-label="更多评论操作"
+                    onClick={async () => {
+                      try {
+                        const own = comment.author.id === readSession()?.user.id
+                        const choice = await Taro.showActionSheet({
+                          itemList: own ? ['举报'] : ['举报', '拉黑'],
+                        })
+                        if (choice.tapIndex === 0) setReport(comment)
+                        else await blockNativeUser(comment.author.id, comment.author.displayName)
+                      } catch (issue) {
+                        const message =
+                          issue instanceof Error
+                            ? issue.message
+                            : (issue as { errMsg?: string })?.errMsg || ''
+                        if (!/cancel/i.test(message)) setError(message || '操作失败，请重试')
+                      }
+                    }}
+                  >
+                    •••
+                  </Button>
+                )}
               </View>
-            )}
-            <Text className="native-note">{formatRelativeTime(comment.createdAt)}</Text>
-            <View className="native-social-comment__tools">
-              <Button
-                className="native-button native-button--quiet"
-                onClick={() => void like(comment)}
-              >
-                {(likes[comment.id]?.liked ?? comment.likedByMe) ? '已赞' : '赞'}{' '}
-                {likes[comment.id]?.count ?? comment.likeCount ?? 0}
-              </Button>
-              {nativeWriteEnabled('postComments') && readSession() && (
-                <Button
-                  className="native-button native-button--quiet"
-                  onClick={() => {
-                    update({ reply: { id: comment.id, name: comment.author.displayName } })
-                    setEditorOpen(true)
-                  }}
-                >
-                  回复
-                </Button>
-              )}
-              {readSession() && (
-                <Button
-                  className="native-button native-button--quiet"
-                  onClick={() => setReport(comment)}
-                >
-                  举报
-                </Button>
-              )}
             </View>
           </View>
-        </View>
-      ))}
+        ))}
       {!post.comments.length && <Text className="native-note">暂无评论</Text>}
       {report && (
         <ReportModal

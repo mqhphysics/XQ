@@ -1,0 +1,32 @@
+.native-message-icon {
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.native-message-icon--reply {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2011.5a8%208%200%200%201-8%208H8l-5%203v-7a8%208%200%201%201%2018-4Z%22%2F%3E%3Cpath%20d%3D%22M7%2010h10M7%2014h6%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--like {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%2010v11H3V10h4Zm0%200%205-8c2%200%203%202%202%205l-1%203h5a3%203%200%200%201%203%203l-2%206a3%203%200%200%201-3%202H7%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--system {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m4%2010%2013-5v14L4%2014v-4Zm0%200H2v4h2m3%201%201%206h3l-1-5m10-8%202-1m-2%2010%202%201%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--brush {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%203h8v6H8zM5%209h14v10H5zM9%2015v4m6-4v4M11%201h2%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--search {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2210.5%22%20cy%3D%2210.5%22%20r%3D%226.5%22%2F%3E%3Cpath%20d%3D%22m16%2016%205%205%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--settings {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m10%203%201-1h2l1%201%201%203%203-1%202%202-1%203%203%201v3l-3%201%201%203-2%202-3-1-1%203h-3l-1-3-3%201-2-2%201-3-3-1v-3l3-1-1-3%202-2%203%201Z%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--block {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22m6%206%2012%2012%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--more {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2212%22%20r%3D%221.5%22%20fill%3D%22currentColor%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.5%22%20fill%3D%22currentColor%22%2F%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2212%22%20r%3D%221.5%22%20fill%3D%22currentColor%22%2F%3E%3C%2Fsvg%3E');
+}
+.native-message-icon--shield {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20color%3D%22%23356447%22%20stroke%3D%22%23356447%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m12%202%208%204v6c0%205-8%2010-8%2010S4%2017%204%2012V6l8-4Z%22%2F%3E%3Cpath%20d%3D%22m8%2012%203%203%205-6%22%2F%3E%3C%2Fsvg%3E');
+}

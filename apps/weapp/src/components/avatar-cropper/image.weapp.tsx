@@ -76,6 +76,8 @@ export function NativeImageCropper({
   return (
     <NativeDialog
       title={title}
+      className={`native-image-cropper${image ? '' : ' native-image-cropper--empty'}`}
+      {...(!image ? { bodyHeight: 320 } : {})}
       busy={busy}
       unsavedChanges={!!image}
       onClose={onCancel}
@@ -90,13 +92,15 @@ export function NativeImageCropper({
         </Button>
       }
     >
-      <Button
-        className="native-button native-image-cropper__choose"
-        disabled={busy}
-        onClick={() => void choose()}
-      >
-        {image ? '重新选择图片' : '从相册或相机选择'}
-      </Button>
+      {image && (
+        <Button
+          className="native-button native-image-cropper__choose"
+          disabled={busy}
+          onClick={() => void choose()}
+        >
+          重新选择图片
+        </Button>
+      )}
       {image && crop ? (
         <>
           <View
@@ -181,7 +185,17 @@ export function NativeImageCropper({
           />
         </>
       ) : (
-        <Text className="native-note">先选一张照片，预览并调整后再保存。</Text>
+        <View className="native-image-cropper__empty">
+          <Button
+            className="native-image-cropper__pick"
+            disabled={busy}
+            onClick={() => void choose()}
+          >
+            <View className="native-image-cropper__photo-icon" aria-hidden />
+            <Text>从相册或相机选择</Text>
+          </Button>
+          <Text className="native-image-cropper__hint">选一张喜欢的照片，调整取景后保存</Text>
+        </View>
       )}
       {error && <Text className="native-error">{error}</Text>}
       {busy && progress && <Text className="native-note">{progress}</Text>}

@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { OfficialReportResultDto } from './OfficialReportResultDto';
 import type { ReportPermissionsDto } from './ReportPermissionsDto';
+import type { ReportRecordingWindowDto } from './ReportRecordingWindowDto';
 import type { ReportRevisionViewDto } from './ReportRevisionViewDto';
 import type { ReportTeamViewDto } from './ReportTeamViewDto';
 export type ReportWorkspaceResponseDto = {
@@ -24,6 +25,7 @@ export type ReportWorkspaceResponseDto = {
     homeTeam: ReportTeamViewDto;
     awayTeam: ReportTeamViewDto;
     permissions: ReportPermissionsDto;
+    recordingWindow: ReportRecordingWindowDto;
     latest: ReportRevisionViewDto | null;
     reviewNote: string | null;
     blockingReasons?: Array<string>;

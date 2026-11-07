@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro'
 import { readNativeHistory } from '../native-navigation/index.weapp'
 import { safeLoginReturn } from './login-return.logic'
+import { nativeTabPaths } from '../native-navigation/history.logic.weapp'
 const key = 'xiaoqiu.login-return.v1'
 let opening = false
 export async function requestNativeLogin(message = '登录后可以继续这项操作') {
@@ -14,7 +15,16 @@ export async function requestNativeLogin(message = '登录后可以继续这项�
       return
     const history = readNativeHistory(),
       route = Taro.getCurrentInstance().router
-    const target = history.entries[history.cursor]?.url || route?.path || '/pages/index/index'
+    const path = route?.path || '/pages/index/index'
+    const normalized = '/' + path.replace(/^\/+/, '').split('?')[0]
+    const query = Object.entries(route?.params || {})
+      .filter(([, value]) => value !== undefined)
+      .map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value!)}`)
+      .join('&')
+    const target =
+      (Object.values(nativeTabPaths).includes(normalized)
+        ? history.entries[history.cursor]?.url
+        : undefined) || normalized + (query ? '?' + query : '')
     Taro.setStorageSync(key, { url: safeLoginReturn(target), at: Date.now() })
     await Taro.reLaunch({ url: '/pages/login/index' })
   } finally {

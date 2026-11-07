@@ -69,6 +69,9 @@ function assertHttpStatus(error: unknown, expected: HttpStatus): boolean {
 }
 
 class CommunityPrismaFake {
+  userBlock = { findMany: async () => [], findFirst: async () => null }
+  $executeRaw = async () => 0
+
   comments: Array<{
     body: string
     clientCommentId: string
@@ -275,6 +278,9 @@ type ConversationRow = {
 }
 
 class MessagingPrismaFake {
+  userBlock = { findMany: async () => [], findFirst: async () => null }
+  $executeRaw = async () => 0
+
   conversations: ConversationRow[] = []
   messages: Array<{
     body: string

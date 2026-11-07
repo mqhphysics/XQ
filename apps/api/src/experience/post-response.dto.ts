@@ -1,4 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
+import { IsInt, IsOptional, IsString, MaxLength, Max, Min } from 'class-validator'
 
 export class PostIdentityDto {
   @ApiProperty() id!: string
@@ -77,4 +79,21 @@ export class PostDetailDto extends PostSummaryDto {
 
 export class FavoritePostsDto {
   @ApiProperty({ type: [PostSummaryDto] }) items!: PostSummaryDto[]
+  @ApiProperty({ type: String, nullable: true }) nextCursor!: string | null
+  @ApiProperty() totalCount!: number
+}
+
+export class FavoritePostsQueryDto {
+  @ApiPropertyOptional({ description: '上一页返回的不透明游标' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  before?: string
+  @ApiPropertyOptional({ default: 30, maximum: 50 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit?: number
 }

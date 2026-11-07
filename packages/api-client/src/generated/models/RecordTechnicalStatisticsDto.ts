@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { TechnicalOperationDto } from './TechnicalOperationDto';
 export type RecordTechnicalStatisticsDto = {
-    schemaVersion?: 1 | 2;
+    schemaVersion?: 1 | 2 | 3;
     expectedVersion: number;
     operations: Array<TechnicalOperationDto>;
 };

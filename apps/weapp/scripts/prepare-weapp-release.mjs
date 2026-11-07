@@ -3,6 +3,7 @@ import { log } from 'node:console'
 import process from 'node:process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { verifyNativeAssets } from './verify-native-assets.mjs'
 
 const project = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const repository = resolve(project, '../..')
@@ -13,6 +14,7 @@ if (sourceFlag >= 0 && !process.argv[sourceFlag + 1])
   throw new Error('--source-dir需要微信构建输出目录')
 const source = sourceFlag >= 0 ? resolve(process.argv[sourceFlag + 1]) : join(project, 'dist-weapp')
 await stat(join(source, 'app.json'))
+await verifyNativeAssets(source)
 const privateConfig = JSON.parse(
   (await readFile(join(project, 'project.private.config.json'), 'utf8')).replace(/^\uFEFF/, ''),
 )

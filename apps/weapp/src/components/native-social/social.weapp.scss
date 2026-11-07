@@ -8,10 +8,26 @@
   overflow: hidden;
 }
 .native-social-page__head {
+  position: relative;
   display: flex;
   align-items: center;
   flex: none;
   padding: 0 24px;
+}
+.native-social-page__header-action {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.native-social-page--center-title .native-social-page__title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 260px);
+  padding: 0;
+  text-align: center;
 }
 .native-social-page__back.native-social-page__back {
   width: 72px;
@@ -99,13 +115,16 @@
 .native-social-input__text {
   display: block;
   width: 100%;
-  height: 90px;
-  padding: 14px 16px;
+  min-height: 96px;
+  height: auto;
+  max-height: 240px;
+  box-sizing: border-box;
+  padding: 26px 20px;
   border: 2px solid #dce5d7;
   border-radius: 16px;
   background: #fafcf8;
   font-size: 28px;
-  line-height: 1.45;
+  line-height: 40px;
 }
 .native-social-input__tools {
   display: flex;
@@ -476,6 +495,14 @@
 .native-favorites-list > .post-card {
   margin-bottom: 20px;
 }
+.native-favorites-empty {
+  display: block;
+  padding: 70px 24px;
+  text-align: center;
+  color: #84907a;
+  font-size: 28px;
+  line-height: 1.6;
+}
 .native-social-input__row {
   display: flex;
   gap: 12px;
@@ -488,6 +515,11 @@
   border-color: #b7cdb8;
 }
 .native-social-input__row > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  line-height: 1.3;
   flex: none;
   margin: 0;
   min-width: 110px;

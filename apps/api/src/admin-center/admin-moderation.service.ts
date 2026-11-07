@@ -1,4 +1,5 @@
 import { Inject, Injectable, Optional } from '@nestjs/common'
+import { notifyPublishedPostMentions } from '../social/post-mentions'
 import { AdminCenterService } from './admin-center.service'
 import { AdminMediaService } from './admin-media.service'
 import { centerError } from './admin-center.policy'
@@ -337,6 +338,7 @@ export class AdminModerationService {
           data: { status },
         })
         if (updated.count !== 1) throw centerError(409, '帖子已被修改，请刷新核对')
+        if (status === 'PUBLISHED') await notifyPublishedPostMentions(tx, actor.organizationId, id)
         await tx.aiModerationReview.updateMany({
           where: {
             organizationId: actor.organizationId,

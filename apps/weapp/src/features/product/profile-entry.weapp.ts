@@ -1,10 +1,18 @@
 import Taro from '@tarojs/taro'
 import { readSession } from './session'
 export const profileEntryEvent = 'xiaoqiu:profile-entry'
-let pending: { panel: 'reports' | 'manageIdentity' | 'adminReports'; token: string } | null = null
+let pending: {
+  panel: 'reports' | 'manageIdentity' | 'adminReports' | 'correction'
+  token: string
+} | null = null
 export function queueProfileEntry(url: string) {
   const panel = /[?&]panel=([^&]+)/.exec(url)?.[1]
   const token = readSession()?.accessToken
+  if (token && /[?&]correction=1(?:&|$)/.test(url)) {
+    pending = { panel: 'correction', token }
+    Taro.eventCenter.trigger(profileEntryEvent)
+    return
+  }
   if (!token || !['reports', 'identity', 'adminReports'].includes(panel || '')) return
   pending = {
     panel:

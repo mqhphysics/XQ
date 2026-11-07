@@ -8,10 +8,13 @@ export type StudentRegistrationReviewDto = {
      */
     reason: string;
     expectedVersion: number;
+    /**
+     * 退回后建议更正期限；不会自动封禁
+     */
+    deadlineDays?: 7 | 14;
     decision: 'APPROVE' | 'RETURN';
     /**
      * 只有重名歧义时需要选择；唯一姓名的待补学号档案由服务端确定
      */
     studentRecordId?: string;
 };
-

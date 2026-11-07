@@ -33,6 +33,11 @@ import { roleLabel } from '../../features/product/product.format'
 import { NativeEmailDialog } from './email-dialog.weapp'
 import { NativeIdentityDialog } from './identity-dialog.weapp'
 import { NativeBadgeDialog } from './badge-dialog.weapp'
+import { NativeRegistrationCorrection } from './registration-correction.weapp'
+import { useStudentNumberLabel } from '../../features/product/student-registration-display.weapp'
+import { useInbox } from '../../features/messages/inbox.weapp'
+import { MessageBadge } from '../../features/messages/badge.weapp'
+import { confirmNativeDiscard } from '../../features/native-navigation/leave-guard.weapp'
 import type { DesktopProfileProps, ProfileService } from './desktop-profile'
 import type {
   AuthUser,
@@ -79,6 +84,7 @@ type Dialog =
   | 'identity'
   | 'manageIdentity'
   | 'certification'
+  | 'correction'
   | 'settings'
   | 'email'
   | 'badge'
@@ -88,6 +94,7 @@ export function useDesktopProfile() {
   return true
 }
 export function DesktopProfile({ home, user, onUserChange, renderService }: DesktopProfileProps) {
+  const { summary: inbox } = useInbox()
   const [dialog, setDialog] = useState<Dialog>(null)
   useEffect(() => {
     const open = () => {
@@ -270,7 +277,12 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
         }
         onClick={() => void openTeamArea()}
       />
-      <Shortcut icon="message-circle" title="我的消息" onClick={() => openMessaging()} />
+      <Shortcut
+        icon="message-circle"
+        title="我的消息"
+        onClick={() => openMessaging()}
+        badge={{ count: inbox?.badgeCount || 0, dot: inbox?.hasNotificationDot === true }}
+      />
       {!wide && (
         <Shortcut
           icon="bookmark"
@@ -317,7 +329,6 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
               displayedKind={badge?.displayedKind}
             />
           </View>
-          <Text className="native-note">@{user.username}</Text>
           {user.bio && <Text className="native-profile-card__bio">{user.bio}</Text>}
           {wide && (
             <View className="native-profile-card__stats">
@@ -325,7 +336,7 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
                 [
                   ['我的动态', wideData.data.posts?.length, wideData.errors.posts],
                   ['关注比赛', wideData.followedMatches.length, wideData.errors.schedule],
-                  ['收藏内容', wideData.data.favorites?.length, wideData.errors.favorites],
+                  ['收藏内容', wideData.favoriteCount ?? undefined, wideData.errors.favorites],
                 ] as Array<[string, number | undefined, string | undefined]>
               ).map(([label, value, failed]) => (
                 <View className="native-profile-card__stat" key={label}>
@@ -438,15 +449,16 @@ export function DesktopProfile({ home, user, onUserChange, renderService }: Desk
           ))}
         </NativeDialog>
       )}
-      {dialog === 'edit' && (
+      {(dialog === 'edit' || dialog === 'correction') && (
         <EditProfile
           user={user}
           onClose={() => setDialog(null)}
           onChanged={onUserChange}
           onEmail={() => setEmailOpen(true)}
+          initialCorrection={dialog === 'correction'}
         />
       )}
-      {dialog === 'edit' && emailOpen && (
+      {(dialog === 'edit' || dialog === 'correction') && emailOpen && (
         <NativeEmailDialog
           user={user}
           onClose={() => setEmailOpen(false)}
@@ -578,15 +590,24 @@ function Shortcut({
   title,
   onClick,
   id,
+  badge,
 }: {
   icon: string
   title: string
   onClick: () => void
   id?: string
+  badge?: { count: number; dot: boolean }
 }) {
   return (
     <Button {...(id ? { id } : {})} className="native-profile-shortcut" onClick={onClick}>
-      <NativeProfileIcon icon={icon} />
+      {badge ? (
+        <View className="native-message-icon-wrap">
+          <NativeProfileIcon icon={icon} />
+          <MessageBadge count={badge.count} dot={badge.dot} />
+        </View>
+      ) : (
+        <NativeProfileIcon icon={icon} />
+      )}
       <Text>{title}</Text>
       <Text className="native-profile-shortcut__arrow">›</Text>
     </Button>
@@ -617,12 +638,19 @@ export function EditProfile({
   onClose,
   onChanged,
   onEmail,
+  initialCorrection = false,
 }: {
   user: AuthUser
   onClose: () => void
   onChanged: (user: AuthUser) => void
   onEmail?: () => void
+  initialCorrection?: boolean
 }) {
+  const [correction, setCorrection] = useState(initialCorrection)
+  const studentNumber = useStudentNumberLabel(user, !correction)
+  useEffect(() => {
+    if (initialCorrection) setCorrection(true)
+  }, [initialCorrection])
   const [name, setName] = useState(user.displayName),
     [bio, setBio] = useState(user.bio ?? '')
   const [busy, setBusy] = useState(false),
@@ -649,6 +677,20 @@ export function EditProfile({
       setBusy(false)
     }
   }
+  if (correction)
+    return (
+      <NativeRegistrationCorrection
+        onBack={() => setCorrection(false)}
+        onClose={() => {
+          void confirmNativeDiscard(
+            name !== user.displayName || bio !== (user.bio ?? ''),
+            busy,
+          ).then((discard) => {
+            if (discard) onClose()
+          })
+        }}
+      />
+    )
   return (
     <NativeDialog
       title="个人资料"
@@ -682,13 +724,13 @@ export function EditProfile({
       />
       <View className="native-private-info">
         <Text>用户名</Text>
-        <Text>{user.username}</Text>
+        <Text selectable>{user.username}</Text>
         <Text>姓名</Text>
         <Text>{user.realName ?? '未登记'}</Text>
         <Text>学号</Text>
-        <Text>{user.studentId ?? '未登记'}</Text>
+        <Text>{studentNumber || '未登记'}</Text>
         <Text>身份</Text>
-        <Text>{user.roles.map((role) => roleLabel(role.role)).join('、') || '普通学生'}</Text>
+        <Text>{user.roles.map((role) => roleLabel(role.role)).join('、') || '普通用户'}</Text>
       </View>
       {onEmail && (
         <MenuRow
@@ -698,6 +740,7 @@ export function EditProfile({
           onClick={onEmail}
         />
       )}
+      <MenuRow icon="user-circle" title="姓名或学号有误？" onClick={() => setCorrection(true)} />
       {error && <Text className="native-error">{error}</Text>}
     </NativeDialog>
   )

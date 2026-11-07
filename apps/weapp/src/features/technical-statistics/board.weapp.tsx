@@ -30,6 +30,8 @@ import {
   type RecorderMode,
 } from './board.logic.weapp'
 import { NativeLineupSort } from './lineup-sort.weapp'
+import { NativeMatchClock } from '../readonly-match/clock.weapp'
+import { NativeCornerIcon } from './corner-icon.weapp'
 import './board.weapp.scss'
 
 type Recorder = ReturnType<typeof useTechnicalRecorder>
@@ -132,11 +134,15 @@ export function NativeTechnicalBoard({
     setMode(next)
     write(modeKey, next)
   }
-  const geometry = recorderGeometry(available, mode),
+  const geometry = recorderGeometry(available, mode, true),
     rows = recorderRows(mode),
     totals = useMemo(
       () => technicalTotals(workspace!.operations, team.id, playerId),
       [workspace!.operations, team.id, playerId],
+    ),
+    teamTotals = useMemo(
+      () => technicalTotals(workspace!.operations, team.id),
+      [workspace!.operations, team.id],
     ),
     state = useMemo(() => technicalState(workspace!.operations), [workspace!.operations]),
     recent = useMemo(
@@ -150,7 +156,7 @@ export function NativeTechnicalBoard({
         occurredAt: new Date().toISOString(),
         kind: 'COUNT',
         teamId: team.id,
-        playerId,
+        playerId: metric === 'CORNER' ? null : playerId,
         metric,
         outcome,
       })
@@ -160,7 +166,7 @@ export function NativeTechnicalBoard({
   const outgoing = swapping ? byId.get(swapping) : undefined
   return (
     <View
-      className={`native-record-board native-record-board--rows is-${mode}${reduceMotion ? ' is-reduced' : ''}`}
+      className={`native-record-board native-record-board--rows is-${mode}${geometry.compact ? ' is-compact' : ''}${reduceMotion ? ' is-reduced' : ''}`}
       style={`height:${geometry.height}px;--record-row:${geometry.rowHeight}px;`}
       aria-label="现场记录"
     >
@@ -195,6 +201,24 @@ export function NativeTechnicalBoard({
           <View />
           <View />
           <View />
+        </Button>
+      </View>
+      <View className="native-record-match-controls">
+        <NativeMatchClock matchId={workspace!.matchId} allowStart={workspace!.canRecord} compact />
+        <Button
+          className="native-record-corner"
+          disabled={!workspace!.canRecord}
+          aria-label={`为${team.shortName || team.name}记录角球，当前${teamTotals.corners}次`}
+          onClick={() => count('CORNER', 'SUCCESS')}
+        >
+          <NativeCornerIcon />
+          <View>
+            <Text>角球 ＋1</Text>
+            <Text>全队 {teamTotals.corners}</Text>
+          </View>
+          {pulse?.key === 'CORNERSUCCESS' && (
+            <View key={pulse.id} className="native-record-key__pulse" />
+          )}
         </Button>
       </View>
       <View className="native-record-players">

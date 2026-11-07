@@ -66,6 +66,7 @@ test('HTTP publishes a large single photo, retries once, reads it back, and pres
     },
   }
   const prisma = {
+    userBlock: { findMany: async () => [] },
     postComment: { count: async () => 0 },
     $queryRaw: async () => [],
     $transaction: async (action: (transaction: typeof tx) => Promise<unknown>) => action(tx),

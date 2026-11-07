@@ -61,9 +61,11 @@ function initial(match: MatchExperienceResponse, ws: ReportWorkspace): ReportFie
 export function NativeMatchReportEntry({
   match,
   onUpdated,
+  compact = false,
 }: {
   match: MatchExperienceResponse
   onUpdated: (m: MatchExperienceResponse) => void
+  compact?: boolean
 }) {
   const [open, setOpen] = useState(false),
     [workspace, setWorkspace] = useState<ReportWorkspace | null>(null),
@@ -223,12 +225,17 @@ export function NativeMatchReportEntry({
   return (
     <>
       <Button
-        className="native-button native-button--primary native-match-report-entry"
+        className={
+          compact
+            ? 'native-recording-tool'
+            : 'native-button native-button--primary native-match-report-entry'
+        }
         loading={busy}
         disabled={busy}
         onClick={() => void load()}
       >
-        录入比赛信息
+        {compact && <View className="native-recording-tool__pen" aria-hidden />}
+        <Text>{compact ? '录入信息' : '录入比赛信息'}</Text>
       </Button>
       {open && (
         <NativeDialog

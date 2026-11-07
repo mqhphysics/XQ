@@ -41,6 +41,11 @@ import {
   UpdateHubStripOrderDto,
 } from './social.dto'
 import { SocialService } from './social.service'
+import {
+  DirectConversationListDto,
+  DirectMessageSendResultDto,
+  DirectThreadDto,
+} from './message-center.dto'
 
 @ApiTags('social')
 @ApiBearerAuth()
@@ -303,12 +308,14 @@ export class SocialController {
   }
 
   @Get('messages/conversations')
+  @ApiOkResponse({ type: DirectConversationListDto })
   @ApiOperation({ summary: '读取私信会话' })
   conversations(@Headers('authorization') authorization: string | undefined) {
     return this.messagingService.listConversations(authorization)
   }
 
   @Get('messages/conversations/:conversationId')
+  @ApiOkResponse({ type: DirectThreadDto })
   @ApiOperation({ summary: '读取私信消息' })
   messages(
     @Headers('authorization') authorization: string | undefined,
@@ -318,6 +325,7 @@ export class SocialController {
   }
 
   @Put('messages/conversations/:conversationId/read')
+  @ApiOkResponse({ type: DirectThreadDto })
   @ApiOperation({ summary: '标记会话已读' })
   readConversation(
     @Headers('authorization') authorization: string | undefined,
@@ -327,6 +335,7 @@ export class SocialController {
   }
 
   @Post('messages/direct/:recipientUserId')
+  @ApiOkResponse({ type: DirectMessageSendResultDto })
   @ApiOperation({ summary: '向同组织用户发送幂等私信' })
   @ApiBody({ type: CreateDirectMessageDto })
   sendMessage(

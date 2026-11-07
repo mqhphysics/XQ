@@ -44,6 +44,7 @@ export const nativeSocialApi = {
     parentCommentId?: string,
     repostToFeed = false,
     imageDataUrls?: string[],
+    imageUploadIds?: string[],
   ) => {
     return performNativeWrite('postComments', () =>
       productRequest<NativePostComment>(`/community/posts/${encodeURIComponent(postId)}/comments`, {
@@ -54,6 +55,7 @@ export const nativeSocialApi = {
           repostToFeed,
           ...(parentCommentId ? { parentCommentId } : {}),
           ...(imageDataUrls?.length ? { imageDataUrls } : {}),
+          ...(imageUploadIds?.length ? { imageUploadIds } : {}),
         },
       }),
     )

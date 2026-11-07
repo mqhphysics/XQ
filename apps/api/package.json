@@ -38,6 +38,7 @@
     "reflect-metadata": "latest",
     "rxjs": "latest",
     "nodemailer": "10.0.16",
+    "pinyin-pro": "3.29.5",
     "sharp": "0.34.5"
   },
   "devDependencies": {

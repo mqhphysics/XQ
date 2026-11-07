@@ -821,7 +821,7 @@ test(
             where: { id: tournament.id },
             data: { status: 'PUBLISHED' },
           })
-          const clock = new MatchClockService(prisma as PrismaService)
+          const clock = new MatchClockService(prisma as PrismaService, auth)
           await clock.tick(new Date(now))
           assert.equal(
             (await prisma.match.findUniqueOrThrow({ where: { id: target.id } })).status,
@@ -844,7 +844,16 @@ test(
                 .send({ clientActionId: randomUUID() })
                 .expect(200)
             ).body
-          const command = (started: any, version: number, score: string): WriteMatchReportDto => ({
+          const command = (
+            started: {
+              editorToken: string
+              homeTeam: { rosterSnapshotId: string }
+              awayTeam: { rosterSnapshotId: string }
+              ruleVersionId: string
+            },
+            version: number,
+            score: string,
+          ): WriteMatchReportDto => ({
             ...content(
               version,
               { ...report, homeScore: score, awayScore: '0', events: [] },

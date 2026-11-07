@@ -16,6 +16,8 @@ import {
 } from './repository.weapp'
 import { NativeTechnicalSummary } from './summary.weapp'
 import { NativeTechnicalBoard } from './board.weapp'
+import { NativeMatchClock } from '../readonly-match/clock.weapp'
+import { NativeCornerIcon } from './corner-icon.weapp'
 import './technical.weapp.scss'
 export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
   const recorder = useTechnicalRecorder(matchId),
@@ -56,7 +58,9 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
   if (mode === 'board') return <NativeTechnicalBoard recorder={recorder} onMode={setMode} />
   const team = workspace.teams[side] || workspace.teams[0]!,
     state = derived!.state,
-    row = derived!.rows.find((x) => x.metric === metric)!
+    row = (
+      metric === 'CORNER' ? technicalSummary(workspace.operations, team.id, null) : derived!.rows
+    ).find((x) => x.metric === metric)!
   const player = team.players.find((p) => p.id === playerId),
     names = [
       '全队（不指定球员）',
@@ -64,7 +68,16 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
     ]
   const base = () => ({ id: technicalId(), occurredAt: new Date().toISOString() })
   const count = (outcome: TechnicalOutcome, kind: 'primary' | 'secondary' | 'special') => {
-    if (recorder.append({ ...base(), kind: 'COUNT', teamId: team.id, playerId, metric, outcome }))
+    if (
+      recorder.append({
+        ...base(),
+        kind: 'COUNT',
+        teamId: team.id,
+        playerId: metric === 'CORNER' ? null : playerId,
+        metric,
+        outcome,
+      })
+    )
       setFeedback({ id: ++feedbackId.current, kind })
   }
   const primary =
@@ -74,19 +87,26 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
         ? { value: row.total, label: '犯规', outcome: 'FOUL' as const }
         : {
             value: row.success,
-            label: metric === 'CHANCE' ? '绝佳机会（创造）' : `${technicalLabels[metric]}（成功）`,
+            label:
+              metric === 'CORNER'
+                ? '角球（全队）'
+                : metric === 'CHANCE'
+                  ? '绝佳机会（创造）'
+                  : `${technicalLabels[metric]}（成功）`,
             outcome: 'SUCCESS' as const,
           }
   const secondary =
-    metric === 'SHOT'
-      ? { value: row.failure, label: '射门（射偏）', outcome: 'OFF_TARGET' as const }
-      : metric === 'FOUL'
-        ? { value: row.yellowCards, label: '犯规（黄牌）', outcome: 'YELLOW_CARD' as const }
-        : {
-            value: row.failure,
-            label: metric === 'CHANCE' ? '机会（错失）' : `${technicalLabels[metric]}（失败）`,
-            outcome: 'FAILURE' as const,
-          }
+    metric === 'CORNER'
+      ? null
+      : metric === 'SHOT'
+        ? { value: row.failure, label: '射门（射偏）', outcome: 'OFF_TARGET' as const }
+        : metric === 'FOUL'
+          ? { value: row.yellowCards, label: '犯规（黄牌）', outcome: 'YELLOW_CARD' as const }
+          : {
+              value: row.failure,
+              label: metric === 'CHANCE' ? '机会（错失）' : `${technicalLabels[metric]}（失败）`,
+              outcome: 'FAILURE' as const,
+            }
   const special =
     metric === 'SHOT'
       ? { label: '进球', value: row.goals, outcome: 'GOAL' as const }
@@ -106,6 +126,7 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
         <Text>技术统计</Text>
         <Text>{workspace.teams.map((t) => t.shortName).join(' vs ')}</Text>
       </View>
+      <NativeMatchClock matchId={matchId} allowStart={workspace.canRecord} />
       <View className="native-technical__sync">
         <View className={error ? 'is-warning' : unsynced ? 'is-pending' : 'is-saved'} />
         <Text>
@@ -202,7 +223,7 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
             <Text>
               {metric === 'SHOT'
                 ? `进球 ${row.goals}（计入射正）`
-                : metric === 'FOUL' || metric === 'CHANCE'
+                : metric === 'FOUL' || metric === 'CHANCE' || metric === 'CORNER'
                   ? ''
                   : `成功 ${row.success} · 失败 ${row.failure}`}
             </Text>
@@ -217,23 +238,26 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
               onClick={() => count(primary.outcome, 'primary')}
             >
               {flash('primary')}
+              {metric === 'CORNER' && <NativeCornerIcon />}
               <Text className="native-technical__count">{primary.value}</Text>
               <Text>{primary.label}</Text>
               <Text className="native-technical__increment">点按 ＋1</Text>
             </Button>
             <View className="native-technical__minor">
-              <Button
-                className="native-technical__secondary"
-                disabled={!workspace.canRecord}
-                hoverClass="is-pressed"
-                hoverStartTime={0}
-                hoverStayTime={80}
-                onClick={() => count(secondary.outcome, 'secondary')}
-              >
-                {flash('secondary')}
-                <Text className="native-technical__count">{secondary.value}</Text>
-                <Text>{secondary.label}</Text>
-              </Button>
+              {secondary && (
+                <Button
+                  className="native-technical__secondary"
+                  disabled={!workspace.canRecord}
+                  hoverClass="is-pressed"
+                  hoverStartTime={0}
+                  hoverStayTime={80}
+                  onClick={() => count(secondary.outcome, 'secondary')}
+                >
+                  {flash('secondary')}
+                  <Text className="native-technical__count">{secondary.value}</Text>
+                  <Text>{secondary.label}</Text>
+                </Button>
+              )}
               {special && (
                 <Button
                   className={`native-technical__special native-technical__special--${metric.toLowerCase()}`}
@@ -266,9 +290,11 @@ export function NativeTechnicalScreen({ matchId }: { matchId: string }) {
           <Text className="native-technical__instruction">
             {metric === 'SHOT'
               ? '每次射门只点一种结果；进球自动计入射正'
-              : metric === 'FOUL'
-                ? '犯规与黄、红牌分别计数'
-                : '每次动作只点左、右其中一个'}
+              : metric === 'CORNER'
+                ? '角球计入当前球队，可使用撤回校正'
+                : metric === 'FOUL'
+                  ? '犯规与黄、红牌分别计数'
+                  : '每次动作只点左、右其中一个'}
           </Text>
         </>
       )}

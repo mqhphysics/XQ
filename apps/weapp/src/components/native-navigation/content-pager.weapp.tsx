@@ -5,7 +5,6 @@ import {
   nativeTouchPoint,
   useNestedNativeSwipe,
 } from '../../features/native-navigation/index.weapp'
-import './content-pager.weapp.scss'
 
 const layoutEvent = 'xiaoqiu:native-content-layout'
 export const measureNativeContent = () => Taro.eventCenter.trigger(layoutEvent)

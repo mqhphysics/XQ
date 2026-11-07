@@ -7,6 +7,7 @@ import { PrismaService } from '../database/prisma.service'
 import { MembershipStatus, NotificationType, UserStatus } from '../generated/prisma/client'
 import type { CreateDirectMessageDto } from './social.dto'
 import { SocialService } from './social.service'
+import { assertInteractionAllowed } from './interaction-policy'
 
 @Injectable()
 export class MessagingService {
@@ -26,6 +27,12 @@ export class MessagingService {
         userId: { not: session.userId },
         user: {
           status: UserStatus.ACTIVE,
+          blockedUsers: {
+            none: { organizationId: session.organizationId, blockedUserId: session.userId },
+          },
+          blockedByUsers: {
+            none: { organizationId: session.organizationId, blockerUserId: session.userId },
+          },
           ...(query ? { displayName: { contains: query, mode: 'insensitive' as const } } : {}),
         },
       },
@@ -62,11 +69,36 @@ export class MessagingService {
         conversation: {
           OR: [{ userOneId: session.userId }, { userTwoId: session.userId }],
         },
+        OR: [
+          { kind: 'ADMIN_NOTICE' },
+          {
+            sender: {
+              blockedUsers: {
+                none: { organizationId: session.organizationId, blockedUserId: session.userId },
+              },
+              blockedByUsers: {
+                none: { organizationId: session.organizationId, blockerUserId: session.userId },
+              },
+            },
+          },
+        ],
       },
       _count: { _all: true },
     })
     const unreadByConversation = new Map(
       unreadCounts.map((item) => [item.conversationId, item._count._all]),
+    )
+    const blocked = await this.prisma.userBlock.findMany({
+      where: {
+        organizationId: session.organizationId,
+        OR: [{ blockerUserId: session.userId }, { blockedUserId: session.userId }],
+      },
+      select: { blockerUserId: true, blockedUserId: true },
+    })
+    const blockedIds = new Set(
+      blocked.map((row) =>
+        row.blockerUserId === session.userId ? row.blockedUserId : row.blockerUserId,
+      ),
     )
     return {
       canSend: canSendDirectMessages(session),
@@ -77,6 +109,8 @@ export class MessagingService {
         return {
           id: conversation.id,
           counterpart: mapUser(counterpart, session.organizationId),
+          canSend: !blockedIds.has(counterpart.id),
+          blocked: blockedIds.has(counterpart.id),
           lastMessageAt: conversation.lastMessageAt?.toISOString() ?? null,
           latestMessage: latest
             ? {
@@ -84,6 +118,7 @@ export class MessagingService {
                 body: visibleMessageBody(latest),
                 isMine: latest.senderUserId === session.userId,
                 createdAt: latest.createdAt.toISOString(),
+                ...messageNotice(latest),
               }
             : null,
           unreadCount: unreadByConversation.get(conversation.id) ?? 0,
@@ -102,10 +137,24 @@ export class MessagingService {
     })
     const counterpart =
       conversation.userOneId === session.userId ? conversation.userTwo : conversation.userOne
+    const blocked = Boolean(
+      await this.prisma.userBlock.findFirst({
+        where: {
+          organizationId: session.organizationId,
+          OR: [
+            { blockerUserId: session.userId, blockedUserId: counterpart.id },
+            { blockerUserId: counterpart.id, blockedUserId: session.userId },
+          ],
+        },
+        select: { id: true },
+      }),
+    )
     return {
       conversation: {
         id: conversation.id,
         counterpart: mapUser(counterpart, session.organizationId),
+        canSend: !blocked,
+        blocked,
       },
       items: messages.reverse().map((message) => ({
         id: message.id,
@@ -114,6 +163,7 @@ export class MessagingService {
         isMine: message.senderUserId === session.userId,
         readAt: message.readAt?.toISOString() ?? null,
         createdAt: message.createdAt.toISOString(),
+        ...messageNotice(message),
       })),
     }
   }
@@ -129,6 +179,7 @@ export class MessagingService {
           conversationId,
           senderUserId: { not: session.userId },
           readAt: null,
+          createdAt: { lte: readAt },
         },
         data: { readAt },
       }),
@@ -139,6 +190,7 @@ export class MessagingService {
           type: NotificationType.DIRECT_MESSAGE,
           readAt: null,
           metadata: { path: ['conversationId'], equals: conversationId },
+          createdAt: { lte: readAt },
         },
         data: { readAt },
       }),
@@ -172,6 +224,9 @@ export class MessagingService {
       if (!recipient) throw notFound('该用户不在当前组织或已停用')
       const canonicalRecipientId = recipient.userId
       if (canonicalRecipientId === session.userId) throw badRequest('不能给自己发送私信')
+      await assertInteractionAllowed(tx, session.organizationId, session.userId, [
+        canonicalRecipientId,
+      ])
       const [userOneId, userTwoId] =
         session.userId < canonicalRecipientId
           ? [session.userId, canonicalRecipientId]
@@ -240,6 +295,7 @@ export class MessagingService {
         isMine: true,
         readAt: null,
         createdAt: result.message.createdAt.toISOString(),
+        ...messageNotice(result.message),
       },
     }
   }
@@ -268,6 +324,32 @@ export function canSendDirectMessages(session: AuthenticatedSession): boolean {
 
 export function visibleMessageBody(message: { body: string; moderationStatus?: string }): string {
   return message.moderationStatus === 'HIDDEN' ? '该消息已由管理员隐藏' : message.body
+}
+
+export function messageNotice(message: {
+  kind?: string
+  metadata?: unknown
+  moderationStatus?: string
+}) {
+  const data =
+    message.metadata && typeof message.metadata === 'object' && !Array.isArray(message.metadata)
+      ? (message.metadata as Record<string, unknown>)
+      : null
+  const notice =
+    message.kind === 'ADMIN_NOTICE' &&
+    message.moderationStatus !== 'HIDDEN' &&
+    data &&
+    ['title', 'applicationId', 'deadlineAt', 'actionPath'].every(
+      (key) => typeof data[key] === 'string',
+    )
+      ? {
+          title: String(data.title),
+          applicationId: String(data.applicationId),
+          deadlineAt: String(data.deadlineAt),
+          actionPath: String(data.actionPath),
+        }
+      : null
+  return { kind: notice ? ('ADMIN_NOTICE' as const) : ('USER' as const), notice }
 }
 
 function mapUser(

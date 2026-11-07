@@ -5,6 +5,10 @@
 import type { PostTagDto } from './PostTagDto';
 export type CreatePostDto = {
     /**
+     * 本人上传完成的分片图片标识；与内联图片互斥
+     */
+    imageUploadIds?: Array<string>;
+    /**
      * 引用的已发布动态
      */
     quotedPostId?: string;
@@ -29,4 +33,3 @@ export type CreatePostDto = {
      */
     imageDataUrls?: Array<string>;
 };
-

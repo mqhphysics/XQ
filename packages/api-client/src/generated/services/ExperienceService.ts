@@ -412,13 +412,22 @@ export class ExperienceService {
     }
     /**
      * 按收藏时间倒序读取本人当前组织内可访问的动态
+     * @param before 上一页返回的不透明游标
+     * @param limit
      * @returns FavoritePostsDto
      * @throws ApiError
      */
-    public static experienceControllerFavoritePosts(): CancelablePromise<FavoritePostsDto> {
+    public static experienceControllerFavoritePosts(
+        before?: string,
+        limit: number = 30,
+    ): CancelablePromise<FavoritePostsDto> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/me/favorite-posts',
+            query: {
+                'before': before,
+                'limit': limit,
+            },
         });
     }
     /**

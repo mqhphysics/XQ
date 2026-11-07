@@ -56,15 +56,15 @@ test('an unlisted name is refused without creating an application or linking a r
   assert.deepEqual(f.applications, [])
 })
 
-test('an exact name and stored number verifies the student without creating review tasks or claiming a player', async () => {
+test('an exact name and number still queues review without granting student or player identity', async () => {
   const f = admission(true, '2026000001')
-  assert.equal(await attachRegisteredStudent(f.tx, 'org', 'user', '学生甲', '2026000001'), null)
-  assert.deepEqual(f.applications, [])
-  assert.deepEqual(f.notifications, [])
+  assert.equal(await attachRegisteredStudent(f.tx, 'org', 'user', '学生甲', '2026000001'), 'review')
+  assert.equal(f.applications.length, 1)
+  assert.equal(f.notifications.length, 1)
   const data = (f.updates[0] as { data: Record<string, unknown> }).data
-  assert.equal(data.studentRecordId, 'student')
-  assert.equal(data.studentId, '2026000001')
-  assert.equal(data.verificationLevel, 'STUDENT_VERIFIED')
+  assert.equal(data.studentRecordId, undefined)
+  assert.equal(data.studentId, undefined)
+  assert.equal(data.verificationLevel, undefined)
   assert.equal(data.playerProfileId, undefined)
   await assert.rejects(
     attachRegisteredStudent(
@@ -88,6 +88,23 @@ test('a name-only directory entry stays unchanged until an administrator verifie
   assert.equal(data.studentId, undefined)
   assert.equal(data.verificationLevel, undefined)
   assert.equal(data.playerProfileId, undefined)
+})
+
+test('open admission permits another person with the same name and a different student number', async () => {
+  const previous = process.env.REGISTRATION_AUDIENCE
+  process.env.REGISTRATION_AUDIENCE = 'ALL'
+  try {
+    const f = admission(true, '2026000002', true)
+    assert.equal(
+      await attachRegisteredStudent(f.tx, 'org', 'user', '学生甲', '2026000001'),
+      'review',
+    )
+    assert.equal(f.applications.length, 1)
+    assert.equal(f.numbers.length, 0)
+  } finally {
+    if (previous === undefined) delete process.env.REGISTRATION_AUDIENCE
+    else process.env.REGISTRATION_AUDIENCE = previous
+  }
 })
 
 test('ambiguous names and malformed numbers retain review; occupied names cannot auto-register', async () => {
@@ -141,6 +158,7 @@ test('self correction resubmits for review without writing a student number or g
       },
     },
     user: {
+      findUniqueOrThrow: async () => ({ realName: '学生甲', studentId: null }),
       update: async () => {
         throw new Error('self correction must not grant verification')
       },
@@ -164,13 +182,15 @@ test('self correction resubmits for review without writing a student number or g
     'token',
     {
       expectedVersion: 2,
+      realName: '学生乙',
       studentNumber: '2026000001',
-      reason: '修正本人提交资料',
     },
     'fictional-key',
     'fictional-request',
   )
   assert.equal(writes[0]!.data.status, 'PENDING')
+  assert.equal(JSON.parse(String(writes[0]!.data.message)).realName, '学生乙')
+  assert.equal(JSON.parse(String(writes[0]!.data.message)).reason, '')
   assert.equal(notifications, 1)
 })
 
@@ -187,6 +207,8 @@ function workflow(
     user: {
       id: 'user',
       realName: '学生甲',
+      loginNameNormalized: 'xueshengjia123',
+      studentId: null,
       status: 'ACTIVE',
       studentRecordId: null,
       verificationLevel: 'UNVERIFIED',
@@ -195,6 +217,7 @@ function workflow(
   const tx = {
     identityApplication: {
       findFirst: async () => (options.stale ? null : application),
+      update: async () => ({}),
       updateMany: async (value: unknown) => {
         writes.push({ kind: 'application', value })
         return { count: 1 }
@@ -223,8 +246,20 @@ function workflow(
       update: async (value: unknown) => writes.push({ kind: 'user', value }),
     },
     playerProfile: { update: async (value: unknown) => writes.push({ kind: 'player', value }) },
+    organizationMembership: { count: async () => 2 },
+    directConversation: {
+      upsert: async () => ({ id: 'conversation' }),
+      updateMany: async () => ({ count: 1 }),
+    },
+    directMessage: {
+      upsert: async ({ create }: { create: Record<string, unknown> }) => {
+        writes.push({ kind: 'direct', value: { data: create } })
+        return { ...create, id: 'message', createdAt: new Date() }
+      },
+    },
     userNotification: {
       create: async (value: unknown) => writes.push({ kind: 'notification', value }),
+      upsert: async (value: unknown) => writes.push({ kind: 'notification', value }),
     },
   }
   const command = {
@@ -265,7 +300,7 @@ test('accepting a number updates only the explicitly selected student and not th
   assert.equal(user.data.studentRecordId, 'student')
   assert.equal(user.data.studentId, '2026000001')
   assert.equal(user.data.playerProfileId, undefined)
-  assert(!f.writes.some((w) => w.kind === 'notification'))
+  assert(f.writes.some((w) => w.kind === 'notification'))
 })
 
 test('confirming a unique name-only student needs no redundant record picker, but ambiguous names still do', async () => {
@@ -277,9 +312,9 @@ test('confirming a unique name-only student needs no redundant record picker, bu
   await assert.rejects(
     ambiguous.service.review('token', 'review', body, 'ambiguous-key', 'request'),
   )
-  assert.deepEqual(ambiguous.writes, [])
+  assert(!ambiguous.writes.some((w) => ['user', 'student', 'player'].includes(w.kind)))
 })
-test('returning an incorrect number sends a notification and leaves master data unchanged', async () => {
+test('returning incorrect identity data sends an official DM from the reviewing administrator', async () => {
   const f = workflow()
   await f.service.review(
     'token',
@@ -289,10 +324,20 @@ test('returning an incorrect number sends a notification and leaves master data 
     'request',
   )
   assert(!f.writes.some((w) => ['student', 'user', 'player'].includes(w.kind)))
-  assert.equal(
-    (f.writes.find((w) => w.kind === 'notification')!.value as { data: { title: string } }).data
-      .title,
-    '请更正注册学号',
+  const direct = (
+    f.writes.find((w) => w.kind === 'direct')!.value as {
+      data: {
+        kind: string
+        senderUserId: string
+        metadata: { deadlineAt: string; actionPath: string }
+      }
+    }
+  ).data
+  assert.equal(direct.kind, 'ADMIN_NOTICE')
+  assert.equal(direct.senderUserId, 'admin')
+  assert.match(direct.metadata.actionPath, /correction=1/)
+  assert(
+    Math.abs(new Date(direct.metadata.deadlineAt).getTime() - Date.now() - 14 * 86400000) < 5000,
   )
 })
 test('duplicate numbers, self review and stale versions cannot change student data', async () => {
@@ -313,6 +358,6 @@ test('duplicate numbers, self review and stale versions cannot change student da
       ),
       (e) => e instanceof ApiHttpException,
     )
-    assert.deepEqual(f.writes, [])
+    assert(!f.writes.some((w) => ['user', 'student', 'player'].includes(w.kind)))
   }
 })

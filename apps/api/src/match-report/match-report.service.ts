@@ -12,6 +12,7 @@ import { PrismaService } from '../database/prisma.service'
 import { Prisma, type MatchReportRevision } from '../generated/prisma/client'
 import { parseResultsRules } from '../results/parse-rules'
 import { reportingWindow } from './reporting-window'
+import { AUTO_START_GRACE_MS } from '../schedule/match-clock.logic'
 import { recordingComplete, recordingScore } from '@xiaoqiu/contracts'
 import type {
   ReportFieldsDto,
@@ -383,7 +384,14 @@ export class MatchReportService {
           if (existing) return this.replay(existing, requestHash, session.organizationId)
           const initialContext = await this.context(tx, match)
           const timing = await this.reporterTiming(tx, match, initialContext.rule?.rules)
+          const clockStarted =
+            !!match.actualStartedAt ||
+            (!!match.scheduledStartAt &&
+              this.clockNow() >= match.scheduledStartAt.getTime() + AUTO_START_GRACE_MS)
+          if (!privilege.administrator && !timing) throw forbidden('请先设置比赛开赛时间')
           if (!privilege.administrator && timing?.locked) throw forbidden(timing.reason)
+          if (!privilege.administrator && body.action === 'COMPLETE' && timing && !clockStarted)
+            throw forbidden('比赛尚未开始，暂不能完成录入')
           let editorContext: Prisma.JsonObject | null = null
           if (body.editorToken) {
             if (!privilege.inlineEditor) throw forbidden('只有本场比赛的编辑员可以操作')
@@ -536,11 +544,9 @@ export class MatchReportService {
           const fields = reviewing ? parseFields(previous!.fields) : body.fields!
           const liveReport =
             !!timing &&
-            timing.window.started &&
-            !timing.window.finalSave &&
-            !timing.window.expired &&
+            timing.window.opened &&
             fields.outcome === 'FINISHED' &&
-            body.action !== 'CONFIRM'
+            ['SAVE', 'SAVE_SCORE', 'SUBMIT'].includes(body.action)
           try {
             validateReportFields(
               fields,
@@ -559,7 +565,8 @@ export class MatchReportService {
             if (cause instanceof ReportRuleError) throw invalid(cause.message)
             throw cause
           }
-          const reporterFinalized = !!timing && effectiveAction === 'CONFIRM' && !liveReport
+          const reporterFinalized =
+            effectiveAction === 'CONFIRM' && !liveReport && body.action !== 'SAVE_SCORE'
           const reason =
             body.reason.trim() ||
             (timing && (inlineFinish || streamWrite)
@@ -650,9 +657,22 @@ export class MatchReportService {
                 confirmedReportVersion: version,
                 status: abandoned
                   ? 'CANCELLED'
-                  : liveReport && timing && this.clockNow() < timing.window.estimatedEndAt
-                    ? 'LIVE'
-                    : 'FINISHED',
+                  : liveReport && timing && !clockStarted
+                    ? 'SCHEDULED'
+                    : liveReport && timing && this.clockNow() < timing.window.estimatedEndAt
+                      ? 'LIVE'
+                      : 'FINISHED',
+                ...(reporterFinalized && !match.reporterCompletedAt
+                  ? { reporterCompletedAt: new Date(this.clockNow()) }
+                  : {}),
+                // An old FINISHED match without an observed end keeps its estimated cutoff;
+                // a late data-entry completion must not reopen technical recording.
+                ...(reporterFinalized &&
+                !match.actualEndedAt &&
+                match.status !== 'FINISHED' &&
+                fields.outcome === 'FINISHED'
+                  ? { actualEndedAt: new Date(this.clockNow()) }
+                  : {}),
                 homeScore: abandoned ? null : Number(fields.homeScore),
                 awayScore: abandoned ? null : Number(fields.awayScore),
                 homePenaltyScore:
@@ -997,7 +1017,17 @@ export class MatchReportService {
           ((role.scopeType === 'MATCH' && role.scopeId.toLowerCase() === match.id) ||
             (role.scopeType === 'TOURNAMENT' && role.scopeId.toLowerCase() === match.tournamentId)),
       )
-    return { administrator, reporter: true, inlineEditor, roles }
+    let reporterReason: string | null = null
+    if (!administrator) {
+      try {
+        await requireActiveReporter(tx, session.organizationId, session.userId)
+      } catch (cause) {
+        if (cause instanceof ApiHttpException && cause.getStatus() === HttpStatus.FORBIDDEN)
+          reporterReason = (cause.getResponse() as { message: string }).message
+        else throw cause
+      }
+    }
+    return { administrator, reporter: true, inlineEditor, roles, reporterReason }
   }
   private requireRead(privilege: { administrator: boolean; reporter: boolean }) {
     if (!privilege.administrator && !privilege.reporter) throw forbidden('你没有这场比赛的报告权限')
@@ -1070,17 +1100,26 @@ export class MatchReportService {
   private async workspace(
     tx: Database,
     match: ReportMatch,
-    privilege: { administrator: boolean; reporter: boolean; inlineEditor?: boolean },
+    privilege: {
+      administrator: boolean
+      reporter: boolean
+      inlineEditor?: boolean
+      reporterReason?: string | null
+    },
   ) {
     const latest = await this.latest(tx, match)
     if (latest) this.requireUnchangedMatchContext(match, latest)
     const context = await this.context(tx, match, latest ?? undefined)
     const blockingReasons = this.blockingReasons(match, context)
+    const structurallyReady = blockingReasons.length === 0
+    if (privilege.reporterReason && !privilege.administrator)
+      blockingReasons.push(privilege.reporterReason)
     const timing = await this.reporterTiming(tx, match, context.rule?.rules)
+    if (!timing && !privilege.administrator) blockingReasons.push('请先设置比赛开赛时间')
     if (timing?.locked && !privilege.administrator) blockingReasons.push(timing.reason)
     const ready = blockingReasons.length === 0
     const completed = timing
-      ? timing.locked
+      ? timing.completed
       : (await this.isComplete(tx, match)) || latest?.status === 'SUBMITTED'
     const editable =
       privilege.administrator ||
@@ -1129,6 +1168,14 @@ export class MatchReportService {
         players: context.away?.entries.map(playerView) ?? [],
       },
       permissions: {
+        isAdministrator: privilege.administrator,
+        canRecordTechnical:
+          structurallyReady &&
+          !privilege.reporterReason &&
+          !['DRAFT', 'CANCELLED', 'POSTPONED'].includes(match.status) &&
+          !!match.homeTeamId &&
+          !!match.awayTeamId &&
+          (privilege.administrator || !!timing?.window.technicalOpen),
         canPublish: ready && privilege.administrator,
         canEdit: ready && editable,
         canSubmit: ready && editable,
@@ -1136,6 +1183,24 @@ export class MatchReportService {
         canCorrect: ready && privilege.administrator && completed && latest?.status !== 'SUBMITTED',
         canConfirm: ready && privilege.administrator && latest?.status === 'SUBMITTED',
         canReturn: privilege.administrator && latest?.status === 'SUBMITTED',
+      },
+      recordingWindow: {
+        serverNow: new Date(this.clockNow()).toISOString(),
+        opensAt: timing ? new Date(timing.window.opensAt).toISOString() : null,
+        estimatedEndAt: timing ? new Date(timing.window.estimatedEndAt).toISOString() : null,
+        endedAt:
+          timing && timing.window.endedAt !== null
+            ? new Date(timing.window.endedAt).toISOString()
+            : (match.actualEndedAt?.toISOString() ?? null),
+        endedAtSource:
+          timing?.window.endedAtSource ?? (match.actualEndedAt ? ('ACTUAL' as const) : null),
+        technicalClosesAt:
+          timing && timing.window.technicalClosesAt !== null
+            ? new Date(timing.window.technicalClosesAt).toISOString()
+            : match.actualEndedAt
+              ? new Date(match.actualEndedAt.getTime() + 30 * 60000).toISOString()
+              : null,
+        reportCompletedAt: match.reporterCompletedAt?.toISOString() ?? null,
       },
       inline: {
         editor: !!privilege.inlineEditor,
@@ -1160,28 +1225,27 @@ export class MatchReportService {
     }
   }
   private async reporterTiming(tx: Database, match: ReportMatch, rules: unknown) {
-    const window = reportingWindow(match.scheduledStartAt, rules, this.clockNow())
+    const window = reportingWindow(
+      match.scheduledStartAt,
+      rules,
+      this.clockNow(),
+      match.actualEndedAt,
+      match.status,
+      match.actualStartedAt,
+    )
     if (!window) return null
-    const final = await tx.matchReportRevision.findFirst({
-      where: {
-        organizationId: match.organizationId,
-        matchId: match.id,
-        fields: { path: ['_reporterFinalized'], equals: true },
-      },
-      select: { id: true },
-    })
     const priorConfirmations = await tx.matchReportRevision.findMany({
       where: {
         organizationId: match.organizationId,
         matchId: match.id,
         status: 'CONFIRMED',
-        createdAt: { gte: new Date(window.finalizableAt) },
       },
       select: { fields: true },
     })
-    const legacyFinal = priorConfirmations.some(
-      (revision) => (revision.fields as Record<string, unknown> | null)?._liveReport !== true,
-    )
+    const legacyFinal = priorConfirmations.some((revision) => {
+      const fields = revision.fields as Record<string, unknown> | null
+      return fields?._liveReport !== true && fields?._detailsIncomplete !== true
+    })
     const decision = await tx.matchReportRevision.findFirst({
       where: {
         organizationId: match.organizationId,
@@ -1191,12 +1255,17 @@ export class MatchReportService {
       },
       select: { id: true },
     })
+    const completed = !!match.reporterCompletedAt || legacyFinal || !!decision
+    const inactive = ['DRAFT', 'CANCELLED', 'POSTPONED'].includes(match.status)
     return {
       window,
-      locked: window.expired || !!final || legacyFinal || !!decision,
-      reason: window.expired
-        ? '比赛当日已结束，后续资料由管理员在后台修正'
-        : '最终版本已提交，后续资料由管理员在后台修正',
+      completed,
+      locked: inactive || !window.opened || completed,
+      reason: inactive
+        ? '比赛未发布、已延期或取消，暂不能录入'
+        : completed
+          ? '本场比赛已完成录入，后续更正由管理员处理'
+          : '比赛开始前30分钟开放录入',
     }
   }
   private clockNow() {

@@ -4,6 +4,7 @@ import { registrationOpenToEveryone } from './registration-policy'
 import {
   IsBoolean,
   IsEmail,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
@@ -30,6 +31,14 @@ export class LoginDto {
 }
 
 export class RegisterDto {
+  @ApiProperty({
+    required: false,
+    enum: ['WEAPP', 'WEB'],
+    description: '小程序注册要求完整姓名与学号；网站保留选填资料兼容',
+  })
+  @IsOptional()
+  @IsIn(['WEAPP', 'WEB'])
+  registrationSource?: 'WEAPP' | 'WEB'
   @ApiProperty({ required: false, description: '填写邮箱且邮箱服务启用时必填，6位邮件验证码' })
   @IsOptional()
   @IsString()
@@ -60,15 +69,36 @@ export class RegisterDto {
   @Length(2, 120)
   displayName?: string
 
-  @ApiProperty({ type: String, description: '后台实名', example: '林知夏' })
-  @ValidateIf(() => !registrationOpenToEveryone())
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: '小程序必填的后台实名；开放注册的网站可省略',
+    example: '林知夏',
+  })
+  @ValidateIf(
+    (input: RegisterDto) =>
+      !registrationOpenToEveryone() ||
+      input.registrationSource === 'WEAPP' ||
+      Boolean(input.realName),
+  )
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Length(2, 120)
   realName!: string
 
-  @ApiProperty({ type: String, pattern: '^20\\d{8}$', example: '2024990001' })
-  @ValidateIf(() => !registrationOpenToEveryone())
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: '小程序必填；开放注册的网站可省略',
+    pattern: '^20\\d{8}$',
+    example: '2024990001',
+  })
+  @ValidateIf(
+    (input: RegisterDto) =>
+      !registrationOpenToEveryone() ||
+      input.registrationSource === 'WEAPP' ||
+      Boolean(input.studentId),
+  )
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Length(10, 10)
@@ -95,15 +125,38 @@ export class RegisterDto {
 }
 
 export class RegistrationCheckDto {
-  @ApiProperty({ type: String, description: '姓名' })
-  @ValidateIf(() => !registrationOpenToEveryone())
+  @ApiProperty({ required: false, enum: ['WEAPP', 'WEB'] })
+  @IsOptional()
+  @IsIn(['WEAPP', 'WEB'])
+  registrationSource?: 'WEAPP' | 'WEB'
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: '姓名，小程序必填；开放注册的网站可省略',
+  })
+  @ValidateIf(
+    (input: RegistrationCheckDto) =>
+      !registrationOpenToEveryone() ||
+      input.registrationSource === 'WEAPP' ||
+      Boolean(input.realName),
+  )
   @Transform(({ value }) => (typeof value === 'string' ? value.normalize('NFKC').trim() : value))
   @IsString()
   @Length(2, 120)
   realName!: string
 
-  @ApiProperty({ type: String, description: '学号', pattern: '^20\\d{8}$' })
-  @ValidateIf(() => !registrationOpenToEveryone())
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: '学号，小程序必填；开放注册的网站可省略',
+    pattern: '^20\\d{8}$',
+  })
+  @ValidateIf(
+    (input: RegistrationCheckDto) =>
+      !registrationOpenToEveryone() ||
+      input.registrationSource === 'WEAPP' ||
+      Boolean(input.studentId),
+  )
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Matches(/^20\d{8}$/)

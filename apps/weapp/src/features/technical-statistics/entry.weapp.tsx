@@ -1,9 +1,12 @@
 import { Button, Picker, Text, View } from '@tarojs/components'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { useDidHide, useDidShow } from '@tarojs/taro'
+import { NativeDetailActiveContext } from '../native-navigation/detail-context.weapp'
+import { nativeReportApi } from '../match-report/repository.weapp'
 import { productConfigRepository } from '../product-config/product-config.repository'
 import { canReportMatch } from '../identity/entry-scope'
 import { useNativeCurrentUser } from '../product/current-user.weapp'
-import { openNativeDetail } from '../native-navigation/index.weapp'
+import { openNativeTechnical } from '../native-navigation/index.weapp'
 import { request } from '../product/product.repository'
 import { campusRepository } from '../campus/campus.repository.h5'
 import { realTournaments } from '../product/competition-scope.weapp'
@@ -13,7 +16,6 @@ import { technicalApi } from './repository.weapp'
 import { NativeMatchReportEntry } from '../match-report/editor.weapp'
 import type { MatchExperienceResponse } from '../product/product.types'
 import type { AccountCapabilities } from '../../../../../packages/contracts/src/product-config'
-import './technical.weapp.scss'
 import {
   sortReporterMatches,
   reporterMatchKind,
@@ -32,42 +34,58 @@ export function NativeTechnicalEntry({
   onUpdated: (match: MatchExperienceResponse) => void
 }) {
   const user = useNativeCurrentUser(),
-    [allowed, setAllowed] = useState(false)
+    [allowed, setAllowed] = useState({ information: false, technical: false })
+  const active = useContext(NativeDetailActiveContext)
+  const [shown, setShown] = useState(true)
+  useDidShow(() => setShown(true))
+  useDidHide(() => setShown(false))
   useEffect(() => {
     let alive = true
-    setAllowed(false)
-    if (user)
-      void productConfigRepository
-        .getCapabilities()
-        .then((caps) => {
-          if (alive)
-            setAllowed(
-              !!caps.modules.matchReporting?.enabled &&
-                canReportMatch(caps.actions['matchReports.write'], caps.organizationId, {
-                  id: matchId,
-                  tournamentId,
-                }),
-            )
+    let timer: ReturnType<typeof setTimeout> | undefined
+    setAllowed({ information: false, technical: false })
+    const refresh = async () => {
+      try {
+        const caps = await productConfigRepository.getCapabilities()
+        if (
+          !caps.modules.matchReporting?.enabled ||
+          !canReportMatch(caps.actions['matchReports.write'], caps.organizationId, {
+            id: matchId,
+            tournamentId,
+          })
+        )
+          return
+        const workspace = await nativeReportApi.load(matchId)
+        if (!alive) return
+        const administrator = workspace.permissions.isAdministrator
+        setAllowed({
+          information:
+            administrator || Boolean(workspace.inline.canStart && !workspace.inline.completed),
+          technical: administrator || workspace.permissions.canRecordTechnical,
         })
-        .catch(() => {})
+      } catch {
+        if (alive) setAllowed({ information: false, technical: false })
+      } finally {
+        if (alive) timer = setTimeout(() => void refresh(), 15000)
+      }
+    }
+    if (user && shown && active) void refresh()
     return () => {
       alive = false
+      if (timer) clearTimeout(timer)
     }
-  }, [user?.id, user?.organizationId, matchId, tournamentId])
-  return allowed ? (
-    <>
-      <NativeMatchReportEntry match={match} onUpdated={onUpdated} />
-      <Button
-        className="native-technical-entry"
-        onClick={() =>
-          void openNativeDetail(
-            `/pages/readonly-match-detail/index?matchId=${encodeURIComponent(matchId)}&technical=1`,
-          )
-        }
-      >
-        ＋ 技术统计
-      </Button>
-    </>
+  }, [user?.id, user?.organizationId, matchId, tournamentId, shown, active, match])
+  return allowed.information || allowed.technical ? (
+    <View className="native-recording-tools">
+      {allowed.information && (
+        <NativeMatchReportEntry match={match} onUpdated={onUpdated} compact />
+      )}
+      {allowed.technical && (
+        <Button className="native-recording-tool" onClick={() => void openNativeTechnical(matchId)}>
+          <View className="native-recording-tool__stats" aria-hidden />
+          <Text>技术统计</Text>
+        </Button>
+      )}
+    </View>
   ) : null
 }
 type EntryMatch = {

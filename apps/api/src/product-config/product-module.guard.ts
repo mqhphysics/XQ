@@ -19,8 +19,11 @@ export function modulesForRoute(route: string): ProductModuleId[] {
     .toLowerCase()
   if (path === 'public/home') return ['home']
   if (path === 'public/feed' || path === 'me/feed-events') return ['community']
+  if (/^me\/image-transfers\/:[^/]+(?:\/parts\/:[^/]+)?$/.test(path)) return ['community']
   if (path === 'public/competition-catalog') return ['schedule']
   if (/^(?:public\/)?matches\/:[^/]+\/check-in$/.test(path)) return ['schedule']
+  if (/^public\/matches\/:[^/]+\/clock$/.test(path)) return ['schedule']
+  if (/^matches\/:[^/]+\/start$/.test(path)) return ['matchReporting']
   if (path.startsWith('admin/campus/')) return ['administration']
   if (path.startsWith('me/campus') || path.startsWith('me/reporter'))
     return ['identityApplications']

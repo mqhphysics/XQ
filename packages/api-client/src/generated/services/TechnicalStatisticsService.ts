@@ -16,7 +16,7 @@ export class TechnicalStatisticsService {
      */
     public static technicalStatisticsControllerGet(
         matchId: string,
-        schemaVersion?: 1 | 2,
+        schemaVersion?: 1 | 2 | 3,
     ): CancelablePromise<TechnicalStatisticsResponseDto> {
         return __request(OpenAPI, {
             method: 'GET',

@@ -3,6 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ReportPermissionsDto = {
+    isAdministrator: boolean;
+    canRecordTechnical: boolean;
     /**
      * 具备直接发布比赛记录的管理员权限，不受当前是否待审核影响
      */

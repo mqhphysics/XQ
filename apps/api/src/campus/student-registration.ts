@@ -3,6 +3,29 @@ import type { Prisma } from '../generated/prisma/client'
 import { centerError } from '../admin-center/admin-center.policy'
 
 export const STUDENT_REGISTRATION_KIND = 'STUDENT_REGISTRATION'
+export function submittedRegistration(message: string, fallbackName = '') {
+  try {
+    const value = JSON.parse(message)
+    return {
+      realName:
+        typeof value.realName === 'string' ? value.realName.normalize('NFKC').trim() : fallbackName,
+      studentNumber: submittedStudentNumber(message),
+      reason: typeof value.reason === 'string' ? value.reason : '',
+      previousRealName:
+        typeof value.previousRealName === 'string' ? value.previousRealName : undefined,
+      previousStudentNumber:
+        typeof value.previousStudentNumber === 'string' ? value.previousStudentNumber : undefined,
+    }
+  } catch {
+    return {
+      realName: fallbackName,
+      studentNumber: '',
+      reason: '',
+      previousRealName: undefined,
+      previousStudentNumber: undefined,
+    }
+  }
+}
 export function submittedStudentNumber(message: string): string {
   try {
     const value = JSON.parse(message).studentNumber
@@ -60,31 +83,31 @@ export async function attachRegisteredStudent(
   realName: string,
   studentNumber: string,
 ) {
-  if (registrationOpenToEveryone()) return null
+  // The web may omit identity fields. A complete student claim always enters review,
+  // including exact roster matches: matching data is not proof of identity.
+  if (registrationOpenToEveryone() && (!realName || !studentNumber)) return null
   const candidates = await tx.studentRecord.findMany({
     where: { organizationId, status: 'ACTIVE', realName: realName.normalize('NFKC').trim() },
     select: { id: true, studentNumber: true, user: { select: { id: true } } },
   })
-  if (!candidates.length)
+  if (!registrationOpenToEveryone() && !candidates.length)
     throw centerError(403, '姓名尚未收录学生名单，暂不能注册，请联系管理员补充')
   const exact = candidates.find((student) => student.studentNumber === studentNumber)
   if (exact) {
     if (exact.user && exact.user.id !== userId) throw centerError(409, '该学生已注册，请登录原账号')
-    await tx.user.update({
-      where: { id: userId },
-      data: {
-        profileCohort: 'CURRENT',
-        studentRecordId: exact.id,
-        studentId: studentNumber,
-        studentVerifiedAt: new Date(),
-        verificationLevel: 'STUDENT_VERIFIED',
-      },
-    })
-    return null
   }
-  if (!candidates.some((student) => !student.studentNumber))
+  if (
+    !registrationOpenToEveryone() &&
+    !exact &&
+    !candidates.some((student) => !student.studentNumber)
+  )
     throw centerError(409, '姓名与已收录学号不匹配，请核对后重试')
-  if (candidates.length === 1 && candidates[0]!.user && candidates[0]!.user!.id !== userId)
+  if (
+    !registrationOpenToEveryone() &&
+    candidates.length === 1 &&
+    candidates[0]!.user &&
+    candidates[0]!.user!.id !== userId
+  )
     throw centerError(409, '该学生已注册，请登录原账号')
   // A proposed number is a claim awaiting review, never evidence for changing the directory.
   const application = await tx.identityApplication.create({

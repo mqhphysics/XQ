@@ -51,7 +51,16 @@ export async function bootstrapAdmin(prisma: PrismaClient, input: BootstrapAdmin
         })
         if (admin) throw new Error('该组织已有管理员；此命令不能添加、替换或重置管理员')
       }
-      if (await tx.user.findFirst({ where: { loginNameNormalized: username } })) {
+      if (
+        await tx.user.findFirst({
+          where: {
+            OR: [
+              { loginNameNormalized: username },
+              { loginAliases: { some: { aliasNormalized: username } } },
+            ],
+          },
+        })
+      ) {
         throw new Error('用户名已存在；拒绝修改已有账号或密码')
       }
       const organization =

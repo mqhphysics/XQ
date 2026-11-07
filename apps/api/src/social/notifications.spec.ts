@@ -19,6 +19,7 @@ test('notification pagination is scoped and stable for tied timestamps, with ful
   }))
   let query: Prisma.UserNotificationFindManyArgs | undefined
   const prisma = {
+    userBlock: { findMany: async () => [] },
     userNotification: {
       findFirst: async ({ where }: { where: Prisma.UserNotificationWhereInput }) => {
         assert.equal(where.recipientUserId, 'user')
@@ -48,6 +49,7 @@ test('notification pagination is scoped and stable for tied timestamps, with ful
 
 test('old notification details do not depend on the latest page and foreign IDs are not readable', async () => {
   const store = {
+    userBlock: { findMany: async () => [] },
     userNotification: {
       findMany: async ({ where }: { where: Prisma.UserNotificationWhereInput }) => {
         assert.equal(where.organizationId, 'org')

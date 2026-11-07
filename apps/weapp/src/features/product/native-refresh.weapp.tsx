@@ -11,7 +11,6 @@ import {
 } from 'react'
 import { refreshNativeCurrentUser } from './current-user.weapp'
 import { NativeLoadingRing } from '../../components/native-loading/index.weapp'
-import './native-refresh.weapp.scss'
 import { invalidateNativeProductReads } from './product.repository'
 
 type Task = () => Promise<unknown>

@@ -1,17 +1,12 @@
-import { openNativeComposer } from '../../features/native-social/routing.weapp'
+import { blockNativeUser } from '../../features/native-social/blocking.weapp'
 import { requestNativeLogin } from '../../features/product/login-return.weapp'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useRef, useState } from 'react'
 import type { PostSummary } from '../../features/product/product.types'
-import { productRepository } from '../../features/product/product.repository'
 import { readSession } from '../../features/product/session'
-import {
-  updatePostInteraction,
-  usePostInteraction,
-} from '../../features/product/post-navigation.weapp'
+import { usePostInteraction } from '../../features/product/post-navigation.weapp'
 import { ReportModal } from '../report-modal/index.weapp'
-import './social.weapp.scss'
 export function NativePostMenu({ post: source }: { post: PostSummary }) {
   const post = usePostInteraction(source),
     lock = useRef(false)
@@ -20,28 +15,19 @@ export function NativePostMenu({ post: source }: { post: PostSummary }) {
     if (lock.current) return
     try {
       const action = await Taro.showActionSheet({
-        itemList: [post.favoritedByMe ? '取消收藏' : '收藏', '转发', '举报'],
+        itemList: post.author.id === readSession()?.user.id ? ['举报'] : ['举报', '拉黑'],
       })
       if (!readSession()) {
-        void requestNativeLogin('登录后可以收藏和举报')
+        void requestNativeLogin('登录后可以举报或管理屏蔽')
         return
       }
-      if (action.tapIndex === 2) {
+      if (action.tapIndex === 0) {
         setReport(true)
         return
       }
-      if (action.tapIndex === 1) {
-        await openNativeComposer({ quotePostId: post.id, tournamentId: post.tournamentId })
-        return
-      }
       lock.current = true
-      const token = readSession()?.accessToken
       try {
-        const value = await productRepository.setPostFavorite(post.id, !post.favoritedByMe)
-        if (!token || token !== readSession()?.accessToken) return
-        updatePostInteraction({ ...post, favoritedByMe: value.favorited })
-        Taro.eventCenter.trigger('xiaoqiu:native-favorites-changed')
-        void Taro.showToast({ title: value.favorited ? '已收藏' : '已取消收藏', icon: 'none' })
+        await blockNativeUser(post.author.id, post.author.displayName)
       } finally {
         lock.current = false
       }

@@ -2002,7 +2002,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectConversationListDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2031,7 +2038,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectThreadDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2060,7 +2074,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectThreadDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2098,8 +2119,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectMessageSendResultDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2110,6 +2138,333 @@
         "summary": "向同组织用户发送幂等私信",
         "tags": [
           "social"
+        ]
+      }
+    },
+    "/api/me/message-center/summary": {
+      "get": {
+        "operationId": "MessageCenterController_summary",
+        "parameters": [
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageSummaryDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "读取私信和通知分类未读；私信不重复计算通知副本",
+        "tags": [
+          "message-center"
+        ]
+      }
+    },
+    "/api/me/message-center/notifications": {
+      "get": {
+        "operationId": "MessageCenterController_notifications",
+        "parameters": [
+          {
+            "name": "category",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "replies",
+                "likes",
+                "system"
+              ]
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageCenterNotificationPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      }
+    },
+    "/api/me/message-center/groups/{id}/read": {
+      "put": {
+        "operationId": "MessageCenterController_readGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageSummaryDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      }
+    },
+    "/api/me/message-center/read-all": {
+      "put": {
+        "operationId": "MessageCenterController_readAll",
+        "parameters": [
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageSummaryDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      }
+    },
+    "/api/me/message-preferences": {
+      "get": {
+        "operationId": "MessageCenterController_preferences",
+        "parameters": [
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagePreferencesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      },
+      "put": {
+        "operationId": "MessageCenterController_updatePreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMessagePreferencesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagePreferencesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      }
+    },
+    "/api/me/blocked-users": {
+      "get": {
+        "operationId": "MessageCenterController_blocks",
+        "parameters": [
+          {
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockedUserListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      }
+    },
+    "/api/me/blocked-users/{id}": {
+      "put": {
+        "operationId": "MessageCenterController_block",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserBlockStateDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
+        ]
+      },
+      "delete": {
+        "operationId": "MessageCenterController_unblock",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserBlockStateDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "message-center"
         ]
       }
     },
@@ -2804,7 +3159,27 @@
     "/api/me/favorite-posts": {
       "get": {
         "operationId": "ExperienceController_favoritePosts",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "description": "上一页返回的不透明游标",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 50,
+              "default": 30,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -3923,6 +4298,104 @@
         ],
         "tags": [
           "results"
+        ]
+      }
+    },
+    "/api/me/image-transfers/{id}": {
+      "put": {
+        "operationId": "ImageTransferController_begin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginImageTransferDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageTransferDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "image-transfer"
+        ]
+      }
+    },
+    "/api/me/image-transfers/{id}/parts/{index}": {
+      "put": {
+        "operationId": "ImageTransferController_part",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "index",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageTransferPartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageTransferDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "image-transfer"
         ]
       }
     },
@@ -5623,6 +6096,81 @@
         "summary": "读取球队详情",
         "tags": [
           "schedule"
+        ]
+      }
+    },
+    "/api/public/matches/{matchId}/clock": {
+      "get": {
+        "operationId": "MatchClockController_read",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchClockDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "match-clock"
+        ]
+      }
+    },
+    "/api/matches/{matchId}/start": {
+      "post": {
+        "operationId": "MatchClockController_start",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartMatchClockDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchClockDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "match-clock"
         ]
       }
     },
@@ -7963,7 +8511,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentRegistrationListDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7991,7 +8546,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentRegistrationListDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8028,7 +8590,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentRegistrationSavedDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8075,7 +8644,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentRegistrationSavedDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8108,7 +8684,8 @@
               "type": "number",
               "enum": [
                 1,
-                2
+                2,
+                3
               ]
             }
           }
@@ -8405,7 +8982,7 @@
   "info": {
     "title": "晓球 API",
     "description": "",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "contact": {}
   },
   "tags": [],
@@ -8701,20 +9278,23 @@
       "RegistrationCheckDto": {
         "type": "object",
         "properties": {
+          "registrationSource": {
+            "type": "string",
+            "enum": [
+              "WEAPP",
+              "WEB"
+            ]
+          },
           "realName": {
             "type": "string",
-            "description": "姓名"
+            "description": "姓名，小程序必填；开放注册的网站可省略"
           },
           "studentId": {
             "type": "string",
-            "description": "学号",
+            "description": "学号，小程序必填；开放注册的网站可省略",
             "pattern": "^20\\d{8}$"
           }
-        },
-        "required": [
-          "realName",
-          "studentId"
-        ]
+        }
       },
       "RegistrationCheckResponseDto": {
         "type": "object",
@@ -9014,6 +9594,14 @@
       "RegisterDto": {
         "type": "object",
         "properties": {
+          "registrationSource": {
+            "type": "string",
+            "enum": [
+              "WEAPP",
+              "WEB"
+            ],
+            "description": "小程序注册要求完整姓名与学号；网站保留选填资料兼容"
+          },
           "emailCode": {
             "type": "string",
             "description": "填写邮箱且邮箱服务启用时必填，6位邮件验证码"
@@ -9030,11 +9618,12 @@
           },
           "realName": {
             "type": "string",
-            "description": "后台实名",
+            "description": "小程序必填的后台实名；开放注册的网站可省略",
             "example": "林知夏"
           },
           "studentId": {
             "type": "string",
+            "description": "小程序必填；开放注册的网站可省略",
             "pattern": "^20\\d{8}$",
             "example": "2024990001"
           },
@@ -9052,8 +9641,6 @@
           }
         },
         "required": [
-          "realName",
-          "studentId",
           "password"
         ]
       },
@@ -9590,6 +10177,221 @@
           "resolution"
         ]
       },
+      "AdminMessageNoticeDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "applicationId": {
+            "type": "string"
+          },
+          "deadlineAt": {
+            "type": "string"
+          },
+          "actionPath": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "applicationId",
+          "deadlineAt",
+          "actionPath"
+        ]
+      },
+      "DirectMessagePreviewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "isMine": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN_NOTICE"
+            ]
+          },
+          "notice": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdminMessageNoticeDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "body",
+          "isMine",
+          "createdAt",
+          "kind",
+          "notice"
+        ]
+      },
+      "DirectConversationSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "counterpart": {
+            "$ref": "#/components/schemas/NotificationActorDto"
+          },
+          "canSend": {
+            "type": "boolean"
+          },
+          "blocked": {
+            "type": "boolean"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "latestMessage": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DirectMessagePreviewDto"
+              }
+            ]
+          },
+          "unreadCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "counterpart",
+          "canSend",
+          "blocked",
+          "lastMessageAt",
+          "latestMessage",
+          "unreadCount"
+        ]
+      },
+      "DirectConversationListDto": {
+        "type": "object",
+        "properties": {
+          "canSend": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DirectConversationSummaryDto"
+            }
+          }
+        },
+        "required": [
+          "canSend",
+          "items"
+        ]
+      },
+      "DirectConversationIdentityDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "counterpart": {
+            "$ref": "#/components/schemas/NotificationActorDto"
+          },
+          "canSend": {
+            "type": "boolean"
+          },
+          "blocked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "counterpart",
+          "canSend",
+          "blocked"
+        ]
+      },
+      "DirectMessageItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "isMine": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN_NOTICE"
+            ]
+          },
+          "notice": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AdminMessageNoticeDto"
+              }
+            ]
+          },
+          "clientMessageId": {
+            "type": "string"
+          },
+          "readAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "body",
+          "isMine",
+          "createdAt",
+          "kind",
+          "notice",
+          "clientMessageId",
+          "readAt"
+        ]
+      },
+      "DirectThreadDto": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "$ref": "#/components/schemas/DirectConversationIdentityDto"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DirectMessageItemDto"
+            }
+          }
+        },
+        "required": [
+          "conversation",
+          "items"
+        ]
+      },
       "CreateDirectMessageDto": {
         "type": "object",
         "properties": {
@@ -9606,6 +10408,374 @@
           "body",
           "clientMessageId"
         ]
+      },
+      "DirectMessageSendResultDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "message": {
+            "$ref": "#/components/schemas/DirectMessageItemDto"
+          }
+        },
+        "required": [
+          "conversationId",
+          "message"
+        ]
+      },
+      "MessageCenterQueryDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "replies",
+              "likes",
+              "system"
+            ]
+          },
+          "before": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "category"
+        ]
+      },
+      "MessagePreferencesDto": {
+        "type": "object",
+        "properties": {
+          "likes": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "FOLLOWING",
+              "NONE"
+            ]
+          },
+          "replies": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "FOLLOWING",
+              "NONE"
+            ]
+          },
+          "directMessages": {
+            "type": "boolean"
+          },
+          "systemMessages": {
+            "type": "boolean"
+          },
+          "badges": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "likes",
+          "replies",
+          "directMessages",
+          "systemMessages",
+          "badges",
+          "version"
+        ]
+      },
+      "MessageSummaryDto": {
+        "type": "object",
+        "properties": {
+          "directUnreadCount": {
+            "type": "number"
+          },
+          "repliesUnreadCount": {
+            "type": "number"
+          },
+          "likesUnreadCount": {
+            "type": "number"
+          },
+          "systemUnreadCount": {
+            "type": "number"
+          },
+          "badgeCount": {
+            "type": "number"
+          },
+          "hasNotificationDot": {
+            "type": "boolean"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/MessagePreferencesDto"
+          }
+        },
+        "required": [
+          "directUnreadCount",
+          "repliesUnreadCount",
+          "likesUnreadCount",
+          "systemUnreadCount",
+          "badgeCount",
+          "hasNotificationDot",
+          "preferences"
+        ]
+      },
+      "MessageNotificationTargetDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "POST",
+              "COMMENT"
+            ]
+          },
+          "postId": {
+            "type": "string"
+          },
+          "commentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "excerpt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "postId",
+          "commentId",
+          "imageUrl",
+          "excerpt"
+        ]
+      },
+      "MessageCenterNotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "replies",
+              "likes",
+              "system"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "linkPath": {
+            "type": "string",
+            "nullable": true
+          },
+          "readAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "actors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationActorDto"
+            }
+          },
+          "actorCount": {
+            "type": "number"
+          },
+          "unreadCount": {
+            "type": "number"
+          },
+          "target": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MessageNotificationTargetDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "title",
+          "body",
+          "linkPath",
+          "readAt",
+          "createdAt",
+          "actors",
+          "actorCount",
+          "unreadCount",
+          "target"
+        ]
+      },
+      "MessageCenterNotificationPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageCenterNotificationDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "UpdateMessagePreferencesDto": {
+        "type": "object",
+        "properties": {
+          "likes": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "FOLLOWING",
+              "NONE"
+            ]
+          },
+          "replies": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "FOLLOWING",
+              "NONE"
+            ]
+          },
+          "directMessages": {
+            "type": "boolean"
+          },
+          "systemMessages": {
+            "type": "boolean"
+          },
+          "badges": {
+            "type": "boolean"
+          },
+          "expectedVersion": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "likes",
+          "replies",
+          "directMessages",
+          "systemMessages",
+          "badges",
+          "expectedVersion"
+        ]
+      },
+      "BlockedUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "avatarUrl",
+          "createdAt"
+        ]
+      },
+      "BlockedUserListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlockedUserDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "UserBlockStateDto": {
+        "type": "object",
+        "properties": {
+          "blocked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "blocked"
+        ]
+      },
+      "SearchQueryDto": {
+        "type": "object",
+        "properties": {
+          "competitionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seasonId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tournamentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "query": {
+            "type": "string",
+            "example": "物院"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "PLAYER",
+              "TEAM",
+              "MATCH",
+              "POST"
+            ]
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "PostTagQueryDto": {
+        "type": "object",
+        "properties": {
+          "tournamentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 60
+          }
+        }
       },
       "MatchOfficialDto": {
         "type": "object",
@@ -10095,6 +11265,14 @@
       "CreatePostDto": {
         "type": "object",
         "properties": {
+          "imageUploadIds": {
+            "maxItems": 9,
+            "description": "本人上传完成的分片图片标识；与内联图片互斥",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "quotedPostId": {
             "type": "string",
             "format": "uuid",
@@ -10147,6 +11325,14 @@
       "CreateCommentDto": {
         "type": "object",
         "properties": {
+          "imageUploadIds": {
+            "maxItems": 3,
+            "description": "本人上传完成的分片图片标识；与内联图片互斥",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "repostToFeed": {
             "type": "boolean",
             "description": "发表评论时同步发布引用原帖的动态，不带标签"
@@ -10177,6 +11363,20 @@
           "body"
         ]
       },
+      "FavoritePostsQueryDto": {
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "string",
+            "description": "上一页返回的不透明游标"
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "maximum": 50
+          }
+        }
+      },
       "FavoritePostsDto": {
         "type": "object",
         "properties": {
@@ -10185,10 +11385,19 @@
             "items": {
               "$ref": "#/components/schemas/PostSummaryDto"
             }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalCount": {
+            "type": "number"
           }
         },
         "required": [
-          "items"
+          "items",
+          "nextCursor",
+          "totalCount"
         ]
       },
       "UpdatePostDto": {
@@ -10500,6 +11709,63 @@
           "expectedVersion",
           "sourceHash",
           "reason"
+        ]
+      },
+      "BeginImageTransferDto": {
+        "type": "object",
+        "properties": {
+          "characters": {
+            "type": "number",
+            "minimum": 32,
+            "maximum": 5600000
+          }
+        },
+        "required": [
+          "characters"
+        ]
+      },
+      "ImageTransferDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partCharacters": {
+            "type": "number"
+          },
+          "parts": {
+            "type": "number"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "received": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "partCharacters",
+          "parts",
+          "expiresAt",
+          "received"
+        ]
+      },
+      "ImageTransferPartDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 524288
+          }
+        },
+        "required": [
+          "content"
         ]
       },
       "PublicTournamentTeamListItemResponseDto": {
@@ -11213,6 +12479,12 @@
       "ReportPermissionsDto": {
         "type": "object",
         "properties": {
+          "isAdministrator": {
+            "type": "boolean"
+          },
+          "canRecordTechnical": {
+            "type": "boolean"
+          },
           "canPublish": {
             "type": "boolean",
             "description": "具备直接发布比赛记录的管理员权限，不受当前是否待审核影响"
@@ -11237,6 +12509,8 @@
           }
         },
         "required": [
+          "isAdministrator",
+          "canRecordTechnical",
           "canPublish",
           "canEdit",
           "canSubmit",
@@ -11244,6 +12518,51 @@
           "canCorrect",
           "canConfirm",
           "canReturn"
+        ]
+      },
+      "ReportRecordingWindowDto": {
+        "type": "object",
+        "properties": {
+          "serverNow": {
+            "type": "string"
+          },
+          "opensAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "estimatedEndAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "endedAtSource": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "ACTUAL",
+              "ESTIMATED"
+            ]
+          },
+          "technicalClosesAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "reportCompletedAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "serverNow",
+          "opensAt",
+          "estimatedEndAt",
+          "endedAt",
+          "endedAtSource",
+          "technicalClosesAt",
+          "reportCompletedAt"
         ]
       },
       "ReportEventDto": {
@@ -11503,6 +12822,9 @@
           "permissions": {
             "$ref": "#/components/schemas/ReportPermissionsDto"
           },
+          "recordingWindow": {
+            "$ref": "#/components/schemas/ReportRecordingWindowDto"
+          },
           "latest": {
             "nullable": true,
             "type": "object",
@@ -11538,6 +12860,7 @@
           "homeTeam",
           "awayTeam",
           "permissions",
+          "recordingWindow",
           "latest",
           "reviewNote",
           "officialResult"
@@ -12486,6 +13809,109 @@
           "matches"
         ]
       },
+      "MatchClockDto": {
+        "type": "object",
+        "properties": {
+          "serverNow": {
+            "type": "string"
+          },
+          "scheduledStartAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "autoStartsAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "startSource": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "AUTO",
+              "PENDING"
+            ]
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "FIRST_HALF",
+              "HALF_TIME",
+              "SECOND_HALF",
+              "FINISHED",
+              "UNAVAILABLE"
+            ]
+          },
+          "periodMinutes": {
+            "type": "number"
+          },
+          "intervalMinutes": {
+            "type": "number"
+          },
+          "periods": {
+            "type": "number"
+          },
+          "elapsedSeconds": {
+            "type": "number"
+          },
+          "phaseElapsedSeconds": {
+            "type": "number"
+          },
+          "expectedEndAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "halfTimeStartsAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "secondHalfStartsAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "canStart": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "serverNow",
+          "scheduledStartAt",
+          "autoStartsAt",
+          "startedAt",
+          "startSource",
+          "phase",
+          "periodMinutes",
+          "intervalMinutes",
+          "periods",
+          "elapsedSeconds",
+          "phaseElapsedSeconds",
+          "expectedEndAt",
+          "halfTimeStartsAt",
+          "secondHalfStartsAt",
+          "endedAt",
+          "canStart"
+        ]
+      },
+      "StartMatchClockDto": {
+        "type": "object",
+        "properties": {
+          "clientActionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "clientActionId"
+        ]
+      },
       "AdminCenterAuditQueryDto": {
         "type": "object",
         "properties": {
@@ -13414,6 +14840,168 @@
           "reason"
         ]
       },
+      "RegistrationApplicantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "realName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "loginNameNormalized": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "realName",
+          "displayName",
+          "loginNameNormalized"
+        ]
+      },
+      "RegistrationCandidateUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "StudentRegistrationCandidateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "realName": {
+            "type": "string"
+          },
+          "studentNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "collegeName": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "user": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RegistrationCandidateUserDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "realName",
+          "studentNumber",
+          "collegeName",
+          "version",
+          "user"
+        ]
+      },
+      "StudentRegistrationItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "realName": {
+            "type": "string"
+          },
+          "studentNumber": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "decisionNote": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/RegistrationApplicantDto"
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentRegistrationCandidateDto"
+            }
+          },
+          "currentStudentRecordId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "status",
+          "realName",
+          "studentNumber",
+          "reason",
+          "decisionNote",
+          "createdAt",
+          "user",
+          "currentStudentRecordId"
+        ]
+      },
+      "StudentRegistrationCurrentDto": {
+        "type": "object",
+        "properties": {
+          "realName": {
+            "type": "string"
+          },
+          "studentNumber": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "realName",
+          "studentNumber"
+        ]
+      },
+      "StudentRegistrationListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentRegistrationItemDto"
+            }
+          },
+          "current": {
+            "$ref": "#/components/schemas/StudentRegistrationCurrentDto"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "StudentRegistrationReviewDto": {
         "type": "object",
         "properties": {
@@ -13426,6 +15014,15 @@
           "expectedVersion": {
             "type": "number",
             "minimum": 1
+          },
+          "deadlineDays": {
+            "type": "number",
+            "enum": [
+              7,
+              14
+            ],
+            "default": 14,
+            "description": "退回后建议更正期限；不会自动封禁"
           },
           "decision": {
             "type": "string",
@@ -13446,18 +15043,33 @@
           "decision"
         ]
       },
+      "StudentRegistrationSavedDto": {
+        "type": "object",
+        "properties": {
+          "saved": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "saved"
+        ]
+      },
       "StudentRegistrationCorrectionDto": {
         "type": "object",
         "properties": {
-          "reason": {
-            "type": "string",
-            "description": "操作原因",
-            "minLength": 2,
-            "maxLength": 1000
-          },
           "expectedVersion": {
             "type": "number",
-            "minimum": 1
+            "minimum": 0,
+            "description": "无历史申请时使用0，否则使用最新申请版本"
+          },
+          "realName": {
+            "type": "string",
+            "description": "申请更正后的真实姓名；旧客户端省略时沿用当前姓名"
+          },
+          "reason": {
+            "type": "string",
+            "description": "选填的更正说明",
+            "maxLength": 500
           },
           "studentNumber": {
             "type": "string",
@@ -13465,7 +15077,6 @@
           }
         },
         "required": [
-          "reason",
           "expectedVersion",
           "studentNumber"
         ]
@@ -13477,7 +15088,8 @@
             "type": "number",
             "enum": [
               1,
-              2
+              2,
+              3
             ]
           }
         }
@@ -13550,6 +15162,9 @@
       "TechnicalTotalsDto": {
         "type": "object",
         "properties": {
+          "corners": {
+            "type": "number"
+          },
           "passSuccess": {
             "type": "number"
           },
@@ -13651,7 +15266,8 @@
               "DRIBBLE",
               "SHOT",
               "FOUL",
-              "CHANCE"
+              "CHANCE",
+              "CORNER"
             ]
           },
           "outcome": {
@@ -13746,7 +15362,8 @@
             "type": "number",
             "enum": [
               1,
-              2
+              2,
+              3
             ]
           },
           "expectedVersion": {

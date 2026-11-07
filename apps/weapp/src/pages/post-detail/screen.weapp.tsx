@@ -1,4 +1,10 @@
 import { requestNativeLogin } from '../../features/product/login-return.weapp'
+import { openNativeComposer } from '../../features/native-social/routing.weapp'
+import {
+  useNativeBlockedAuthor,
+  nativeBlockEvent,
+  type NativeBlockChange,
+} from '../../features/native-social/blocking.weapp'
 import { useNativeRefreshTask } from '../../features/product/native-refresh.weapp'
 import { Button, Image, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance } from '@tarojs/taro'
@@ -40,9 +46,12 @@ export default function NativePostScreen({
     peekNativeProduct<PostDetail>(`/public/posts/${encodeURIComponent(postId)}`) || null,
   )
   const post = detail || readNativePostPreview(postId)
+  const hidden = useNativeBlockedAuthor(post?.author.id || '')
   useNativePostRead(postId, Boolean(post))
   const [error, setError] = useState('')
   const [liking, setLiking] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const favoriteLock = useRef(false)
   useEffect(() => {
     if (post) updatePostInteraction(post)
   }, [post?.id, post?.commentCount])
@@ -91,6 +100,46 @@ export default function NativePostScreen({
       sequence.current++
     }
   }, [load])
+  useEffect(() => {
+    const changed = (change: NativeBlockChange) => {
+      if (change.owner !== readSession()?.user.id) return
+      forgetNativePostPreview(postId)
+      if (change.blocked && change.userId === post?.author.id) {
+        sequence.current++
+        setPost(null)
+        setError('已屏蔽这位用户的动态')
+      } else void load()
+    }
+    Taro.eventCenter.on(nativeBlockEvent, changed)
+    return () => {
+      Taro.eventCenter.off(nativeBlockEvent, changed)
+    }
+  }, [postId, post?.author.id, load])
+  const favorite = async () => {
+    if (!post || favoriteLock.current) return
+    const session = readSession()
+    if (!session) {
+      await requestNativeLogin('登录后可以收藏')
+      return
+    }
+    favoriteLock.current = true
+    setSaving(true)
+    try {
+      const result = await productRepository.setPostFavorite(post.id, !post.favoritedByMe)
+      if (session.accessToken !== readSession()?.accessToken) return
+      updatePostInteraction({ ...post, favoritedByMe: result.favorited })
+      setPost((value) => (value ? { ...value, favoritedByMe: result.favorited } : null))
+      Taro.eventCenter.trigger('xiaoqiu:native-favorites-changed')
+    } catch (issue) {
+      void Taro.showToast({
+        title: issue instanceof Error ? issue.message : '收藏未保存，请重试',
+        icon: 'none',
+      })
+    } finally {
+      favoriteLock.current = false
+      setSaving(false)
+    }
+  }
   const like = async () => {
     if (!post || liking) return
     if (!readSession()) {
@@ -133,7 +182,7 @@ export default function NativePostScreen({
           onRetry={() => void load()}
         />
       )}
-      {post && (
+      {post && !hidden && (
         <View className="native-post-detail">
           <View className="native-post-detail__author">
             <UserAvatar
@@ -188,6 +237,25 @@ export default function NativePostScreen({
             >
               <ReactionHeart active={post.likedByMe} />
               <Text>{post.likeCount}</Text>
+            </Button>
+            <Button
+              className={`native-post-detail__action${post.favoritedByMe ? ' is-active' : ''}`}
+              disabled={saving}
+              aria-label={post.favoritedByMe ? '取消收藏' : '收藏'}
+              onClick={() => void favorite()}
+            >
+              <View className="native-post-detail__bookmark-icon" aria-hidden />
+              <Text>{post.favoritedByMe ? '已收藏' : '收藏'}</Text>
+            </Button>
+            <Button
+              className="native-post-detail__action"
+              aria-label="转发动态"
+              onClick={() =>
+                void openNativeComposer({ quotePostId: post.id, tournamentId: post.tournamentId })
+              }
+            >
+              <View className="native-post-detail__share-icon" aria-hidden />
+              <Text>转发</Text>
             </Button>
             <NativePostMenu post={post} />
           </View>

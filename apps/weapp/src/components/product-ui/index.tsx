@@ -3,6 +3,7 @@ import type { BaseEventOrig } from '@tarojs/components/types/common'
 import Taro from '@tarojs/taro'
 import { nativePlayerInitial } from '../../features/product/native-profile.logic.weapp'
 import { useRef, useState } from 'react'
+import { useNativeBlockedAuthor } from '../../features/native-social/blocking.weapp'
 
 import {
   formatDate,
@@ -254,6 +255,7 @@ export function PostCard({
   variant?: 'home'
 }) {
   const post = usePostInteraction(originalPost)
+  const hidden = useNativeBlockedAuthor(post.author.id)
   const open = () => {
     if (Taro.getEnv() === Taro.ENV_TYPE.WEB && window.matchMedia('(min-width: 721px)').matches)
       void openPost(post.id)
@@ -302,7 +304,7 @@ export function PostCard({
     event.stopPropagation()
     onMessageAuthor()
   }
-  if (post.deleted) return null
+  if (post.deleted || hidden) return null
   return (
     <View
       className={`post-card ${variant === 'home' ? 'post-card--home' : ''} ${images.length > 0 ? 'post-card--with-image' : ''}`}

@@ -4,6 +4,10 @@
 /* eslint-disable */
 export type RegisterDto = {
     /**
+     * 小程序注册要求完整姓名与学号；网站保留选填资料兼容
+     */
+    registrationSource?: 'WEAPP' | 'WEB';
+    /**
      * 填写邮箱且邮箱服务启用时必填，6位邮件验证码
      */
     emailCode?: string;
@@ -16,10 +20,13 @@ export type RegisterDto = {
      */
     displayName?: string;
     /**
-     * 后台实名
+     * 小程序必填的后台实名；开放注册的网站可省略
      */
-    realName: string;
-    studentId: string;
+    realName?: string;
+    /**
+     * 小程序必填；开放注册的网站可省略
+     */
+    studentId?: string;
     email?: string;
     /**
      * 至少6位，不限制字符类型

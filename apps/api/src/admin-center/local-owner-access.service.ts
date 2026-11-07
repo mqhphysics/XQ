@@ -43,7 +43,14 @@ export class LocalOwnerAccessService {
       async (tx) => {
         const users = await tx.user.findMany({
           where: {
-            loginNameNormalized: options.ownerLoginName.trim().toLowerCase(),
+            OR: [
+              { loginNameNormalized: options.ownerLoginName.trim().toLowerCase() },
+              {
+                loginAliases: {
+                  some: { aliasNormalized: options.ownerLoginName.trim().toLowerCase() },
+                },
+              },
+            ],
             status: 'ACTIVE',
             memberships: {
               some: {

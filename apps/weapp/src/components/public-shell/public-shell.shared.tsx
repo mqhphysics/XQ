@@ -3,6 +3,7 @@ import { Button, Image, Text, View } from '@tarojs/components'
 import Taro, { getCurrentInstance, useDidShow } from '@tarojs/taro'
 import {
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -49,6 +50,8 @@ import { nativeHeaderMetrics } from './native-header-metrics'
 import { useNativePreferences } from '../native-ui/preferences'
 import { nativeBack, switchNativeSection, useNativeShell } from '../../features/native-navigation'
 import { NativeDetailHost } from '../native-navigation/detail-host'
+import { NativeDetailEntryContext } from '../../features/native-navigation/detail-context.weapp'
+import { NativeBackGuard } from '../native-navigation/native-back-guard.weapp'
 
 import './index.scss'
 
@@ -64,6 +67,7 @@ export interface PublicShellProps extends PropsWithChildren {
   nativeMain?: boolean
   nativeWorkbench?: boolean
   nativeBackTitle?: string
+  nativeBackActions?: ReactNode
 }
 
 const navItems: Array<{ key: PublicSection; label: string; shortLabel: string }> = [
@@ -94,8 +98,10 @@ export function PublicShell({
   nativeMain = false,
   nativeWorkbench = false,
   nativeBackTitle,
+  nativeBackActions,
   children,
 }: PublicShellProps) {
+  const embeddedDetail = useContext(NativeDetailEntryContext)
   const session = readSession()
   const accountUser = useSessionUser() ?? session?.user
   const desktopAccount = useDesktopAccount()
@@ -621,7 +627,7 @@ export function PublicShell({
         }
       >
         {nativeHeader && showBack && !nativeWorkbench && (
-          <View className={nativeBackTitle ? 'native-page-toolbar' : ''}>
+          <View className={nativeBackTitle || nativeBackActions ? 'native-page-toolbar' : ''}>
             <Button
               {...(nativeHeader
                 ? { hoverClass: 'native-press', hoverStartTime: 0, hoverStayTime: 60 }
@@ -635,6 +641,9 @@ export function PublicShell({
             </Button>
             {nativeBackTitle && (
               <Text className="native-page-toolbar__title">{nativeBackTitle}</Text>
+            )}
+            {nativeBackActions && (
+              <View className="native-page-toolbar__actions">{nativeBackActions}</View>
             )}
           </View>
         )}
@@ -713,6 +722,7 @@ export function PublicShell({
         </View>
       )}
       {nativeHeader && !showBack && <NativeDetailHost />}
+      {nativeHeader && showBack && !nativeWorkbench && !embeddedDetail && <NativeBackGuard />}
       {session && <MessagingDrawer />}
       {session && <CampusWelcome />}
       {feedbackOpen && (

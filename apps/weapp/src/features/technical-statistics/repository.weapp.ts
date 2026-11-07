@@ -54,7 +54,7 @@ export const technicalApi = {
     }),
   load: (id: string) =>
     request<TechnicalWorkspace>(
-      `/matches/${encodeURIComponent(id)}/technical-statistics?schemaVersion=2`,
+      `/matches/${encodeURIComponent(id)}/technical-statistics?schemaVersion=3`,
       {
         refresh: true,
       },
@@ -62,7 +62,7 @@ export const technicalApi = {
   append: (id: string, expectedVersion: number, operations: TechnicalOperation[]) =>
     request<TechnicalWorkspace>(`/matches/${encodeURIComponent(id)}/technical-statistics`, {
       method: 'POST',
-      data: { schemaVersion: 2, expectedVersion, operations },
+      data: { schemaVersion: 3, expectedVersion, operations },
     }),
 }
 export const technicalId = () =>
@@ -77,4 +77,5 @@ export const technicalLabels = {
   SHOT: '射门',
   FOUL: '犯规',
   CHANCE: '绝佳机会',
+  CORNER: '角球',
 } as const

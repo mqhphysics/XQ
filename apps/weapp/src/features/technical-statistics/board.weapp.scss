@@ -15,6 +15,135 @@
   margin: 0;
   box-sizing: border-box;
 }
+.native-record-match-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex: 0 0 44px;
+  height: 44px;
+}
+.native-record-match-controls .native-match-clock {
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+  margin: 0;
+  justify-content: space-between;
+}
+.native-record-match-controls .native-match-clock__main {
+  justify-content: flex-start;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.native-record-match-controls .native-match-clock__main > text:last-child:not(:first-child) {
+  font-size: 16px;
+}
+.native-record-match-controls .native-match-clock__source {
+  text-align: left;
+  margin-top: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.native-record-match-controls .native-match-clock__error {
+  text-align: left;
+  margin-top: 3px;
+  font-size: 10px;
+}
+.native-record-match-controls .native-match-clock__start.native-match-clock__start {
+  min-height: 36px;
+  padding: 8px;
+  border-radius: 10px;
+  gap: 4px;
+  font-size: 12px;
+}
+.native-record-match-controls .native-match-clock__play {
+  border-top-width: 5px;
+  border-bottom-width: 5px;
+  border-left-width: 7px;
+}
+.native-record-match-controls .native-match-clock__retry {
+  font-size: 11px;
+  padding: 6px;
+}
+.native-record-corner.native-record-corner {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 100px;
+  width: 100px;
+  gap: 5px;
+  padding: 4px 7px;
+  min-height: 44px;
+  border: 1px solid #cbdcc3;
+  border-radius: 12px;
+  background: #edf3e6;
+  color: #365d40;
+  line-height: 1.2;
+}
+.native-record-corner .native-corner-icon {
+  width: 19px;
+  height: 19px;
+}
+.native-record-corner > view > text {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+}
+.native-record-corner > view > text + text {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 400;
+  color: #73866a;
+}
+.native-record-board.is-compact {
+  gap: 4px;
+}
+.native-record-board.is-compact .native-record-toolbar {
+  flex-basis: 40px;
+  height: 40px;
+}
+.native-record-board.is-compact .native-record-match-controls {
+  flex-basis: 38px;
+  height: 38px;
+}
+.native-record-board.is-compact .native-record-corner {
+  min-height: 38px;
+}
+.native-record-board.is-compact .native-record-players {
+  --record-face: 30px;
+  padding: 2px;
+}
+.native-record-board.is-compact .native-record-player {
+  padding-top: 3px;
+  padding-bottom: 2px;
+}
+.native-record-board.is-compact .native-record-player__number {
+  font-size: 10px;
+  line-height: 12px;
+}
+.native-record-board.is-compact .native-record-player__name {
+  font-size: 10px;
+  line-height: 12px;
+}
+.native-record-board.is-compact .native-record-recent {
+  flex-basis: 20px;
+  height: 20px;
+}
+.native-record-board.is-compact .native-record-recent > text {
+  font-size: 11px;
+  line-height: 20px;
+}
+.native-record-board.is-compact .native-record-footer {
+  flex-basis: 44px;
+  min-height: 44px;
+}
+.native-record-board.is-compact .native-record-undo {
+  height: 40px;
+  min-height: 40px;
+}
 /* Toolbar */
 .native-record-toolbar {
   display: flex;

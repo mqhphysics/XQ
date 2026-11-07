@@ -5,7 +5,7 @@ import { plainToInstance } from 'class-transformer'
 import { validate } from 'class-validator'
 import type { Prisma } from '../generated/prisma/client'
 import { registrationCheck } from './registration-check'
-import { RegisterDto } from './auth.dto'
+import { RegisterDto, RegistrationCheckDto } from './auth.dto'
 
 const rows = [
   { id: 'a', realName: '学生甲', studentNumber: '2099990001', user: null },
@@ -78,4 +78,73 @@ test('simple registration needs one name only and legacy Chinese login names rem
       (error) => error.property === 'email',
     ),
   )
+})
+
+test('open registration accepts unmatched valid students, but keeps required weapp fields and occupied-number protection', async () => {
+  const previous = process.env.REGISTRATION_AUDIENCE
+  process.env.REGISTRATION_AUDIENCE = 'ALL'
+  try {
+    const unmatched = await registrationCheck(
+      directory(),
+      'org',
+      '未收录姓名',
+      '2099990018',
+      'WEAPP',
+    )
+    assert.deepEqual(unmatched, { eligible: true, reason: 'UNMATCHED', message: '' })
+    assert.equal(
+      (await registrationCheck(directory(), 'org', '学生甲', '2099990001', 'WEAPP')).reason,
+      'MATCHED',
+    )
+    assert.equal(
+      (await registrationCheck(directory(true), 'org', '学生甲', '2099990001', 'WEAPP')).reason,
+      'ALREADY_REGISTERED',
+    )
+    assert.equal(
+      (await registrationCheck(directory(), 'org', '学生甲', '1234567890', 'WEAPP')).eligible,
+      false,
+    )
+    assert(
+      (
+        await validate(
+          plainToInstance(RegisterDto, { registrationSource: 'WEAPP', password: '123456' }),
+        )
+      ).some((e) => e.property === 'realName'),
+    )
+    assert(
+      (
+        await validate(
+          plainToInstance(RegistrationCheckDto, {
+            registrationSource: 'WEAPP',
+            realName: '学生甲',
+            studentId: '1234567890',
+          }),
+        )
+      ).some((e) => e.property === 'studentId'),
+    )
+    assert.equal(
+      (
+        await validate(
+          plainToInstance(RegisterDto, { registrationSource: 'WEB', password: '123456' }),
+        )
+      ).length,
+      0,
+    )
+    assert.equal(
+      (
+        await validate(
+          plainToInstance(RegisterDto, {
+            registrationSource: 'WEB',
+            realName: '访客甲',
+            password: '123456',
+          }),
+        )
+      ).length,
+      0,
+    )
+    assert.equal((await registrationCheck(directory(), 'org', '访客甲', '', 'WEB')).eligible, true)
+  } finally {
+    if (previous === undefined) delete process.env.REGISTRATION_AUDIENCE
+    else process.env.REGISTRATION_AUDIENCE = previous
+  }
 })
