@@ -14,7 +14,7 @@ export class ProgressionConfirmDto extends ProgressionPreviewDto {
   @Max(2147483646)
   expectedVersion!: number
 
-  @ApiProperty({ description: '当前预览来源 SHA-256' })
+  @ApiProperty({ description: '当前预览的赛果来源和目标对阵 SHA-256' })
   @Matches(/^[a-f0-9]{64}$/)
   sourceHash!: string
 
@@ -22,4 +22,18 @@ export class ProgressionConfirmDto extends ProgressionPreviewDto {
   @IsString()
   @Length(1, 500)
   reason!: string
+}
+
+export class ProgressionSlotDto {
+  @ApiProperty({ format: 'uuid' })
+  targetMatchId!: string
+
+  @ApiProperty({ enum: ['HOME', 'AWAY'] })
+  side!: 'HOME' | 'AWAY'
+
+  @ApiProperty({ format: 'uuid' })
+  teamId!: string
+
+  @ApiProperty({ type: String, format: 'uuid', nullable: true })
+  previousTeamId!: string | null
 }

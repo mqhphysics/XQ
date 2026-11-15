@@ -14,10 +14,12 @@ export type ReportEventDto = {
      * 空字符串表示没有补时
      */
     addedMinute: string;
+    /**
+     * 球员 UUID。乌龙球未确认球员时可传空字符串。
+     */
     playerId: string;
     /**
      * 助攻或换上球员 ID；没有时为空字符串
      */
     relatedPlayerId: string;
 };
-

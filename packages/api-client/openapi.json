@@ -2661,7 +2661,43 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "leaders": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "properties": {
+                        "scorers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": true,
+                            "required": [
+                              "goals",
+                              "rank"
+                            ],
+                            "properties": {
+                              "goals": {
+                                "type": "integer"
+                              },
+                              "rank": {
+                                "type": "integer",
+                                "description": "并列名次，后续名次跳过并列人数"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "读取积分榜、淘汰赛和球员榜单",
@@ -2723,11 +2759,68 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "tournamentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "required": [
+                    "recentMatches"
+                  ],
+                  "properties": {
+                    "recentMatches": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "required": [
+                          "id",
+                          "starter",
+                          "minutesPlayed",
+                          "appearanceRecorded",
+                          "participationConfirmed"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "starter": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "minutesPlayed": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "appearanceRecorded": {
+                            "type": "boolean",
+                            "description": "已保存独立出场记录"
+                          },
+                          "participationConfirmed": {
+                            "type": "boolean",
+                            "description": "已有出场、确认名单或实际参赛事件依据"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "读取完整公开球员档案与赛季数据",
@@ -2800,6 +2893,11 @@
                   "type": "object",
                   "additionalProperties": true,
                   "properties": {
+                    "roundName": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "单场轮次名称，决赛和三四名赛分别返回"
+                    },
                     "officials": {
                       "type": "array",
                       "items": {
@@ -4323,7 +4421,23 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "slots": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProgressionSlotDto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -11968,6 +12082,37 @@
         "type": "object",
         "properties": {}
       },
+      "ProgressionSlotDto": {
+        "type": "object",
+        "properties": {
+          "targetMatchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "HOME",
+              "AWAY"
+            ]
+          },
+          "teamId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previousTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "targetMatchId",
+          "side",
+          "teamId",
+          "previousTeamId"
+        ]
+      },
       "ProgressionPreviewDto": {
         "type": "object",
         "properties": {
@@ -11993,7 +12138,7 @@
           },
           "sourceHash": {
             "type": "string",
-            "description": "当前预览来源 SHA-256"
+            "description": "当前预览的赛果来源和目标对阵 SHA-256"
           },
           "reason": {
             "type": "string",
@@ -12894,7 +13039,7 @@
           },
           "playerId": {
             "type": "string",
-            "format": "uuid"
+            "description": "球员 UUID。乌龙球未确认球员时可传空字符串。"
           },
           "relatedPlayerId": {
             "type": "string",

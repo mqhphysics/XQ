@@ -205,6 +205,16 @@ export class MatchClockService implements OnModuleInit, OnModuleDestroy {
           OR: [
             { actualStartedAt: { not: null } },
             { scheduledStartAt: { lte: new Date(now.getTime() - AUTO_START_GRACE_MS) } },
+            {
+              status: 'LIVE',
+              scheduledStartAt: { gt: now },
+              actualStartedAt: null,
+              actualEndedAt: null,
+              reportVersion: 0,
+              confirmedReportVersion: null,
+              homeScore: null,
+              awayScore: null,
+            },
           ],
           homeTeamId: { not: null },
           awayTeamId: { not: null },
@@ -224,8 +234,14 @@ export class MatchClockService implements OnModuleInit, OnModuleDestroy {
       if (!matches.length) return
       for (const match of matches) {
         const clock = matchClockView(match, await this.rules(this.prisma, match), now.getTime())
-        if (clock.phase === 'PENDING' || clock.phase === 'UNAVAILABLE') continue
-        const status = clock.phase === 'FINISHED' ? 'FINISHED' : 'LIVE'
+        if (clock.phase === 'UNAVAILABLE') continue
+        const restoreScheduled = clock.phase === 'PENDING' && match.status === 'LIVE'
+        const status = restoreScheduled
+          ? 'SCHEDULED'
+          : clock.phase === 'FINISHED'
+            ? 'FINISHED'
+            : 'LIVE'
+        if (clock.phase === 'PENDING' && !restoreScheduled) continue
         if (status === match.status) continue
         await this.prisma.match.updateMany({
           where: {
@@ -234,6 +250,13 @@ export class MatchClockService implements OnModuleInit, OnModuleDestroy {
             scheduledStartAt: match.scheduledStartAt,
             actualStartedAt: match.actualStartedAt,
             actualEndedAt: match.actualEndedAt,
+            ...(restoreScheduled && {
+              scheduledStartAt: { equals: match.scheduledStartAt, gt: now },
+              reportVersion: 0,
+              confirmedReportVersion: null,
+              homeScore: null,
+              awayScore: null,
+            }),
           },
           data: { status },
         })

@@ -145,6 +145,7 @@ export type { PostTagQueryDto } from './models/PostTagQueryDto';
 export type { PostTeamDto } from './models/PostTeamDto';
 export type { ProgressionConfirmDto } from './models/ProgressionConfirmDto';
 export type { ProgressionPreviewDto } from './models/ProgressionPreviewDto';
+export type { ProgressionSlotDto } from './models/ProgressionSlotDto';
 export type { PublicRosterPlayerResponseDto } from './models/PublicRosterPlayerResponseDto';
 export type { PublicTournamentListResponseDto } from './models/PublicTournamentListResponseDto';
 export type { PublicTournamentTeamDetailResponseDto } from './models/PublicTournamentTeamDetailResponseDto';

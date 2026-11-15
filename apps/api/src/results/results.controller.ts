@@ -10,12 +10,20 @@ import {
   Post,
   Req,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiBody, ApiHeader, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExtraModels,
+  ApiHeader,
+  ApiOkResponse,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger'
 
 import { AuthorizeInApplicationService } from '../auth/application-authorization'
 import { getRequestId, type RequestWithId } from '../common/request-context'
 import { requireP1DevOrganizationId } from '../schedule/dev-context'
-import { ProgressionConfirmDto, ProgressionPreviewDto } from './results.dto'
+import { ProgressionConfirmDto, ProgressionPreviewDto, ProgressionSlotDto } from './results.dto'
 import { ResultsService } from './results.service'
 
 @ApiTags('results')
@@ -32,6 +40,14 @@ export class ResultsController {
   @HttpCode(200)
   @ApiBearerAuth()
   @ApiBody({ type: ProgressionPreviewDto })
+  @ApiExtraModels(ProgressionSlotDto)
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      properties: { slots: { type: 'array', items: { $ref: getSchemaPath(ProgressionSlotDto) } } },
+    },
+  })
   @AuthorizeInApplicationService()
   preview(
     @Headers('authorization') authorization: string | undefined,

@@ -17,6 +17,7 @@ export interface ProgressionSource {
     awayTeamId: string | null
     groupId: string | null
   }>
+  targets?: Array<{ matchId: string; homeTeamId: string | null; awayTeamId: string | null }>
 }
 
 export function progressionSourceHash(source: ProgressionSource): string {
@@ -62,6 +63,7 @@ export function progressionSourceHash(source: ProgressionSource): string {
         ruleVersionId: source.ruleVersionId,
         teams,
         matches,
+        targets: source.targets?.slice().sort((a, b) => a.matchId.localeCompare(b.matchId)),
       }),
     )
     .digest('hex')

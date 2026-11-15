@@ -53,7 +53,7 @@ export class ReportEventDto {
   @Matches(/^$|^\d{1,2}$/)
   addedMinute!: string
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ type: String, description: '球员 UUID。乌龙球未确认球员时可传空字符串。' })
   @IsString()
   @ValidateIf((_object, value) => value !== '')
   @IsUUID()

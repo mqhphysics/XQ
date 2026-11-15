@@ -22,6 +22,7 @@ import type {
 import {
   canonicalFields,
   nextReportStatus,
+  projectReportEvents,
   ReportRuleError,
   reportFieldsEqual,
   requireForfeitScore,
@@ -693,24 +694,14 @@ export class MatchReportService {
             await tx.matchEvent.deleteMany({
               where: { organizationId: session.organizationId, matchId: match.id },
             })
-            const projectedEvents = fields.events.filter(
-              (event) =>
-                event.minute !== '' &&
-                event.playerId !== '' &&
-                (event.kind !== 'SUBSTITUTION' || event.relatedPlayerId !== ''),
-            )
+            const projectedEvents = projectReportEvents(fields.events)
             if (!abandoned && projectedEvents.length)
               await tx.matchEvent.createMany({
-                data: projectedEvents.map((event, index) => ({
+                data: projectedEvents.map(({ side, ...event }) => ({
+                  ...event,
                   organizationId: session.organizationId,
                   matchId: match.id,
-                  teamId: event.side === 'HOME' ? match.homeTeamId! : match.awayTeamId!,
-                  playerId: event.playerId,
-                  relatedPlayerId: event.relatedPlayerId || null,
-                  type: event.kind,
-                  minute: Number(event.minute),
-                  stoppageMinute: event.addedMinute ? Number(event.addedMinute) : null,
-                  sortOrder: index,
+                  teamId: side === 'HOME' ? match.homeTeamId! : match.awayTeamId!,
                 })),
               })
             if (!liveReport)

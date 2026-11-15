@@ -40,6 +40,15 @@ test('scheduled starts and ends change status only, including missed earlier day
             status: 'SCHEDULED',
             scheduledStartAt: new Date('2026-10-24T04:00Z'),
           },
+          {
+            id: 'rescheduled',
+            organizationId: 'org',
+            actualStartedAt: null,
+            actualEndedAt: null,
+            tournamentId: 'women',
+            status: 'LIVE',
+            scheduledStartAt: new Date('2026-10-26T04:00Z'),
+          },
         ]
       },
       updateMany: async (args: unknown) => {
@@ -87,6 +96,22 @@ test('scheduled starts and ends change status only, including missed earlier day
       },
       data: { status: 'FINISHED' },
     },
+    {
+      where: {
+        id: 'rescheduled',
+        status: 'LIVE',
+        actualStartedAt: null,
+        actualEndedAt: null,
+        scheduledStartAt: {
+          equals: new Date('2026-10-26T04:00Z'),
+          gt: new Date('2026-10-25T06:20Z'),
+        },
+        reportVersion: 0,
+        confirmedReportVersion: null,
+        homeScore: null,
+        awayScore: null,
+      },
+      data: { status: 'SCHEDULED' },
+    },
   ])
-  assert(!JSON.stringify(updates).includes('Score'))
 })

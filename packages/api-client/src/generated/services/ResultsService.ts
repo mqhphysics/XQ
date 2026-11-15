@@ -33,7 +33,7 @@ export class ResultsService {
     public static resultsControllerPreview(
         id: string,
         requestBody: ProgressionPreviewDto,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/admin/tournaments/{id}/progression/preview',

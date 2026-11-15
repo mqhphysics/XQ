@@ -20,6 +20,7 @@ import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
   ApiExtraModels,
   getSchemaPath,
@@ -112,6 +113,32 @@ export class ExperienceController {
 
   @Get('public/tournaments/:tournamentId/competition-data')
   @PublicOrganizationHeader()
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      properties: {
+        leaders: {
+          type: 'object',
+          additionalProperties: true,
+          properties: {
+            scorers: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: true,
+                required: ['goals', 'rank'],
+                properties: {
+                  goals: { type: 'integer' },
+                  rank: { type: 'integer', description: '并列名次，后续名次跳过并列人数' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: '读取积分榜、淘汰赛和球员榜单' })
   competitionData(@Req() request: RequestWithId, @Param('tournamentId') tournamentId: string) {
     return this.experienceService.getCompetitionData(getOrganizationId(request), tournamentId)
@@ -135,7 +162,41 @@ export class ExperienceController {
   }
 
   @Get('public/players/:playerId')
+  @ApiQuery({ name: 'tournamentId', type: String, required: false })
   @PublicOrganizationHeader()
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      required: ['recentMatches'],
+      properties: {
+        recentMatches: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: true,
+            required: [
+              'id',
+              'starter',
+              'minutesPlayed',
+              'appearanceRecorded',
+              'participationConfirmed',
+            ],
+            properties: {
+              id: { type: 'string', format: 'uuid' },
+              starter: { type: 'boolean', nullable: true },
+              minutesPlayed: { type: 'integer', nullable: true },
+              appearanceRecorded: { type: 'boolean', description: '已保存独立出场记录' },
+              participationConfirmed: {
+                type: 'boolean',
+                description: '已有出场、确认名单或实际参赛事件依据',
+              },
+            },
+          },
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: '读取完整公开球员档案与赛季数据' })
   player(
     @Req() request: RequestWithId,
@@ -175,6 +236,11 @@ export class ExperienceController {
       type: 'object',
       additionalProperties: true,
       properties: {
+        roundName: {
+          type: 'string',
+          nullable: true,
+          description: '单场轮次名称，决赛和三四名赛分别返回',
+        },
         officials: { type: 'array', items: { $ref: getSchemaPath(MatchOfficialDto) } },
       },
     },

@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { compatibleRosterExpansion } from './roster-rule-compatibility'
+import { compatibleResultRules, compatibleRosterExpansion } from './roster-rule-compatibility'
+
+test('new progression slots can use confirmed results from an otherwise unchanged rule', () => {
+  const before = { match: { periodMinutes: 30 }, results: { points: { win: 3 } } }
+  const after = { ...before, progression: { slots: [] } }
+  assert.equal(compatibleResultRules(before, after), true)
+  assert.equal(compatibleResultRules(before, { ...after, match: { periodMinutes: 20 } }), false)
+})
 
 const previous = {
   roster: { minPlayers: 1, maxPlayers: 30, eligiblePlayerIds: ['a', 'b'] },

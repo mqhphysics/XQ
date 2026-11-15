@@ -14,6 +14,16 @@ function canonical(value: unknown): string {
     )
   return JSON.stringify(value) ?? 'null'
 }
+
+/** Progression rules route confirmed results; they do not change how those results were scored. */
+export function compatibleResultRules(previous: unknown, current: unknown): boolean {
+  if (!record(previous) || !record(current)) return false
+  const before = { ...previous }
+  const after = { ...current }
+  delete before.progression
+  delete after.progression
+  return canonical(before) === canonical(after) || compatibleRosterExpansion(before, after)
+}
 /** Expanding eligibility alone cannot invalidate prior scores; every other rule stays identical. */
 export function compatibleRosterExpansion(previous: unknown, current: unknown): boolean {
   if (!record(previous) || !record(current) || !record(previous.roster) || !record(current.roster))

@@ -120,7 +120,7 @@ export class ExperienceService {
     public static experienceControllerCompetitionData(
         tournamentId: string,
         xOrganizationId?: string,
-    ): CancelablePromise<any> {
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/public/tournaments/{tournamentId}/competition-data',
@@ -158,13 +158,15 @@ export class ExperienceService {
      * 读取完整公开球员档案与赛季数据
      * @param playerId
      * @param xOrganizationId 组织 UUID；可使用会话或部署默认组织
+     * @param tournamentId
      * @returns any
      * @throws ApiError
      */
     public static experienceControllerPlayer(
         playerId: string,
         xOrganizationId?: string,
-    ): CancelablePromise<any> {
+        tournamentId?: string,
+    ): CancelablePromise<Record<string, any>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/public/players/{playerId}',
@@ -173,6 +175,9 @@ export class ExperienceService {
             },
             headers: {
                 'x-organization-id': xOrganizationId,
+            },
+            query: {
+                'tournamentId': tournamentId,
             },
         });
     }

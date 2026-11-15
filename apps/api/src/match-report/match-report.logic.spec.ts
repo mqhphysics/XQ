@@ -3,6 +3,7 @@ import test from 'node:test'
 import type { ReportFieldsDto } from './match-report.dto'
 import {
   nextReportStatus,
+  projectReportEvents,
   reportFieldsEqual,
   requireForfeitScore,
   validateReportFields,
@@ -55,6 +56,33 @@ test('不完整进球明细仅可保存，完整提交严格核对比分', () =>
   assert.doesNotThrow(() => validateReportFields(fields({ homeScore: '2' }), context, false))
   assert.throws(() => validateReportFields(fields({ homeScore: '2' }), context, true))
   assert.throws(() => validateReportFields(fields({ homeScore: '0' }), context, false))
+})
+
+test('anonymous own goals validate and project with a null player on the scoring error side', () => {
+  const goal = {
+    ...fields().events[0]!,
+    kind: 'OWN_GOAL' as const,
+    side: 'AWAY' as const,
+    playerId: '',
+  }
+  validateReportFields(fields({ events: [goal] }), context, true)
+  assert.deepEqual(projectReportEvents([goal]), [
+    {
+      side: 'AWAY',
+      playerId: null,
+      relatedPlayerId: null,
+      type: 'OWN_GOAL',
+      minute: 30,
+      stoppageMinute: null,
+      sortOrder: 0,
+    },
+  ])
+  assert.throws(() =>
+    validateReportFields(fields({ events: [{ ...goal, kind: 'GOAL' }] }), context, true),
+  )
+  assert.throws(() =>
+    validateReportFields(fields({ events: [{ ...goal, playerId: 'home-1' }] }), context, true),
+  )
 })
 test('球员必须属于绑定名单中的事件球队，助攻和换人关联也受限制', () => {
   const event = fields().events[0]!

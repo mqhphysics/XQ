@@ -28,7 +28,7 @@ import {
   type ResultsTransaction,
 } from './results.repository'
 import { calculateResultStandings } from './standings'
-import { compatibleRosterExpansion } from './roster-rule-compatibility'
+import { compatibleResultRules } from './roster-rule-compatibility'
 
 function failure(status: HttpStatus, message: string, reason: string): ApiHttpException {
   return new ApiHttpException(status, {
@@ -45,7 +45,12 @@ function failure(status: HttpStatus, message: string, reason: string): ApiHttpEx
 function json(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue
 }
-type PlannedSlot = { targetMatchId: string; side: 'HOME' | 'AWAY'; teamId: string }
+type PlannedSlot = {
+  targetMatchId: string
+  side: 'HOME' | 'AWAY'
+  teamId: string
+  previousTeamId: string | null
+}
 
 @Injectable()
 export class ResultsService {
@@ -98,7 +103,7 @@ export class ResultsService {
       select: { id: true, rules: true },
     })
     for (const rule of previous)
-      if (compatibleRosterExpansion(rule.rules, current.rules)) compatible.add(rule.id)
+      if (compatibleResultRules(rule.rules, current.rules)) compatible.add(rule.id)
     return compatible
   }
 
@@ -255,6 +260,7 @@ export class ResultsService {
         ),
         'INVALID_PROGRESSION_TARGET',
       )
+      const targetFixtures = fixtures.filter((fixture) => targets.includes(fixture.id))
       const source: ProgressionSource = {
         organizationId,
         tournamentId,
@@ -267,6 +273,11 @@ export class ResultsService {
           homeTeamId: fixture.homeTeamId,
           awayTeamId: fixture.awayTeamId,
           groupId: fixture.groupId,
+        })),
+        targets: targetFixtures.map(({ id, homeTeamId, awayTeamId }) => ({
+          matchId: id,
+          homeTeamId,
+          awayTeamId,
         })),
       }
       const sourceHash = progressionSourceHash(source)
@@ -334,8 +345,15 @@ export class ResultsService {
             else
               teamId = slotSource.type === 'MATCH_WINNER' ? result.winnerTeamId : result.loserTeamId
           }
-          if (teamId)
-            assignments.push({ targetMatchId: slot.targetMatchId, side: slot.side, teamId })
+          if (teamId) {
+            const target = targetFixtures.find((fixture) => fixture.id === slot.targetMatchId)!
+            assignments.push({
+              targetMatchId: slot.targetMatchId,
+              side: slot.side,
+              teamId,
+              previousTeamId: slot.side === 'HOME' ? target.homeTeamId : target.awayTeamId,
+            })
+          }
         }
       const boundLineups = await tx.$queryRawUnsafe<Array<{ matchId: string }>>(
         `SELECT DISTINCT match_id AS "matchId" FROM team_lineup_plans
@@ -469,13 +487,15 @@ export class ResultsService {
           if (affected !== 1)
             throw failure(HttpStatus.CONFLICT, '晋级版本已变化', 'PROGRESSION_VERSION_CONFLICT')
           for (const slot of preview.slots) {
+            if (slot.teamId === slot.previousTeamId) continue
             const column = slot.side === 'HOME' ? 'home_team_id' : 'away_team_id'
             const count = await tx.$executeRawUnsafe(
-              `UPDATE matches SET ${column} = $3::uuid, updated_at = now() WHERE organization_id = $1::uuid AND tournament_id = $2::uuid AND id = $4::uuid AND report_version = 0 AND confirmed_report_version IS NULL AND status IN ('DRAFT','SCHEDULED','POSTPONED')`,
+              `UPDATE matches SET ${column} = $3::uuid, updated_at = now() WHERE organization_id = $1::uuid AND tournament_id = $2::uuid AND id = $4::uuid AND report_version = 0 AND confirmed_report_version IS NULL AND status IN ('DRAFT','SCHEDULED','POSTPONED') AND ${column} IS NOT DISTINCT FROM $5::uuid`,
               session.organizationId,
               tournamentId,
               slot.teamId,
               slot.targetMatchId,
+              slot.previousTeamId,
             )
             if (count !== 1)
               throw failure(

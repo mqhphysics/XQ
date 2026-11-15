@@ -32,6 +32,14 @@ const source: ProgressionSource = {
   ],
 }
 
+test('a target opponent change invalidates a previously displayed preview', () => {
+  const target = { matchId: 'semi', homeTeamId: 'a', awayTeamId: null }
+  assert.notEqual(
+    progressionSourceHash({ ...source, targets: [target] }),
+    progressionSourceHash({ ...source, targets: [{ ...target, awayTeamId: 'b' }] }),
+  )
+})
+
 test('source fingerprint is independent of fixture input order without mutating facts', () => {
   const reversed = [...source.matches].reverse()
   assert.equal(

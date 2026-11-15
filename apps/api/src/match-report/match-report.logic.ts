@@ -86,8 +86,12 @@ export function validateReportFields(
     )
       throw new ReportRuleError('比赛分钟或补时无效')
     const players = event.side === 'HOME' ? context.homePlayerIds : context.awayPlayerIds
+    const playerMissing = event.playerId === '' || event.playerId == null
+    const anonymousOwnGoal = event.kind === 'OWN_GOAL' && playerMissing
     if (
-      (!(allowPlaceholders && event.playerId === '') && !players.has(event.playerId)) ||
+      (!anonymousOwnGoal &&
+        !(allowPlaceholders && playerMissing) &&
+        !players.has(event.playerId)) ||
       (event.relatedPlayerId !== '' && !players.has(event.relatedPlayerId))
     )
       throw new ReportRuleError('事件球员必须来自本次报告绑定的对应球队锁定名单')
@@ -106,9 +110,9 @@ export function validateReportFields(
       event.playerId,
       event.relatedPlayerId,
     ])
-    if (event.minute !== '' && event.playerId !== '' && facts.has(fact))
+    if (event.minute !== '' && !playerMissing && facts.has(fact))
       throw new ReportRuleError('同一球队、球员、分钟的相同事件重复，请撤销多录的一条')
-    if (event.minute !== '' && event.playerId !== '') facts.add(fact)
+    if (event.minute !== '' && !playerMissing) facts.add(fact)
     if (event.kind === 'GOAL' || event.kind === 'OWN_GOAL') {
       const side =
         event.kind === 'OWN_GOAL' ? (event.side === 'HOME' ? 'AWAY' : 'HOME') : event.side
@@ -128,6 +132,25 @@ export function validateReportFields(
     throw new ReportRuleError(
       complete ? '进球明细与普通比分不一致，请核对后提交' : '进球明细超过比分，不能保存',
     )
+}
+
+export function projectReportEvents(events: ReportFieldsDto['events']) {
+  return events
+    .filter(
+      (event) =>
+        event.minute !== '' &&
+        (event.playerId || event.kind === 'OWN_GOAL') &&
+        (event.kind !== 'SUBSTITUTION' || event.relatedPlayerId),
+    )
+    .map((event, index) => ({
+      side: event.side,
+      playerId: event.playerId || null,
+      relatedPlayerId: event.relatedPlayerId || null,
+      type: event.kind,
+      minute: Number(event.minute),
+      stoppageMinute: event.addedMinute ? Number(event.addedMinute) : null,
+      sortOrder: index,
+    }))
 }
 
 function validateSubstitutionSequence(events: ReportFieldsDto['events']): void {
