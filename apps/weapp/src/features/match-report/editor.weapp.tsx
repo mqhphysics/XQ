@@ -1,3 +1,4 @@
+import { nativeMatchReportChanged } from '../product/native-refresh.weapp'
 import { Button, Input, Picker, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useRef, useState } from 'react'
@@ -159,7 +160,7 @@ export function NativeMatchReportEntry({
       action === 'COMPLETE' &&
       !recordingComplete(fields.homeScore, fields.awayScore, fields.events)
     ) {
-      setError('请补齐双方比分、每个进球的球员和分钟，并核对进球数与比分一致')
+      setError('请补齐双方比分、进球分钟和进球球员，并核对进球数。乌龙球的球员可留空。')
       return
     }
     const command = pending.current || {
@@ -182,6 +183,7 @@ export function NativeMatchReportEntry({
     try {
       store(fields, command)
       await nativeReportApi.save(match.id, command)
+      Taro.eventCenter.trigger(nativeMatchReportChanged)
       pending.current = null
       setWaiting(false)
       if (key) Taro.removeStorageSync(key)
@@ -191,7 +193,7 @@ export function NativeMatchReportEntry({
         icon: 'none',
       })
       void productRepository
-        .getMatch(match.id)
+        .getMatch(match.id, true)
         .then(onUpdated)
         .catch(() => {
           void Taro.showToast({ title: '已保存，比赛页暂时未刷新', icon: 'none' })
@@ -412,7 +414,7 @@ export function NativeMatchReportEntry({
                     </View>
                     <Picker
                       range={[
-                        '选择球员',
+                        event.kind === 'OWN_GOAL' ? '球员待确认（选填）' : '选择球员',
                         ...players.map((p) => `${p.shirtNumber || '—'} · ${p.displayName}`),
                       ]}
                       value={Math.max(0, players.findIndex((p) => p.id === event.playerId) + 1)}
@@ -428,7 +430,8 @@ export function NativeMatchReportEntry({
                     >
                       <View className="native-select">
                         <Text>
-                          {players.find((p) => p.id === event.playerId)?.displayName || '选择球员'}
+                          {players.find((p) => p.id === event.playerId)?.displayName ||
+                            (event.kind === 'OWN_GOAL' ? '球员待确认（选填）' : '选择球员')}
                         </Text>
                         <View className="native-select__chevron" />
                       </View>

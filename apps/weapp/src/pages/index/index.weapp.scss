@@ -248,6 +248,9 @@ page .native-home-search__submit.native-home-search__submit {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
+.native-home-focus > .native-focus-card--pending:only-child {
+  grid-column: 2;
+}
 page .native-focus-card.native-focus-card {
   display: flex;
   flex-direction: column;

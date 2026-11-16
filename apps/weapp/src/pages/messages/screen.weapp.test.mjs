@@ -25,6 +25,7 @@ vm.runInNewContext(source, {
     if (name === './direct.weapp') return { default: 'DirectMessages' }
     if (name === './notifications.weapp') return { default: 'Notifications' }
     if (name === './settings.weapp') return { MessageSettings: 'Settings' }
+    if (name.includes('native-social/config')) return { nativeWriteEnabled: () => false }
     return {}
   },
 })
@@ -33,12 +34,12 @@ test('message root and legacy private link share the same single inbox home', ()
   assert.equal(render({}).type.name, 'MessageHome')
   assert.equal(render({ private: '1' }).type.name, 'MessageHome')
 })
-test('reply and mention links enter one category while threads and search remain independent', () => {
+test('reply and mention links still open notifications, and old private links open system messages', () => {
   const replies = render({ category: 'mentions' })
   assert.equal(replies.type, 'Notifications')
   assert.equal(replies.props.category, 'replies')
-  assert.equal(render({ conversationId: 'conversation' }).type, 'DirectMessages')
-  assert.equal(render({ new: '1' }).type, 'DirectMessages')
+  assert.equal(render({ conversationId: 'conversation' }).props.category, 'system')
+  assert.equal(render({ new: '1' }).props.category, 'system')
   assert.equal(render({ category: 'settings' }).type, 'Settings')
 })
 test('old notification detail URLs retain precedence and do not fall into the private list', () => {

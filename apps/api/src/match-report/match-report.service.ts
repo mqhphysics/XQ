@@ -3,7 +3,7 @@ import {
   requireActiveReporter,
   acceptReporterContribution,
 } from '../campus/reporter-quality.service'
-import { HttpStatus, Inject, Injectable } from '@nestjs/common'
+import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
 import { AuthService, type AuthenticatedSession } from '../auth/auth.service'
 import { AccessPolicyService } from '../auth/access-policy.service'
@@ -11,6 +11,7 @@ import { ApiHttpException } from '../common/api-http.exception'
 import { PrismaService } from '../database/prisma.service'
 import { Prisma, type MatchReportRevision } from '../generated/prisma/client'
 import { parseResultsRules } from '../results/parse-rules'
+import { ResultsService } from '../results/results.service'
 import { reportingWindow } from './reporting-window'
 import { AUTO_START_GRACE_MS } from '../schedule/match-clock.logic'
 import { recordingComplete, recordingScore } from '@xiaoqiu/contracts'
@@ -40,6 +41,7 @@ export class MatchReportService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuthService) private readonly auth: AuthService,
+    @Optional() @Inject(ResultsService) private readonly results?: ResultsService,
   ) {}
 
   async begin(authorization: string | undefined, matchId: string, key: string, requestId: string) {
@@ -362,9 +364,18 @@ export class MatchReportService {
     const requestHash = createHash('sha256')
       .update(JSON.stringify(canonicalCommand(body)))
       .digest('hex')
+    const results = this.results
+    const mayAdvance = results && ['CONFIRM', 'COMPLETE', 'SAVE_SCORE'].includes(body.action)
     try {
       return await this.prisma.$transaction(
         async (tx) => {
+          if (mayAdvance)
+            await tx.$queryRaw`
+              SELECT tournament.id FROM tournaments tournament
+              JOIN matches match ON match.tournament_id = tournament.id AND match.organization_id = tournament.organization_id
+              WHERE match.id = ${matchId}::uuid AND tournament.organization_id = ${session.organizationId}::uuid
+              FOR UPDATE OF tournament
+            `
           await this.lockMatch(tx, session.organizationId, matchId)
           const match = await this.requireMatch(tx, session.organizationId, matchId)
           const privilege = await this.privilege(tx, session, match)
@@ -543,9 +554,14 @@ export class MatchReportService {
           if (body.action !== 'RETURN' && blockingReasons.length)
             throw conflict(blockingReasons.join('；'))
           const fields = reviewing ? parseFields(previous!.fields) : body.fields!
+          const finalKnockoutScore =
+            body.action === 'SAVE_SCORE' &&
+            match.stage?.type === 'KNOCKOUT' &&
+            match.status === 'FINISHED'
           const liveReport =
             !!timing &&
             timing.window.opened &&
+            !finalKnockoutScore &&
             fields.outcome === 'FINISHED' &&
             ['SAVE', 'SAVE_SCORE', 'SUBMIT'].includes(body.action)
           try {
@@ -704,6 +720,20 @@ export class MatchReportService {
                   teamId: side === 'HOME' ? match.homeTeamId! : match.awayTeamId!,
                 })),
               })
+            if (
+              !liveReport &&
+              !abandoned &&
+              results &&
+              mayAdvance &&
+              match.stage?.type === 'KNOCKOUT'
+            )
+              await results.advanceFromConfirmedMatch(
+                tx,
+                session,
+                match.tournamentId,
+                match.id,
+                requestId,
+              )
             if (!liveReport)
               await tx.outboxJob.create({
                 data: {

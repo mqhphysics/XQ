@@ -336,29 +336,33 @@ function LeaderTable({
       {rows.length === 0 && (
         <Text className="native-note">暂无{mode === 'goals' ? '进球' : '助攻'}记录</Text>
       )}
-      {rows.map((player, index) => (
-        <Button
-          hoverClass="native-press"
-          hoverStartTime={0}
-          hoverStayTime={60}
-          className="native-leader"
-          key={player.id}
-          onClick={() => void openPlayer(player.id, tournamentId)}
-        >
-          <Text className={`native-leader__rank native-leader__rank--${index + 1}`}>
-            {index + 1}
-          </Text>
-          <View>
-            <Text className="native-leader__name">{player.displayName}</Text>
-            <View className="native-leader__team">
-              <TeamCrest team={player.team} interactive={false} size="small" />
-              <Text>{player.team?.name ?? '未分配球队'}</Text>
+      {rows.map((player, index) => {
+        const rank =
+          mode === 'goals'
+            ? (player.rank ?? rows.findIndex((row) => row.goals === player.goals) + 1)
+            : index + 1
+        return (
+          <Button
+            hoverClass="native-press"
+            hoverStartTime={0}
+            hoverStayTime={60}
+            className="native-leader"
+            key={player.id}
+            onClick={() => void openPlayer(player.id, tournamentId)}
+          >
+            <Text className={`native-leader__rank native-leader__rank--${rank}`}>{rank}</Text>
+            <View>
+              <Text className="native-leader__name">{player.displayName}</Text>
+              <View className="native-leader__team">
+                <TeamCrest team={player.team} interactive={false} size="small" />
+                <Text>{player.team?.name ?? '未分配球队'}</Text>
+              </View>
             </View>
-          </View>
-          <Text>{player.appearances}</Text>
-          <Text className="native-leader__value">{player[mode]}</Text>
-        </Button>
-      ))}
+            <Text>{player.appearances}</Text>
+            <Text className="native-leader__value">{player[mode]}</Text>
+          </Button>
+        )
+      })}
     </View>
   )
 }

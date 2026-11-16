@@ -8,6 +8,7 @@ import { Prisma } from '../generated/prisma/client'
 import { defaultAvatar } from '../media/default-media'
 import { blockedUserIds, lockInteractionPair } from './interaction-policy'
 import { visibleNotificationTargets } from './notification-targets'
+import { publicUgcEnabled } from '../product-config/retired-ugc'
 import type {
   MessageCategory,
   MessageCenterNotificationDto,
@@ -93,7 +94,10 @@ export class MessageCenterService {
   }
 
   private noticeScope(session: AuthenticatedSession) {
-    return Prisma.sql`n.organization_id = ${session.organizationId}::uuid AND n.recipient_user_id = ${session.userId}::uuid AND n.type <> 'DIRECT_MESSAGE' AND (
+    const systemNotice = publicUgcEnabled()
+      ? Prisma.sql`n.type <> 'DIRECT_MESSAGE'`
+      : Prisma.sql`(n.type <> 'DIRECT_MESSAGE' OR n.metadata->>'kind' = 'ADMIN_NOTICE')`
+    return Prisma.sql`n.organization_id = ${session.organizationId}::uuid AND n.recipient_user_id = ${session.userId}::uuid AND ${systemNotice} AND (
       n.actor_user_id IS NULL OR n.type NOT IN ('POST_LIKED','POST_COMMENTED','COMMENT_REPLIED') OR NOT EXISTS (
         SELECT 1 FROM user_blocks b WHERE b.organization_id=n.organization_id AND b.blocker_user_id=${session.userId}::uuid AND b.blocked_user_id=n.actor_user_id
       ))`
@@ -111,27 +115,35 @@ export class MessageCenterService {
       this.prisma.$queryRaw<Array<{ category: MessageCategory; count: number }>>(
         Prisma.sql`SELECT ${categorySql} AS category, count(*)::int AS count FROM user_notifications n WHERE ${this.noticeScope(session)} AND n.read_at IS NULL AND ${this.reminderSql(session, preferences)} GROUP BY 1`,
       ),
-      this.prisma.directMessage.count({
-        where: {
-          organizationId: session.organizationId,
-          senderUserId: { not: session.userId },
-          readAt: null,
-          conversation: { OR: [{ userOneId: session.userId }, { userTwoId: session.userId }] },
-          OR: [
-            { kind: 'ADMIN_NOTICE' },
-            {
-              sender: {
-                blockedUsers: {
-                  none: { organizationId: session.organizationId, blockedUserId: session.userId },
+      publicUgcEnabled()
+        ? this.prisma.directMessage.count({
+            where: {
+              organizationId: session.organizationId,
+              senderUserId: { not: session.userId },
+              readAt: null,
+              conversation: { OR: [{ userOneId: session.userId }, { userTwoId: session.userId }] },
+              OR: [
+                { kind: 'ADMIN_NOTICE' },
+                {
+                  sender: {
+                    blockedUsers: {
+                      none: {
+                        organizationId: session.organizationId,
+                        blockedUserId: session.userId,
+                      },
+                    },
+                    blockedByUsers: {
+                      none: {
+                        organizationId: session.organizationId,
+                        blockerUserId: session.userId,
+                      },
+                    },
+                  },
                 },
-                blockedByUsers: {
-                  none: { organizationId: session.organizationId, blockerUserId: session.userId },
-                },
-              },
+              ],
             },
-          ],
-        },
-      }),
+          })
+        : 0,
     ])
     const count = (category: MessageCategory) =>
       counts.find((row) => row.category === category)?.count ?? 0
@@ -176,6 +188,28 @@ export class MessageCenterService {
       SELECT * FROM ranked WHERE position=1 ${after} ORDER BY created_at DESC,id DESC LIMIT 51`)
     const page = rows.slice(0, 50)
     if (!page.length) return { items: [], nextCursor: null }
+    const adminNoticeIds = page.flatMap((row) => {
+      const id =
+        row.type === 'DIRECT_MESSAGE'
+          ? row.deduplication_key?.slice('direct-message:'.length)
+          : undefined
+      return id && /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id) ? [id] : []
+    })
+    const adminNoticeMessages = adminNoticeIds.length
+      ? await this.prisma.directMessage.findMany({
+          where: {
+            id: { in: adminNoticeIds },
+            organizationId: session.organizationId,
+            kind: 'ADMIN_NOTICE',
+            senderUserId: { not: session.userId },
+            conversation: { OR: [{ userOneId: session.userId }, { userTwoId: session.userId }] },
+          },
+          select: { id: true, body: true, metadata: true },
+        })
+      : []
+    const adminNotices = new Map(
+      adminNoticeMessages.map((message) => [`direct-message:${message.id}`, message]),
+    )
     const groups = page.map((row) => row.group_key)
     const [aggregates, actors] = await Promise.all([
       this.prisma.$queryRaw<
@@ -205,12 +239,22 @@ export class MessageCenterService {
       const aggregate = aggregates.find((item) => item.group_key === row.group_key)
       const target = targets.get(row.id) ?? null
       const unavailable = category !== 'system' && !target
+      const adminNotice = adminNotices.get(row.deduplication_key ?? '')
+      const correctionPath = '/pages/me/index?profile=information&correction=1'
+      const noticeLink =
+        adminNotice &&
+        adminNotice.metadata &&
+        typeof adminNotice.metadata === 'object' &&
+        'actionPath' in adminNotice.metadata &&
+        adminNotice.metadata.actionPath === correctionPath
+          ? correctionPath
+          : null
       return {
         id: row.id,
         category,
         title: row.title,
-        body: unavailable ? '内容已删除或暂不可访问' : row.body,
-        linkPath: unavailable ? null : row.link_path,
+        body: unavailable ? '内容已删除或暂不可访问' : (adminNotice?.body ?? row.body),
+        linkPath: unavailable ? null : row.type === 'DIRECT_MESSAGE' ? noticeLink : row.link_path,
         readAt: row.read_at?.toISOString() ?? null,
         createdAt: row.created_at.toISOString(),
         actors: actors

@@ -101,7 +101,8 @@ test('capabilities require a freshly valid session; forged role/organization hea
     'goalMedia.publish',
   ] as const)
     assert.equal(result.actions[action].enabled, false, action)
-  assert.equal(result.actions['messages.send'].enabled, true)
+  assert.equal(result.actions['messages.send'].enabled, false)
+  assert.equal(result.actions['community.write'].enabled, false)
   assert.equal(current.sessionCalls(), 4)
   const where = (current.roleQuery() as { where: Record<string, unknown> }).where
   assert.equal(where.revokedAt, null)
@@ -136,7 +137,7 @@ test('actual object policy keeps captain, reporter and tournament administrator 
   assert.equal(tournament.actions['teams.manage'].enabled, false)
 })
 
-test('administrators respect explicit module switches while ordinary messaging is restored', async () => {
+test('administrators respect explicit module switches and the default private-message pause', async () => {
   const result = await fixture(
     [{ role: 'ORGANIZATION_ADMIN', scopeType: 'ORGANIZATION', scopeId: organizationId }],
     { XIAOQIU_FEATURE_TEAM_MANAGEMENT: '0', XIAOQIU_FEATURE_DIRECT_MESSAGES: '0' },
@@ -151,7 +152,7 @@ test('administrators respect explicit module switches while ordinary messaging i
   const platform = await fixture([
     { role: 'PLATFORM_ADMIN', scopeType: 'PLATFORM', scopeId: 'platform' },
   ]).service.get('valid-test-session', headers())
-  assert.equal(platform.actions['messages.send'].enabled, true)
+  assert.equal(platform.actions['messages.send'].enabled, false)
 })
 
 test('capability snapshots do not retain a revoked team role from an earlier request', async () => {

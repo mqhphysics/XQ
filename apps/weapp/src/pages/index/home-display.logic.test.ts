@@ -45,10 +45,10 @@ const match = (id: string, changes: Partial<MatchSummary> = {}): MatchSummary =>
   ...changes,
 })
 test('unscored focus games show kickoff date and time on the league clock, while zero stays a score', () => {
-  assert.equal(nativeFocusValue(match('upcoming')), '09/01\n19:00')
+  assert.equal(nativeFocusValue(match('upcoming')), '09/01周二\n19:00')
   assert.equal(
     nativeFocusValue(match('midnight', { scheduledStartAt: '2026-09-01T16:30:00Z' })),
-    '09/02\n00:30',
+    '09/02周三\n00:30',
   )
   assert.equal(nativeFocusValue(match('draw', { homeScore: 0, awayScore: 0 })), '0 : 0')
   assert.equal(nativeFocusValue(match('unknown', { scheduledStartAt: null })), '待定')
@@ -107,6 +107,27 @@ test('focus always uses at most two real games and fills a completed tournament 
   assert.deepEqual(
     nativeFocusMatches([older, recent]).map((item) => item.id),
     ['recent', 'older'],
+  )
+})
+test('a final without a date or assigned teams still takes the unfinished slot', () => {
+  const final = match('final', {
+    scheduledStartAt: null,
+    title: '决赛：半决赛1胜队 vs 半决赛2胜队',
+    roundName: '决赛及三四名赛',
+  })
+  const semi = match('semi', { status: 'FINISHED', homeScore: 2, awayScore: 1 })
+  assert.deepEqual(
+    nativeFocusMatches([semi, final]).map((game) => game.id),
+    ['semi', 'final'],
+  )
+  assert.equal(nativeFocusLabel(final), '决赛')
+  assert.equal(
+    nativeFocusLabel({
+      ...final,
+      matchCode: 'W-016',
+      title: '三四名赛：半决赛1负队 vs 半决赛2负队',
+    }),
+    '三四名赛',
   )
 })
 test('live or scoreless ended games do not replace the latest scored result or the next kickoff', () => {

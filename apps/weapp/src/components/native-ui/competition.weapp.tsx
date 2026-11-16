@@ -55,7 +55,7 @@ export function useNativeCompetition({ viewerDefault = false }: { viewerDefault?
         })
     }
   }, [])
-  useNativeRefreshTask(() => load())
+  useNativeRefreshTask(() => load(), true)
   useEffect(() => {
     if (viewerDefault && initialized.current !== owner) {
       setState({ phase: 'loading' })

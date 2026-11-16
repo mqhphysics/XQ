@@ -4,9 +4,10 @@ import { knockoutMatchTime, matchWinnerId, knockoutRounds } from './knockout-dis
 import type { CompetitionDataResponse, MatchSummary } from '../../features/product/product.types'
 
 test('dates stay short and use the campus time zone including midnight boundaries', () => {
-  assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z'), '09/01 10:00')
-  assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z', true), '09/01')
-  assert.equal(knockoutMatchTime('2026-08-31T16:00:00Z'), '09/01 00:00')
+  assert.equal(knockoutMatchTime('2026-11-26T04:30:00Z'), '11/26周四 12:30')
+  assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z'), '09/01周二 10:00')
+  assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z', true), '09/01周二')
+  assert.equal(knockoutMatchTime('2026-08-31T16:00:00Z'), '09/01周二 00:00')
 })
 
 test('missing or invalid kickoff times remain explicitly pending', () => {
@@ -23,8 +24,8 @@ test('Android can initialize the knockout module without Intl and retain UTC+8 d
     const androidModule: { knockoutMatchTime: typeof knockoutMatchTime } = await import(
       moduleUrl.href
     )
-    assert.equal(androidModule.knockoutMatchTime('2026-08-31T16:00:00Z'), '09/01 00:00')
-    assert.equal(androidModule.knockoutMatchTime('2026-12-31T16:30:00Z'), '01/01 00:30')
+    assert.equal(androidModule.knockoutMatchTime('2026-08-31T16:00:00Z'), '09/01周二 00:00')
+    assert.equal(androidModule.knockoutMatchTime('2026-12-31T16:30:00Z'), '01/01周五 00:30')
   } finally {
     Object.defineProperty(globalThis, 'Intl', intlProperty)
   }

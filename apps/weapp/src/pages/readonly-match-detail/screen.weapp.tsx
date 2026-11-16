@@ -1,5 +1,6 @@
 import { NativeSocialInput } from '../../components/native-social/input.weapp'
 import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
+import { knockoutRoundLabel } from '@xiaoqiu/contracts'
 import {
   readNativeDraft,
   saveNativeDraft,
@@ -29,7 +30,7 @@ import {
 import { NativeDetailActiveContext } from '../../features/native-navigation/detail-context.weapp'
 import { useNativeMatchInterest } from '../../features/recommendation/match-interest.weapp'
 import { readSession } from '../../features/product/session'
-import { eventLabel, formatDate } from '../../features/product/product.format'
+import { eventLabel, formatDate, formatTime } from '../../features/product/product.format'
 import { openPlayer } from '../../features/product/player-navigation'
 import { openTeam } from '../../features/product/team-navigation'
 import { nativeMatchMedia, ownMediaImage } from '../../features/managed-media/native-media.weapp'
@@ -210,7 +211,8 @@ function NativeMatchContent({
       <View className="native-match-hero">
         <View className="native-match-meta">
           <Text>
-            {match.stageName || '赛事'} · {match.roundName || match.title}
+            {match.stageName || '赛事'} ·{' '}
+            {knockoutRoundLabel(match) || match.roundName || match.title}
           </Text>
           <MatchStatus status={match.status} />
         </View>
@@ -220,7 +222,9 @@ function NativeMatchContent({
             <Text>
               {scored
                 ? `${match.homeScore} : ${match.awayScore}`
-                : knockoutMatchTime(match.scheduledStartAt).split(' ')[1] || '待定'}
+                : match.scheduledStartAt
+                  ? formatTime(match.scheduledStartAt)
+                  : '待定'}
             </Text>
             {(match.homePenaltyScore !== null || match.awayPenaltyScore !== null) && (
               <Text className="native-match-penalty">
@@ -521,7 +525,9 @@ function EventPerson({
         if (player) void openPlayer(player.id, tournamentId)
       }}
     >
-      <Text>{player?.displayName || '球员待补充'}</Text>
+      <Text>
+        {player?.displayName || (event.type === 'OWN_GOAL' ? '球员待确认' : '球员待补充')}
+      </Text>
       {icon && <NativeMatchIcon kind={icon} />}
     </Button>
   )

@@ -7,6 +7,8 @@ import { PublicShell } from '../../components/public-shell'
 import { DataState } from '../../components/public-ui'
 import { PostCard, TeamCrest } from '../../components/product-ui'
 import { NativeMatchRow } from '../../components/native-match-row/index.weapp'
+import { leagueDay } from '../../features/product/league-time'
+import { nativeMatchDate } from '../readonly-schedule/native-schedule.logic.weapp'
 import {
   NativeDetailTabs,
   NativeFacts,
@@ -30,6 +32,34 @@ import {
 } from '../../features/getting-started/flow.logic.weapp'
 
 const tabs = ['数据', '赛程', '动态', '资料']
+
+function PlayerSchedule({ matches }: { matches: PlayerDetailResponse['recentMatches'] }) {
+  const byDay = new Map<string, PlayerDetailResponse['recentMatches']>()
+  const kickoff = (match: PlayerDetailResponse['recentMatches'][number]) =>
+    Date.parse(match.scheduledStartAt ?? '') || 0
+  for (const match of [...matches].sort((a, b) => kickoff(b) - kickoff(a))) {
+    const day = nativeMatchDate(match.scheduledStartAt)
+    const group = byDay.get(day) ?? []
+    group.push(match)
+    byDay.set(day, group)
+  }
+  if (!byDay.size) return <Text className="native-profile-copy">暂无赛程</Text>
+  return (
+    <>
+      {[...byDay].map(([day, fixtures]) => (
+        <View key={day}>
+          <Text className="native-profile-section-title">
+            {day === 'TBD' ? '日期待定' : leagueDay(fixtures[0]!.scheduledStartAt)}
+          </Text>
+          {fixtures.map((match) => (
+            <NativeMatchRow key={match.id} match={match} showWeekday />
+          ))}
+        </View>
+      ))}
+    </>
+  )
+}
+
 export default function NativePlayerScreen({
   playerId: suppliedPlayer,
   tournamentId: suppliedTournament,
@@ -76,7 +106,7 @@ export default function NativePlayerScreen({
         setError(issue instanceof Error ? issue.message : '档案读取失败')
     }
   }, [playerId, tournamentId, attempt, setPlayer])
-  useNativeRefreshTask(load)
+  useNativeRefreshTask(load, true)
   useEffect(() => {
     void load()
     return () => {
@@ -148,23 +178,7 @@ export default function NativePlayerScreen({
                   <Text className="native-profile-copy">暂无球员动态</Text>
                 )}
               </>,
-              <>
-                {player.recentMatches.map((match) => (
-                  <View key={match.id}>
-                    <NativeMatchRow match={match} showDate />
-                    <Text className="native-note">
-                      {match.minutesPlayed === null
-                        ? ['SCHEDULED', 'CHECK_IN', 'LIVE', 'POSTPONED'].includes(match.status)
-                          ? '待赛'
-                          : '已参赛 · 分钟未记录'
-                        : `${match.starter === null ? '' : match.starter ? '首发 · ' : '替补 · '}${match.minutesPlayed} 分钟`}
-                    </Text>
-                  </View>
-                ))}
-                {!player.recentMatches.length && (
-                  <Text className="native-profile-copy">暂无比赛记录</Text>
-                )}
-              </>,
+              <PlayerSchedule matches={player.recentMatches} />,
               <>
                 <NativeStats
                   values={[

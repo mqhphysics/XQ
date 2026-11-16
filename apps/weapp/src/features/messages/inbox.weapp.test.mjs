@@ -68,6 +68,7 @@ function harness() {
     require(name) {
       if (name === 'react') return hooks
       if (name === '@tarojs/taro') return { default: taro }
+      if (name.includes('native-social/config')) return { nativeWriteEnabled: () => true }
       if (name.includes('session'))
         return {
           readSession: () => session,

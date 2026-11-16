@@ -17,6 +17,7 @@ import { MessageIcon, type MessageIconName } from '../../features/messages/icons
 import { acceptInboxSummary, refreshInbox, useInbox } from '../../features/messages/inbox.weapp'
 import { messageRepository } from '../../features/messages/repository.weapp'
 import type { MessageCategory } from '../../features/messages/types'
+import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
 import Notifications from './notifications.weapp'
 import DirectMessages, { type NativeMessagesParams } from './direct.weapp'
 import { MessageSettings } from './settings.weapp'
@@ -27,7 +28,11 @@ export default function NativeMessagesScreen(params: NativeMessagesParams = {}) 
   const route = { ...getCurrentInstance().router?.params, ...params }
   if (route.notificationId) return <Notifications {...route} />
   if (route.conversationId || route.userId || route.new === '1')
-    return <DirectMessages {...route} />
+    return nativeWriteEnabled('privateMessages') ? (
+      <DirectMessages {...route} />
+    ) : (
+      <Notifications category="system" />
+    )
   if (route.category === 'settings' || route.category === 'blocked')
     return <MessageSettings blocked={route.category === 'blocked'} />
   if (['replies', 'mentions', 'likes', 'system'].includes(route.category || ''))
@@ -47,6 +52,7 @@ const categories: Array<{ id: MessageCategory; title: string; icon: MessageIconN
 ]
 function MessageHome() {
   const { summary, error: summaryError } = useInbox()
+  const directEnabled = nativeWriteEnabled('privateMessages')
   const active = useContext(NativeDetailActiveContext)
   const [visible, setVisible] = useState(true)
   useDidShow(() => setVisible(true))
@@ -63,30 +69,36 @@ function MessageHome() {
     setMenu(false)
     return true
   }, menu)
-  const load = useCallback(async (silent = false) => {
-    const token = readSession()?.accessToken,
-      ticket = ++sequence.current
-    if (!token) {
-      setError('请先登录后查看消息')
-      setLoading(false)
-      return
-    }
-    if (!silent) setLoading(true)
-    try {
-      const [result] = await Promise.all([productRepository.getConversations(), refreshInbox()])
-      if (ticket !== sequence.current || token !== readSession()?.accessToken) return
-      setItems(result.items)
-      setError('')
-    } catch (reason) {
-      if (ticket === sequence.current)
-        setError(reason instanceof Error ? reason.message : '消息暂未刷新')
-    } finally {
-      if (ticket === sequence.current) {
+  const load = useCallback(
+    async (silent = false) => {
+      const token = readSession()?.accessToken,
+        ticket = ++sequence.current
+      if (!token) {
+        setError('请先登录后查看消息')
         setLoading(false)
-        setRefreshing(false)
+        return
       }
-    }
-  }, [])
+      if (!silent) setLoading(true)
+      try {
+        const [result] = await Promise.all([
+          directEnabled ? productRepository.getConversations() : null,
+          refreshInbox(),
+        ])
+        if (ticket !== sequence.current || token !== readSession()?.accessToken) return
+        setItems(result?.items ?? [])
+        setError('')
+      } catch (reason) {
+        if (ticket === sequence.current)
+          setError(reason instanceof Error ? reason.message : '消息暂未刷新')
+      } finally {
+        if (ticket === sequence.current) {
+          setLoading(false)
+          setRefreshing(false)
+        }
+      }
+    },
+    [directEnabled],
+  )
   useEffect(() => {
     if (!active || !visible) return
     void load()
@@ -149,10 +161,12 @@ function MessageHome() {
                   <MessageIcon name="brush" />
                   <Text>全部已读</Text>
                 </Button>
-                <Button onClick={() => navigate('/pages/messages/index?new=1')}>
-                  <MessageIcon name="search" />
-                  <Text>搜索人物</Text>
-                </Button>
+                {directEnabled && (
+                  <Button onClick={() => navigate('/pages/messages/index?new=1')}>
+                    <MessageIcon name="search" />
+                    <Text>搜索人物</Text>
+                  </Button>
+                )}
                 <Button onClick={() => navigate('/pages/messages/index?category=settings')}>
                   <MessageIcon name="settings" />
                   <Text>消息设置</Text>
@@ -232,7 +246,7 @@ function MessageHome() {
             </View>
           </Button>
         ))}
-        {!loading && !items.length && (
+        {directEnabled && !loading && !items.length && (
           <View className="native-message-empty">
             <MessageIcon name="reply" />
             <Text>还没有私信对话</Text>

@@ -87,7 +87,7 @@ export default function NativeSchedulePage() {
         }))
     }
   }, [scope])
-  useNativeRefreshTask(load)
+  useNativeRefreshTask(load, true)
   useEffect(() => {
     void load()
     return () => {

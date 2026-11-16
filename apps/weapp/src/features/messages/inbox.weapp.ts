@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { readSession, subscribeToSessionWrites } from '../product/session'
 import { messageRepository } from './repository.weapp'
 import type { MessageSummary } from './types'
+import { nativeWriteEnabled } from '../native-social/config.weapp'
 
 type Snapshot = { summary: MessageSummary | null; error: string; loading: boolean }
 let state: Snapshot = { summary: null, error: '', loading: false }
@@ -34,8 +35,12 @@ export function acceptInboxSummary(summary: MessageSummary, token: string | unde
   if (!token || readSession()?.accessToken !== token) return
   sequence++
   pending = undefined
-  publish({ summary, error: '', loading: false })
+  publish({ summary: displaySummary(summary), error: '', loading: false })
 }
+const displaySummary = (summary: MessageSummary) =>
+  nativeWriteEnabled('privateMessages')
+    ? summary
+    : { ...summary, badgeCount: 0, directUnreadCount: 0 }
 export function refreshInbox(force = false): Promise<void> {
   syncOwner()
   if (!owner || !foreground) return Promise.resolve()
@@ -47,7 +52,7 @@ export function refreshInbox(force = false): Promise<void> {
     .summary()
     .then((summary) => {
       if (ticket === sequence && before === sessionKey())
-        publish({ summary, error: '', loading: false })
+        publish({ summary: displaySummary(summary), error: '', loading: false })
     })
     .catch((reason) => {
       if (ticket === sequence && before === sessionKey())

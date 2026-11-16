@@ -124,7 +124,12 @@ export interface ProgressionPreview {
   version: number
   sourceHash: string
   sourceVersions: unknown
-  slots: { targetMatchId: string; side: ReportSide; teamId: string }[]
+  slots: {
+    targetMatchId: string
+    side: ReportSide
+    teamId: string
+    previousTeamId?: string | null
+  }[]
   status: 'READY' | 'BLOCKED'
   reasons: string[]
 }

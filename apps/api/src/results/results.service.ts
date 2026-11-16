@@ -4,7 +4,7 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
 
 import { AccessPolicyService } from '../auth/access-policy.service'
-import { AuthService } from '../auth/auth.service'
+import { AuthService, type AuthenticatedSession } from '../auth/auth.service'
 import { ApiHttpException } from '../common/api-http.exception'
 import { selectPublicTournament } from '../common/public-tournament'
 import { PrismaService } from '../database/prisma.service'
@@ -18,7 +18,8 @@ import {
 import { confirmedResultFact } from './confirmed-result'
 import { resolveKnockoutResult } from './knockout'
 import { parseResultsRules } from './parse-rules'
-import { parseProgressionRules } from './progression-rules'
+import { parseProgressionRules, type ProgressionRules } from './progression-rules'
+import { finalSlots } from './final-slots'
 import { progressionSourceHash, type ProgressionSource } from './progression-source'
 import { type ProgressionConfirmDto, type ProgressionPreviewDto } from './results.dto'
 import {
@@ -189,7 +190,14 @@ export class ResultsService {
     const session = await this.auth.requireSession(authorization)
     await this.policy.requireTournamentAdministrator(session, tournamentId)
     return this.prisma.$transaction(
-      (tx) => this.buildPreview(tx, session.organizationId, tournamentId, dto.ruleVersionId, false),
+      (tx) =>
+        this.previewAvailableRound(
+          tx,
+          session.organizationId,
+          tournamentId,
+          dto.ruleVersionId,
+          false,
+        ),
       { isolationLevel: 'RepeatableRead' },
     )
   }
@@ -209,6 +217,7 @@ export class ResultsService {
     tournamentId: string,
     ruleVersionId: string,
     lock: boolean,
+    explicitSlots?: ProgressionRules,
   ) {
     try {
       const tournamentRows = await tx.$queryRawUnsafe<Array<{ id: string; version: number }>>(
@@ -220,7 +229,7 @@ export class ResultsService {
       if (!tournament)
         throw failure(HttpStatus.NOT_FOUND, '当前组织不存在该赛事', 'TOURNAMENT_NOT_FOUND')
       const { row, engine } = await this.rules(tx, organizationId, tournamentId, ruleVersionId)
-      const progression = parseProgressionRules(row.rules)
+      const progression = explicitSlots ?? parseProgressionRules(row.rules)
       const targets = [...new Set(progression.slots.map((slot) => slot.targetMatchId))]
       const [fixtures, teams, groups] = await Promise.all([
         loadResultFixtures(
@@ -280,7 +289,12 @@ export class ResultsService {
           awayTeamId,
         })),
       }
-      const sourceHash = progressionSourceHash(source)
+      const factsHash = progressionSourceHash(source)
+      const sourceHash = explicitSlots
+        ? createHash('sha256')
+            .update(JSON.stringify([factsHash, explicitSlots.slots]))
+            .digest('hex')
+        : factsHash
       const reasons: string[] = []
       const facts = sourceFixtures
         .map(confirmedResultFact)
@@ -376,7 +390,9 @@ export class ResultsService {
         if (
           !['DRAFT', 'SCHEDULED', 'POSTPONED'].includes(target.status) ||
           target.reportVersion > 0 ||
-          target.confirmedReportVersion !== null
+          target.confirmedReportVersion !== null ||
+          target.actualStartedAt !== null ||
+          target.actualEndedAt !== null
         )
           reasons.push('TARGET_ALREADY_STARTED_OR_REPORTED')
         const home =
@@ -400,6 +416,224 @@ export class ResultsService {
     } catch (error) {
       this.ruleFailure(error)
     }
+  }
+
+  private async finalRound(tx: ResultsTransaction, organizationId: string, tournamentId: string) {
+    return finalSlots(
+      await tx.match.findMany({
+        where: {
+          organizationId,
+          tournamentId,
+          status: { not: 'CANCELLED' },
+          stage: { type: 'KNOCKOUT' },
+        },
+        select: { id: true, title: true, matchCode: true, stageId: true },
+      }),
+    )
+  }
+
+  private async previewAvailableRound(
+    tx: ResultsTransaction,
+    organizationId: string,
+    tournamentId: string,
+    ruleVersionId: string,
+    lock: boolean,
+  ) {
+    const next = await this.finalRound(tx, organizationId, tournamentId)
+    let configured: Awaited<ReturnType<ResultsService['buildPreview']>>
+    try {
+      configured = await this.buildPreview(tx, organizationId, tournamentId, ruleVersionId, lock)
+    } catch (error) {
+      if (
+        next &&
+        error instanceof ApiHttpException &&
+        (error.getResponse() as { details?: { reason?: string } }).details?.reason ===
+          'PROGRESSION_RULES_REQUIRED'
+      )
+        return this.buildPreview(tx, organizationId, tournamentId, ruleVersionId, lock, next)
+      throw error
+    }
+    if (configured.slots.some((slot) => slot.teamId !== slot.previousTeamId)) return configured
+    if (
+      !next ||
+      next.slots.some((slot) =>
+        configured.sourceVersions.targets?.some((target) => target.matchId === slot.targetMatchId),
+      )
+    )
+      return configured
+    const finals = await this.buildPreview(
+      tx,
+      organizationId,
+      tournamentId,
+      ruleVersionId,
+      lock,
+      next,
+    )
+    return finals.slots.some((slot) => slot.teamId !== slot.previousTeamId) ? finals : configured
+  }
+
+  /** Report writes already hold the tournament lock before taking any match lock. */
+  async advanceFromConfirmedMatch(
+    tx: ResultsTransaction,
+    session: AuthenticatedSession,
+    tournamentId: string,
+    matchId: string,
+    requestId: string,
+  ) {
+    const organizationId = session.organizationId
+    const published = await tx.competitionRuleVersion.findFirst({
+      where: { organizationId, tournamentId, status: 'PUBLISHED' },
+      orderBy: { version: 'desc' },
+      select: { id: true, rules: true },
+    })
+    if (!published) return
+    let preview: Awaited<ReturnType<ResultsService['buildPreview']>>
+    try {
+      const explicit =
+        published.rules && typeof published.rules === 'object' && 'progression' in published.rules
+          ? parseProgressionRules(published.rules)
+          : null
+      const usesMatch = (plan: ProgressionRules | null) =>
+        plan?.slots.some(
+          (slot) => slot.source.type !== 'GROUP_RANK' && slot.source.matchId === matchId,
+        )
+      if (usesMatch(explicit))
+        preview = await this.buildPreview(tx, organizationId, tournamentId, published.id, true)
+      else {
+        const finals = await this.finalRound(tx, organizationId, tournamentId)
+        if (
+          !finals ||
+          !usesMatch(finals) ||
+          finals.slots.some((slot) =>
+            explicit?.slots.some((existing) => existing.targetMatchId === slot.targetMatchId),
+          )
+        )
+          return
+        preview = await this.buildPreview(
+          tx,
+          organizationId,
+          tournamentId,
+          published.id,
+          true,
+          finals,
+        )
+      }
+    } catch (error) {
+      // Invalid or unresolved competition rules do not invalidate a confirmed match report.
+      if (error instanceof ApiHttpException || error instanceof CompetitionRuleError) return
+      throw error
+    }
+    const changes = preview.slots.filter((slot) => slot.teamId !== slot.previousTeamId)
+    if (
+      preview.status !== 'READY' ||
+      !changes.length ||
+      changes.some((slot) => slot.previousTeamId !== null)
+    )
+      return
+    await this.persistProgression(
+      tx,
+      session,
+      preview,
+      '正式赛果确认后自动填入晋级签位',
+      requestId,
+      true,
+    )
+  }
+
+  private async persistProgression(
+    tx: ResultsTransaction,
+    session: AuthenticatedSession,
+    preview: Awaited<ReturnType<ResultsService['buildPreview']>>,
+    reason: string,
+    requestId: string,
+    automatic = false,
+  ) {
+    const { tournamentId } = preview
+    const version = preview.version + 1
+    const affected = await tx.$executeRawUnsafe(
+      'UPDATE tournaments SET progression_version = $3::integer, updated_at = now() WHERE organization_id = $1::uuid AND id = $2::uuid AND progression_version = $4::integer',
+      session.organizationId,
+      tournamentId,
+      version,
+      preview.version,
+    )
+    if (affected !== 1)
+      throw failure(HttpStatus.CONFLICT, '晋级版本已变化', 'PROGRESSION_VERSION_CONFLICT')
+    for (const slot of preview.slots) {
+      if (slot.teamId === slot.previousTeamId) continue
+      const column = slot.side === 'HOME' ? 'home_team_id' : 'away_team_id'
+      const count = await tx.$executeRawUnsafe(
+        `UPDATE matches SET ${column} = $3::uuid, updated_at = now() WHERE organization_id = $1::uuid AND tournament_id = $2::uuid AND id = $4::uuid AND actual_started_at IS NULL AND actual_ended_at IS NULL AND report_version = 0 AND confirmed_report_version IS NULL AND status IN ('DRAFT','SCHEDULED','POSTPONED') AND ${column} IS NOT DISTINCT FROM $5::uuid`,
+        session.organizationId,
+        tournamentId,
+        slot.teamId,
+        slot.targetMatchId,
+        slot.previousTeamId,
+      )
+      if (count !== 1)
+        throw failure(
+          HttpStatus.CONFLICT,
+          '目标比赛不能再更换球队',
+          'TARGET_ALREADY_STARTED_OR_REPORTED',
+        )
+    }
+    const progressionId = randomUUID()
+    await tx.$executeRawUnsafe(
+      `INSERT INTO tournament_progressions (id, organization_id, tournament_id, version, source_hash, source_versions, slots, rule_version_id, created_by_user_id, reason)
+    VALUES ($1::uuid,$2::uuid,$3::uuid,$4,$5,$6::jsonb,$7::jsonb,$8::uuid,$9::uuid,$10)`,
+      progressionId,
+      session.organizationId,
+      tournamentId,
+      version,
+      preview.sourceHash,
+      JSON.stringify(preview.sourceVersions),
+      JSON.stringify(preview.slots),
+      preview.ruleVersionId,
+      session.userId,
+      reason,
+    )
+    const response = {
+      id: progressionId,
+      tournamentId,
+      version,
+      sourceHash: preview.sourceHash,
+      slots: preview.slots,
+    }
+    await tx.auditLog.create({
+      data: {
+        organizationId: session.organizationId,
+        actorType: automatic ? 'SYSTEM' : 'ADMIN',
+        actorUserId: session.userId,
+        actorRoleSnapshot: json(
+          session.user.roles.map((role) => ({
+            role: role.role,
+            scopeType: role.scopeType,
+            scopeId: role.scopeId,
+          })),
+        ),
+        action: 'TOURNAMENT_PROGRESSION_CONFIRMED',
+        targetType: 'Tournament',
+        targetId: tournamentId,
+        beforeSummary: { version: preview.version },
+        afterSummary: json(response),
+        reason: reason,
+        requestId,
+        source: 'API',
+      },
+    })
+    await tx.outboxJob.create({
+      data: {
+        organizationId: session.organizationId,
+        topic: 'tournament.progression',
+        aggregateType: 'Tournament',
+        aggregateId: tournamentId,
+        eventType: 'TournamentProgressionConfirmed',
+        payload: json(response),
+        deduplicationKey: `tournament-progression-confirmed:${tournamentId}:${version}`,
+        correlationId: requestId,
+      },
+    })
+    return response
   }
 
   async confirm(
@@ -455,7 +689,7 @@ export class ResultsService {
               )
             return existing.responseBody
           }
-          const preview = await this.buildPreview(
+          const preview = await this.previewAvailableRound(
             tx,
             session.organizationId,
             tournamentId,
@@ -476,90 +710,13 @@ export class ResultsService {
               '晋级版本已变化，请重新预览',
               'PROGRESSION_VERSION_CONFLICT',
             )
-          const version = dto.expectedVersion + 1
-          const affected = await tx.$executeRawUnsafe(
-            'UPDATE tournaments SET progression_version = $3::integer, updated_at = now() WHERE organization_id = $1::uuid AND id = $2::uuid AND progression_version = $4::integer',
-            session.organizationId,
-            tournamentId,
-            version,
-            dto.expectedVersion,
-          )
-          if (affected !== 1)
-            throw failure(HttpStatus.CONFLICT, '晋级版本已变化', 'PROGRESSION_VERSION_CONFLICT')
-          for (const slot of preview.slots) {
-            if (slot.teamId === slot.previousTeamId) continue
-            const column = slot.side === 'HOME' ? 'home_team_id' : 'away_team_id'
-            const count = await tx.$executeRawUnsafe(
-              `UPDATE matches SET ${column} = $3::uuid, updated_at = now() WHERE organization_id = $1::uuid AND tournament_id = $2::uuid AND id = $4::uuid AND report_version = 0 AND confirmed_report_version IS NULL AND status IN ('DRAFT','SCHEDULED','POSTPONED') AND ${column} IS NOT DISTINCT FROM $5::uuid`,
-              session.organizationId,
-              tournamentId,
-              slot.teamId,
-              slot.targetMatchId,
-              slot.previousTeamId,
-            )
-            if (count !== 1)
-              throw failure(
-                HttpStatus.CONFLICT,
-                '目标比赛不能再更换球队',
-                'TARGET_ALREADY_STARTED_OR_REPORTED',
-              )
-          }
-          const progressionId = randomUUID()
-          await tx.$executeRawUnsafe(
-            `INSERT INTO tournament_progressions (id, organization_id, tournament_id, version, source_hash, source_versions, slots, rule_version_id, created_by_user_id, reason)
-          VALUES ($1::uuid,$2::uuid,$3::uuid,$4,$5,$6::jsonb,$7::jsonb,$8::uuid,$9::uuid,$10)`,
-            progressionId,
-            session.organizationId,
-            tournamentId,
-            version,
-            dto.sourceHash,
-            JSON.stringify(preview.sourceVersions),
-            JSON.stringify(preview.slots),
-            dto.ruleVersionId,
-            session.userId,
+          const response = await this.persistProgression(
+            tx,
+            session,
+            preview,
             command.reason,
+            requestId,
           )
-          const response = {
-            id: progressionId,
-            tournamentId,
-            version,
-            sourceHash: dto.sourceHash,
-            slots: preview.slots,
-          }
-          await tx.auditLog.create({
-            data: {
-              organizationId: session.organizationId,
-              actorType: 'ADMIN',
-              actorUserId: session.userId,
-              actorRoleSnapshot: json(
-                session.user.roles.map((role) => ({
-                  role: role.role,
-                  scopeType: role.scopeType,
-                  scopeId: role.scopeId,
-                })),
-              ),
-              action: 'TOURNAMENT_PROGRESSION_CONFIRMED',
-              targetType: 'Tournament',
-              targetId: tournamentId,
-              beforeSummary: { version: dto.expectedVersion },
-              afterSummary: json(response),
-              reason: command.reason,
-              requestId,
-              source: 'API',
-            },
-          })
-          await tx.outboxJob.create({
-            data: {
-              organizationId: session.organizationId,
-              topic: 'tournament.progression',
-              aggregateType: 'Tournament',
-              aggregateId: tournamentId,
-              eventType: 'TournamentProgressionConfirmed',
-              payload: json(response),
-              deduplicationKey: `tournament-progression-confirmed:${tournamentId}:${version}`,
-              correlationId: requestId,
-            },
-          })
           await tx.idempotencyRecord.create({
             data: {
               organizationId: session.organizationId,
@@ -570,7 +727,7 @@ export class ResultsService {
               responseStatus: 200,
               responseBody: json(response),
               resourceType: 'TournamentProgression',
-              resourceId: progressionId,
+              resourceId: response.id,
               expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
             },
           })

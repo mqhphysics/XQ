@@ -12,5 +12,6 @@ test('complete recording requires goal coverage, scorer and time while assists a
   assert.equal(recordingComplete(0, 0, []), true)
   assert.equal(recordingComplete(null, 0, []), false)
   assert.equal(recordingComplete(0, 1, [{ ...goal, kind: 'OWN_GOAL' }]), true)
+  assert.equal(recordingComplete(0, 1, [{ ...goal, kind: 'OWN_GOAL', playerId: '' }]), true)
   assert.equal(recordingComplete(1, 0, [{ ...goal, kind: 'OWN_GOAL' }]), false)
 })

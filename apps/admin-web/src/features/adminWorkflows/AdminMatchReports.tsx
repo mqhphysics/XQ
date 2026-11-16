@@ -374,8 +374,17 @@ function ReportDetail({
               版本历史
             </button>
           </div>
-          {!data.latest && Boolean(data.blockingReasons?.length) && !historyOpen ? <p className="mc-muted mc-setup-note">当前先查看现存比赛资料。完成上方赛事配置后，再创建新的战报；未录入的比分不会显示成 0:0。</p> : null}
-          <fieldset className="wf-report-fields" disabled={!editable} hidden={historyOpen || (!data.latest && Boolean(data.blockingReasons?.length))}>
+          {!data.latest && Boolean(data.blockingReasons?.length) && !historyOpen ? (
+            <p className="mc-muted mc-setup-note">
+              当前先查看现存比赛资料。完成上方赛事配置后，再创建新的战报；未录入的比分不会显示成
+              0:0。
+            </p>
+          ) : null}
+          <fieldset
+            className="wf-report-fields"
+            disabled={!editable}
+            hidden={historyOpen || (!data.latest && Boolean(data.blockingReasons?.length))}
+          >
             <legend>比赛结果与事件</legend>
             <div hidden={detailView !== 'result'}>
               <div className="wf-score-grid">
@@ -568,7 +577,9 @@ function ReportDetail({
                             aria-label={event.kind === 'SUBSTITUTION' ? '换下球员' : '事件球员'}
                             onChange={(input) => change({ playerId: input.target.value })}
                           >
-                            <option value="">选择名单球员</option>
+                            <option value="">
+                              {event.kind === 'OWN_GOAL' ? '球员待确认（选填）' : '选择名单球员'}
+                            </option>
                             {players.map((player) => (
                               <option key={player.id} value={player.id}>
                                 {player.shirtNumber ?? '—'} · {player.displayName}
@@ -618,7 +629,10 @@ function ReportDetail({
               </label>
             </div>
           </fieldset>
-          <label className="mc-field" hidden={historyOpen || (!data.latest && Boolean(data.blockingReasons?.length))}>
+          <label
+            className="mc-field"
+            hidden={historyOpen || (!data.latest && Boolean(data.blockingReasons?.length))}
+          >
             保存或处理原因
             <textarea
               maxLength={240}
@@ -863,7 +877,7 @@ function RevisionEvidence({ revision }: { revision: ReportRevision }) {
             {event.minute}
             {event.addedMinute ? `+${event.addedMinute}` : ''}′{' '}
             {event.side === 'HOME' ? '主队' : '客队'} {workflowLabels[event.kind]} ·{' '}
-            {players.get(event.playerId)?.displayName ?? event.playerId}
+            {players.get(event.playerId)?.displayName ?? (event.playerId || '球员待确认')}
             {event.relatedPlayerId
               ? ` / ${players.get(event.relatedPlayerId)?.displayName ?? event.relatedPlayerId}`
               : ''}

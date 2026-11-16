@@ -226,6 +226,7 @@ export interface StandingRow {
 }
 
 export interface PlayerStats {
+  rank?: number
   id: string
   displayName: string
   appearances: number
@@ -343,6 +344,7 @@ export interface PlayerDetailResponse {
       starter: boolean | null
       minutesPlayed: number | null
       appearanceRecorded?: boolean
+      participationConfirmed?: boolean
     }
   >
 }

@@ -27,7 +27,7 @@ export function recordingComplete(home: unknown, away: unknown, events: readonly
     if (
       (event.side !== 'HOME' && event.side !== 'AWAY') ||
       typeof event.playerId !== 'string' ||
-      !event.playerId.trim() ||
+      (event.kind !== 'OWN_GOAL' && !event.playerId.trim()) ||
       (typeof event.minute !== 'string' && typeof event.minute !== 'number') ||
       !/^\d{1,3}$/.test(String(event.minute)) ||
       Number(event.minute) > 120
@@ -43,8 +43,10 @@ export function recordingComplete(home: unknown, away: unknown, events: readonly
       Number(added || 0),
       event.relatedPlayerId || '',
     ])
-    if (seen.has(key)) return false
-    seen.add(key)
+    if (event.playerId.trim()) {
+      if (seen.has(key)) return false
+      seen.add(key)
+    }
     const beneficiary =
       event.kind === 'OWN_GOAL' ? (event.side === 'HOME' ? 'AWAY' : 'HOME') : event.side
     if (beneficiary === 'HOME') homeGoals++

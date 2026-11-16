@@ -38,7 +38,8 @@ import {
   type NativeFocusMatch,
 } from './home-display.logic.weapp'
 import { loadNativeFocusPool } from '../../features/recommendation/focus.repository.weapp'
-import { knockoutMatchTime } from '../data-center/knockout-display.logic'
+import { leagueDay } from '../../features/product/league-time'
+import { focusPending } from '@xiaoqiu/contracts'
 import {
   loadNativeFeed,
   NativeFeedExposure,
@@ -204,7 +205,7 @@ export default function NativeHomeScreen() {
   useNativeRefreshTask(async () => {
     await Promise.all([load(), refreshFeed(), refreshFocus()])
     if (searchMode && query.trim()) await search(query, category)
-  })
+  }, true)
   useEffect(() => {
     const published = (post: PostSummary) => {
       setFeed((current) =>
@@ -439,8 +440,8 @@ export default function NativeHomeScreen() {
                 <View className="native-home-focus">
                   {(focusPool?.tournamentId === home.tournament.id &&
                   focusPool.userKey === focusUserKey
-                    ? focusPool.matches.slice(0, wide ? 3 : 2)
-                    : nativeFocusMatches(home.focusMatches, Date.now(), wide ? 3 : 2)
+                    ? focusPool.matches
+                    : nativeFocusMatches(home.focusMatches)
                   ).map((match) => (
                     <FocusCard key={match.id} match={match} tournamentName={home.tournament.name} />
                   ))}
@@ -555,7 +556,7 @@ export default function NativeHomeScreen() {
               }}
             >
               <Text>{post.title || '官方公告'}</Text>
-              <Text>{knockoutMatchTime(post.publishedAt, true)}</Text>
+              <Text>{leagueDay(post.publishedAt)}</Text>
             </Button>
           ))}
         </NativeDialog>
@@ -586,7 +587,7 @@ function FocusCard({ match, tournamentName }: { match: NativeFocusMatch; tournam
       hoverClass="native-press"
       hoverStartTime={0}
       hoverStayTime={60}
-      className={`native-focus-card${scored ? ' native-focus-card--scored' : ''}`}
+      className={`native-focus-card${scored ? ' native-focus-card--scored' : ''}${focusPending(match.status) ? ' native-focus-card--pending' : ''}`}
       onClick={() => void openMatch(match.id, match.tournamentId)}
     >
       <Text className="native-focus-card__label">{nativeFocusLabel(match, tournamentName)}</Text>

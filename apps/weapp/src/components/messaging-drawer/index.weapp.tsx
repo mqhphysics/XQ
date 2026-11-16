@@ -3,6 +3,7 @@ import type { MessageUser } from '../../features/product/product.types'
 import { openNativeDetail } from '../../features/native-navigation/index.weapp'
 import { readSession } from '../../features/product/session'
 import { requestNativeLogin } from '../../features/product/login-return.weapp'
+import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
 
 const targets = new Map<string, MessageUser>()
 const targetKey = (id: string) =>
@@ -11,7 +12,11 @@ export const nativeMessageTarget = (id: string) => targets.get(targetKey(id)) ??
 export async function openMessaging(request?: MessageUser | { conversationId: string }) {
   const user = readSession()?.user
   if (!user) {
-    await requestNativeLogin('登录后可以查看消息和发送私信')
+    await requestNativeLogin('登录后可以查看消息')
+    return
+  }
+  if (request && !nativeWriteEnabled('privateMessages')) {
+    await openNativeDetail('/pages/messages/index?category=system')
     return
   }
   if (request && 'id' in request && request.id === user.id) {

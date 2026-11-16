@@ -256,13 +256,18 @@ function ProgressionWorkspace({ context, tournamentId }: WorkflowProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {preview.slots.map((slot) => (
-                    <tr key={`${slot.targetMatchId}:${slot.side}`}>
-                      <td>{matchName(slot.targetMatchId)}</td>
-                      <td>{slot.side === 'HOME' ? '主队' : '客队'}</td>
-                      <td>{teamName(slot.teamId)}</td>
-                    </tr>
-                  ))}
+                  {preview.slots
+                    .filter((slot) => slot.teamId !== slot.previousTeamId)
+                    .map((slot) => (
+                      <tr key={`${slot.targetMatchId}:${slot.side}`}>
+                        <td>{matchName(slot.targetMatchId)}</td>
+                        <td>{slot.side === 'HOME' ? '主队' : '客队'}</td>
+                        <td>
+                          {slot.previousTeamId ? teamName(slot.previousTeamId) : '待定'} →{' '}
+                          {teamName(slot.teamId)}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -282,7 +287,12 @@ function ProgressionWorkspace({ context, tournamentId }: WorkflowProps) {
             </label>
             <button
               type="button"
-              disabled={preview.status !== 'READY' || !reason.trim() || command.locked}
+              disabled={
+                preview.status !== 'READY' ||
+                !preview.slots.some((slot) => slot.teamId !== slot.previousTeamId) ||
+                !reason.trim() ||
+                command.locked
+              }
               onClick={() => setConfirmation(true)}
             >
               确认晋级安排
@@ -290,7 +300,9 @@ function ProgressionWorkspace({ context, tournamentId }: WorkflowProps) {
             {confirmation ? (
               <div className="mc-alert" role="alertdialog" aria-label="确认晋级安排">
                 <p>
-                  将按此预览写入 {preview.slots.length} 个比赛位置，并保留晋级版本、原因及审计记录。
+                  将按此预览更新{' '}
+                  {preview.slots.filter((slot) => slot.teamId !== slot.previousTeamId).length}{' '}
+                  个比赛位置，并记录晋级版本及确认原因。
                 </p>
                 <div className="mc-actions">
                   <button type="button" onClick={confirm}>

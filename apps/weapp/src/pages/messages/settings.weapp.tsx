@@ -1,3 +1,4 @@
+import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
 import { Button, Picker, ScrollView, Switch, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useContext, useEffect, useRef, useState } from 'react'
@@ -134,18 +135,20 @@ function Preferences() {
                 “关注的人”指你已关注的球员所关联的账号。不接受提醒仍可在对应分类中查看消息。
               </Text>
               <Text className="native-message-settings__heading">消息提示</Text>
-              <View className="native-message-setting-row">
-                <View>
-                  <Text>私信提醒</Text>
-                  <Text>在消息入口显示未读私信数量</Text>
+              {nativeWriteEnabled('privateMessages') && (
+                <View className="native-message-setting-row">
+                  <View>
+                    <Text>私信提醒</Text>
+                    <Text>在消息入口显示未读私信数量</Text>
+                  </View>
+                  <Switch
+                    color="#356447"
+                    checked={value.directMessages}
+                    disabled={busy}
+                    onChange={(event) => update({ directMessages: event.detail.value })}
+                  />
                 </View>
-                <Switch
-                  color="#356447"
-                  checked={value.directMessages}
-                  disabled={busy}
-                  onChange={(event) => update({ directMessages: event.detail.value })}
-                />
-              </View>
+              )}
               <View className="native-message-setting-row">
                 <View>
                   <Text>系统消息提醒</Text>

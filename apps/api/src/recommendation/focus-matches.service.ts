@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common'
-import { ERROR_CODES } from '@xiaoqiu/contracts'
+import { ERROR_CODES, selectFocusCards } from '@xiaoqiu/contracts'
 import { AuthService } from '../auth/auth.service'
 import { PrismaService } from '../database/prisma.service'
 import { ExperienceService } from '../experience/experience.service'
@@ -101,7 +101,7 @@ export class FocusMatchesService {
         ),
       )
     ).flat()
-    return { items: rankFocusMatches(candidates, preferences).slice(0, 3) }
+    return { items: selectFocusCards(rankFocusMatches(candidates, preferences)) }
   }
 
   async record(authorization: string | undefined, matchId: string) {

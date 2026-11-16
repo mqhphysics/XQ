@@ -6,6 +6,8 @@ export type ResultsTransaction = Prisma.TransactionClient
 export interface ResultFixtureRow extends ConfirmedResultRow {
   status: string
   reportVersion: number
+  actualStartedAt: Date | null
+  actualEndedAt: Date | null
 }
 export interface ParticipantRow {
   teamId: string
@@ -28,6 +30,7 @@ export async function loadResultFixtures(
     `SELECT fixture.id, fixture.organization_id AS "organizationId", fixture.tournament_id AS "tournamentId",
     fixture.stage_id AS "stageId", fixture.group_id AS "groupId", fixture.round_id AS "roundId", fixture.scheduled_start_at AS "scheduledStartAt", fixture.home_team_id AS "homeTeamId", fixture.away_team_id AS "awayTeamId",
     fixture.status::text AS status, fixture.report_version AS "reportVersion", fixture.confirmed_report_version AS "confirmedReportVersion",
+    fixture.actual_started_at AS "actualStartedAt", fixture.actual_ended_at AS "actualEndedAt",
     revision.id AS "reportRevisionId", revision.rule_version_id AS "ruleVersionId",
     CASE WHEN revision.id IS NULL THEN NULL ELSE jsonb_build_object('outcome', revision.fields->'outcome', 'homeScore', revision.fields->'homeScore', 'awayScore', revision.fields->'awayScore', 'homePenaltyScore', revision.fields->'homePenaltyScore', 'awayPenaltyScore', revision.fields->'awayPenaltyScore', '_matchContext', revision.fields->'_matchContext', '_liveReport', revision.fields->'_liveReport') END AS fields,
     coalesce(fixture.scheduled_start_at, revision.created_at, fixture.created_at) AS "playedAt",

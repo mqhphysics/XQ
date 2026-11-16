@@ -1,14 +1,12 @@
 import type { CompetitionDataResponse, MatchSummary } from '../../features/product/product.types'
+import { fixtureRoundKind } from '@xiaoqiu/contracts'
+import { leagueShortDate, leagueTime } from '../../features/product/league-time.ts'
 
 export function knockoutMatchTime(value: string | null, compact = false): string {
   if (!value || !Number.isFinite(Date.parse(value))) return '时间待定'
   // Android WeChat does not always provide Intl; the league uses UTC+8 all year.
-  const leagueDate = new Date(Date.parse(value) + 8 * 60 * 60 * 1000)
-  const pad = (number: number) => String(number).padStart(2, '0')
-  const date = `${pad(leagueDate.getUTCMonth() + 1)}/${pad(leagueDate.getUTCDate())}`
-  return compact
-    ? date
-    : `${date} ${pad(leagueDate.getUTCHours())}:${pad(leagueDate.getUTCMinutes())}`
+  const date = leagueShortDate(value)
+  return compact ? date : `${date} ${leagueTime(value)}`
 }
 
 export function matchWinnerId(match: MatchSummary): string | null {
@@ -49,5 +47,5 @@ export function knockoutRounds(data: CompetitionDataResponse) {
 }
 
 function isThirdPlace(match: MatchSummary) {
-  return /(?:^|[-_])THIRD(?:$|[-_])/i.test(match.matchCode) || /三四名|季军/.test(match.title)
+  return fixtureRoundKind(match) === 'third'
 }

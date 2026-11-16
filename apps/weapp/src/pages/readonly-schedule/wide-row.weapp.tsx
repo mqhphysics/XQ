@@ -1,4 +1,5 @@
 import { Button, Image, Text, View } from '@tarojs/components'
+import { knockoutRoundLabel } from '@xiaoqiu/contracts'
 import { useState } from 'react'
 import { resolveMediaUrl } from '../../features/product/product.repository'
 import { demoCrestUrl } from '../../features/product/demo-media'
@@ -76,7 +77,7 @@ export function WideScheduleRow({
         <Text className="native-schedule-row__time">{formatTime(match.scheduledStartAt)}</Text>
         <View className="native-schedule-row__phase">
           <Text className="native-schedule-row__round">
-            {match.roundName ?? match.stageName ?? match.title}
+            {knockoutRoundLabel(match) ?? match.roundName ?? match.stageName ?? match.title}
           </Text>
           <Text className="native-schedule-row__group">
             {competitionLabel ? `${competitionLabel} · ${group}` : group}

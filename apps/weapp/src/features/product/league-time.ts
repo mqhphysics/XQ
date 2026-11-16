@@ -17,6 +17,10 @@ export function leagueTime(value: string | null) {
   return d ? `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}` : '--:--'
 }
 export function leagueShortDate(value: string | null) {
-  const d = leagueDate(value)
-  return d ? `${leagueDay(value)}周${'日一二三四五六'[d.getUTCDay()]}` : '时间待定'
+  const weekday = leagueWeekday(value)
+  return weekday ? `${leagueDay(value)}${weekday}` : '时间待定'
+}
+export function leagueWeekday(value: string | null) {
+  const date = leagueDate(value)
+  return date ? `周${'日一二三四五六'[date.getUTCDay()]}` : ''
 }

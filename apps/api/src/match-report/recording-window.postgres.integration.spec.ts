@@ -16,7 +16,7 @@ import { MatchClockService } from '../schedule/match-clock.service'
 import { technicalTotals, type TechnicalOperation } from '@xiaoqiu/contracts'
 
 test(
-  '0.9.0 recording HTTP windows: opening boundary, explicit completion, actual end cutoff, late unfinished matches and administrators',
+  'recording HTTP windows, official scores and automatic knockout progression',
   { timeout: 90000 },
   async (t) => {
     const url = process.env.TEST_DATABASE_URL!
@@ -69,7 +69,7 @@ test(
       },
     })
     const teams = await Promise.all(
-      ['HOME', 'AWAY'].map((side) =>
+      ['HOME', 'AWAY', 'SECOND-HOME', 'SECOND-AWAY'].map((side) =>
         db.team.create({
           data: { organizationId: org.id, teamCode: side, name: 'FICTIONAL_TEST ' + side },
         }),
@@ -477,6 +477,74 @@ test(
       )
       assert.equal((await read(unscheduled.id)).permissions.canEdit, false)
       assert.equal((await read(unscheduled.id, 1)).permissions.canEdit, true)
+
+      const knockout = await db.stage.create({
+        data: {
+          organizationId: org.id,
+          tournamentId: tournament.id,
+          stageCode: 'KO',
+          name: '淘汰赛',
+          type: 'KNOCKOUT',
+        },
+      })
+      const knockoutMatch = (code: string, title: string, clubs?: number[]) =>
+        db.match.create({
+          data: {
+            organizationId: org.id,
+            tournamentId: tournament.id,
+            stageId: knockout.id,
+            matchCode: `TEST-KO-${code}`,
+            title,
+            status: clubs ? 'FINISHED' : 'SCHEDULED',
+            scheduledStartAt: clubs ? new Date(now - 86400000) : new Date(now + 86400000),
+            homeTeamId: clubs ? teams[clubs[0]!]!.id : null,
+            awayTeamId: clubs ? teams[clubs[1]!]!.id : null,
+          },
+        })
+      const [semi1, semi2, final, third] = await Promise.all([
+        knockoutMatch('SF-01', '半决赛 1', [0, 1]),
+        knockoutMatch('SF-02', '半决赛 2', [2, 3]),
+        knockoutMatch('FINAL', '决赛：半决赛1胜队 vs 半决赛2胜队'),
+        knockoutMatch('THIRD', '三四名赛：半决赛1负队 vs 半决赛2负队'),
+      ])
+      const scoreSemi = async (id: string, homePenaltyScore: string, awayPenaltyScore: string) => {
+        const editor = (
+          await http
+            .post(`/api/matches/${id}/report/editor`)
+            .set('authorization', tokens[1]!)
+            .send({ clientActionId: randomUUID() })
+            .expect(200)
+        ).body
+        const payload = {
+          ...command(editor, 'SAVE_SCORE'),
+          fields: { ...fields, homePenaltyScore, awayPenaltyScore },
+        }
+        const save = () =>
+          http
+            .post(`/api/matches/${id}/report`)
+            .set('authorization', tokens[1]!)
+            .send(payload)
+            .expect(200)
+        assert.deepEqual((await save()).body, (await save()).body)
+      }
+      await scoreSemi(semi1.id, '5', '4')
+      assert.equal((await db.match.findUniqueOrThrow({ where: { id: final.id } })).homeTeamId, null)
+      await scoreSemi(semi2.id, '3', '4')
+      const [finalFixture, thirdFixture] = await Promise.all(
+        [final.id, third.id].map((id) => db.match.findUniqueOrThrow({ where: { id } })),
+      )
+      assert.deepEqual(
+        [finalFixture!.homeTeamId, finalFixture!.awayTeamId],
+        [teams[0]!.id, teams[3]!.id],
+      )
+      assert.deepEqual(
+        [thirdFixture!.homeTeamId, thirdFixture!.awayTeamId],
+        [teams[1]!.id, teams[2]!.id],
+      )
+      assert.equal(
+        await db.tournamentProgression.count({ where: { tournamentId: tournament.id } }),
+        1,
+      )
     } finally {
       await app.close()
       await db.$disconnect()

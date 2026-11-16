@@ -1,3 +1,5 @@
+import { focusVisible } from '@xiaoqiu/contracts'
+
 export type FocusCandidate = {
   id: string
   status: string
@@ -35,11 +37,7 @@ export function rankFocusMatches<T extends FocusCandidate>(
   now = Date.now(),
 ): T[] {
   const day = 86400000
-  const items = candidates.filter(
-    (item) =>
-      ['SCHEDULED', 'LIVE', 'FINISHED'].includes(item.status) &&
-      !item.statusReason?.startsWith('组委会裁定'),
-  )
+  const items = candidates.filter(focusVisible)
   const timestamp = (item: T) => (item.scheduledStartAt ? Date.parse(item.scheduledStartAt) : NaN)
   const current = items.filter(
     (item) =>
@@ -49,8 +47,6 @@ export function rankFocusMatches<T extends FocusCandidate>(
         timestamp(item) <= now + 7 * day) ||
       (item.status === 'FINISHED' && timestamp(item) >= now - 3 * day && timestamp(item) <= now),
   )
-  // Between seasons, retain the newest results / nearest scheduled round rather than a blank card.
-  const pool = current.length >= 2 ? current : items
   const currentIds = new Set(current.map((item) => item.id))
   const teamInterest = new Map<string, number>(),
     genderInterest = new Map<string, number>()
@@ -84,7 +80,7 @@ export function rankFocusMatches<T extends FocusCandidate>(
     if (gender && gender === focusGender(preferences.gender)) points += 12
     return points
   }
-  return [...pool].sort(
+  return items.sort(
     (a, b) =>
       score(b) - score(a) ||
       Math.abs(timestamp(a) - now) - Math.abs(timestamp(b) - now) ||

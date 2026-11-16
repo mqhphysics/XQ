@@ -62,7 +62,9 @@ export function NativeRefreshScope({ active, children }: PropsWithChildren<{ act
   )
 }
 
-export function useNativeRefreshTask(load: Task) {
+export const nativeMatchReportChanged = 'xiaoqiu:native-match-report-changed'
+
+export function useNativeRefreshTask(load: Task, refreshAfterReport = false) {
   const tasks = useContext(RefreshContext)?.tasks
   const latest = useRef(load)
   latest.current = load
@@ -74,6 +76,16 @@ export function useNativeRefreshTask(load: Task) {
       tasks.delete(run)
     }
   }, [tasks])
+  useEffect(() => {
+    if (!refreshAfterReport) return
+    const refresh = () => {
+      void latest.current().catch(() => {})
+    }
+    Taro.eventCenter.on(nativeMatchReportChanged, refresh)
+    return () => {
+      Taro.eventCenter.off(nativeMatchReportChanged, refresh)
+    }
+  }, [refreshAfterReport])
 }
 
 export function NativeRefreshScroll(props: ComponentProps<typeof ScrollView>) {

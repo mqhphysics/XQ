@@ -114,6 +114,7 @@ export function parseMatchSheet(source: string, workspace: ReportWorkspace): She
   } catch (error) {
     throw new Error(
       `JSON格式无法读取，请复制完整对象并检查字符串引号。${error instanceof Error ? error.message : ''}`,
+      { cause: error },
     )
   }
   if (Array.isArray(value)) {
@@ -191,14 +192,20 @@ export function parseMatchSheet(source: string, workspace: ReportWorkspace): She
     const time = minute(event.minute, 120),
       addedMinute = minute(event.addedMinute, 30)
     if (time === '') warnings.push(`第${index + 1}条事件时间待核实，不填成0分钟。`)
-    const playerId = resolvePlayer(
-      players,
-      event.shirtNumber,
-      event.playerName,
-      warnings,
-      `第${index + 1}条事件`,
-    )
-    if (!playerId) return
+    const unknownOwnGoal =
+      kind === 'OWN_GOAL' &&
+      (event.shirtNumber == null || event.shirtNumber === '') &&
+      (event.playerName == null || event.playerName === '')
+    const playerId = unknownOwnGoal
+      ? ''
+      : resolvePlayer(
+          players,
+          event.shirtNumber,
+          event.playerName,
+          warnings,
+          `第${index + 1}条事件`,
+        )
+    if (!playerId && !unknownOwnGoal) return
     const relatedPlayerId =
       kind === 'SUBSTITUTION' || event.relatedPlayerName || event.relatedShirtNumber
         ? resolvePlayer(

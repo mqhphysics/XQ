@@ -1,5 +1,6 @@
 import { requestNativeLogin } from '../../features/product/login-return.weapp'
 import { openNativeComposer } from '../../features/native-social/routing.weapp'
+import { nativeWriteEnabled } from '../../features/native-social/config.weapp'
 import {
   useNativeBlockedAuthor,
   nativeBlockEvent,
@@ -247,16 +248,18 @@ export default function NativePostScreen({
               <View className="native-post-detail__bookmark-icon" aria-hidden />
               <Text>{post.favoritedByMe ? '已收藏' : '收藏'}</Text>
             </Button>
-            <Button
-              className="native-post-detail__action"
-              aria-label="转发动态"
-              onClick={() =>
-                void openNativeComposer({ quotePostId: post.id, tournamentId: post.tournamentId })
-              }
-            >
-              <View className="native-post-detail__share-icon" aria-hidden />
-              <Text>转发</Text>
-            </Button>
+            {nativeWriteEnabled('publishPosts') && (
+              <Button
+                className="native-post-detail__action"
+                aria-label="转发动态"
+                onClick={() =>
+                  void openNativeComposer({ quotePostId: post.id, tournamentId: post.tournamentId })
+                }
+              >
+                <View className="native-post-detail__share-icon" aria-hidden />
+                <Text>转发</Text>
+              </Button>
+            )}
             <NativePostMenu post={post} />
           </View>
           {detail ? (

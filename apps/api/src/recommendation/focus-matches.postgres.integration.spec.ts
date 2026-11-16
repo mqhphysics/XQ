@@ -175,7 +175,10 @@ test(
       }
       const endpoint = '/api/matches/' + matches[1]!.id + '/interest'
       const before = await list(auth[0]).expect(200)
-      assert.equal(before.body.items[0].id, matches[0]!.id)
+      assert.deepEqual(
+        before.body.items.map((m: { id: string }) => m.id),
+        [finished.id, matches[0]!.id],
+      )
       assert.match(String(before.headers['cache-control']), /private.*no-store/)
       assert.equal(
         before.body.items.find((m: { id: string }) => m.id === finished.id).homeScore,
@@ -218,8 +221,8 @@ test(
           true,
         )
       }
-      assert.equal((await list(auth[0]).expect(200)).body.items[0].id, matches[1]!.id)
-      assert.equal((await list(auth[1]).expect(200)).body.items[0].id, matches[0]!.id)
+      assert.equal((await list(auth[0]).expect(200)).body.items[1].id, matches[1]!.id)
+      assert.equal((await list(auth[1]).expect(200)).body.items[1].id, matches[0]!.id)
       assert.equal(await prisma.userMatchInterest.count({ where: { userId: users[1]!.id } }), 0)
       await prisma.userTeamPreference.create({
         data: {
@@ -229,7 +232,7 @@ test(
           isPrimary: true,
         },
       })
-      assert.equal((await list(auth[0]).expect(200)).body.items[0].id, matches[0]!.id)
+      assert.equal((await list(auth[0]).expect(200)).body.items[1].id, matches[0]!.id)
       await prisma.tournament.update({
         where: { id: tournaments[1]!.id },
         data: { status: 'DRAFT' },

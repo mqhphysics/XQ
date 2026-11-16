@@ -132,7 +132,10 @@ export function validateReportCommand(
     if (ids.has(event.clientEventId)) return '比赛事件编号不能重复。'
     ids.add(event.clientEventId)
     const players = event.side === 'HOME' ? data.homeTeam.players : data.awayTeam.players
-    if (!players.some((player) => player.id === event.playerId))
+    if (
+      (event.kind !== 'OWN_GOAL' || event.playerId) &&
+      !players.some((player) => player.id === event.playerId)
+    )
       return '请为每个事件选择绑定名单中的球员。'
     if (event.relatedPlayerId && !players.some((player) => player.id === event.relatedPlayerId))
       return '关联球员需来自同一方锁定名单。'

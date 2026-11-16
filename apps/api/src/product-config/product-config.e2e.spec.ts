@@ -95,13 +95,13 @@ after(async () => {
   await app?.close()
 })
 
-test('explicitly disabled community is blocked while restored messaging and notifications remain reachable', async () => {
+test('paused user writing and direct messages are rejected while system notifications remain reachable', async () => {
   for (const path of ['/api/community/posts', '/api/community/posts/post-1/comments'])
-    await request(app.getHttpServer()).post(path).send({ body: 'must not be saved' }).expect(403)
+    await request(app.getHttpServer()).post(path).send({ body: 'must not be saved' }).expect(410)
   await request(app.getHttpServer())
     .post('/api/messages/direct/user-1')
     .send({ body: 'fixture' })
-    .expect(201)
+    .expect(410)
   const notices = await request(app.getHttpServer()).get('/api/me/notifications').expect(200)
   assert.equal(notices.body.items[0].type, 'SYSTEM')
 })

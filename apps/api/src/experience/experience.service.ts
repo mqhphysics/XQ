@@ -115,7 +115,7 @@ export class ExperienceService {
       await Promise.all([
         this.prisma.match.findMany({
           where: { organizationId, tournamentId: tournament.id, status: { not: 'DRAFT' } },
-          include: matchSummaryInclude,
+          include: { ...matchSummaryInclude, stage: true, group: true, round: true },
           orderBy: [{ scheduledStartAt: 'asc' }, { sortOrder: 'asc' }],
         }),
         this.prisma.teamRegistration.findMany({
