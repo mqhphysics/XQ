@@ -341,6 +341,14 @@ export default function NativeHomeScreen() {
         {!searchMode && (
           <View id="native-guide-home-hero">
             <HeroCarousel
+              cupName={
+                home?.tournament.cupName ||
+                home?.tournament.name
+                  .split('·')[0]
+                  ?.replace(/（[男女]足）$/, '')
+                  .trim()
+              }
+              seasonName={home?.tournament.seasonName}
               {...(photos.length
                 ? {
                     photos,

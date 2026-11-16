@@ -101,6 +101,7 @@ test('live points, unfinished score reports and an incomplete fixture list canno
 })
 test('read-only crossing preview uses fixed known ranks and preserves the published bracket', () => {
   const data = groupCup()
+  data.tournament.name = '技科杯 · 2026'
   win(data, 'a', 'c')
   win(data, 'a', 'd')
   win(data, 'b', 'c')

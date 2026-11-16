@@ -3,6 +3,7 @@ import type {
   MatchSummary,
   TeamSummary,
 } from '../../features/product/product.types'
+import { defaultGroupCrossing } from '@xiaoqiu/contracts'
 import { knockoutRounds } from '../../pages/data-center/knockout-display.logic.ts'
 
 export type CupMatchView = MatchSummary & { preview?: true }
@@ -12,13 +13,15 @@ export interface QualifiedCupTeam {
   rank: number | null
 }
 const finished = (match: MatchSummary) =>
+  (!match.resultStatus || match.resultStatus === 'CONFIRMED') &&
   ['FINISHED', 'CONFIRMED'].includes(match.status) &&
   match.homeScore !== null &&
   match.awayScore !== null
 const groupKey = (name: string) => name.replace(/\s|组/g, '').toUpperCase()
 
 export function cupQualifyingPlaces(data: CompetitionDataResponse) {
-  const first = [...data.bracket].sort((a, b) => a.number - b.number)[0]
+  if (data.qualification?.qualifiersPerGroup) return data.qualification.qualifiersPerGroup
+  const first = knockoutRounds(data).rounds[0]
   const places = first && data.groups.length ? (first.matches.length * 2) / data.groups.length : 2
   return Number.isInteger(places) && places >= 1 && places <= 2 ? places : 2
 }
@@ -29,9 +32,19 @@ export function qualifiedCupTeams(data: CompetitionDataResponse): QualifiedCupTe
   const teams = new Map<string, TeamSummary>()
   for (const match of data.schedule)
     for (const team of [match.homeTeam, match.awayTeam]) if (team) teams.set(team.id, team)
+  const scoring = data.qualification?.points ?? { win: 3, draw: 1, loss: 0 }
+  const outcomes: Array<[number, number]> = [
+    [scoring.win, scoring.loss],
+    [scoring.draw, scoring.draw],
+    [scoring.loss, scoring.win],
+  ]
+  const forfeit = data.qualification?.forfeit
+  if (forfeit && forfeit.loserPoints !== scoring.loss)
+    outcomes.push([scoring.win, forfeit.loserPoints], [forfeit.loserPoints, scoring.win])
+  if (forfeit?.both) outcomes.push([forfeit.both.points, forfeit.both.points])
   return data.groups.flatMap((group) => {
     const rows = group.standings
-    if (rows.length < 2 || rows.length > 6 || rows.some((row) => row.isLive)) return []
+    if (rows.length < 2 || rows.some((row) => row.isLive)) return []
     const ids = new Map(rows.map((row, index) => [row.teamId, index]))
     const matches = data.schedule.filter(
       (match) =>
@@ -46,7 +59,9 @@ export function qualifiedCupTeams(data: CompetitionDataResponse): QualifiedCupTe
     if (matches.length !== (rows.length * (rows.length - 1)) / 2 || pairs.size !== matches.length)
       return []
     const remaining = matches.filter((match) => !finished(match))
-    if (remaining.length > 10) return []
+    if (remaining.length === matches.length) return []
+    if (remaining.length && (outcomes.length ** remaining.length > 60000 || rows.length > 6))
+      return []
     const points = rows.map((row) => row.points)
     const best = rows.map(() => Infinity),
       worst = rows.map(() => 0)
@@ -67,11 +82,7 @@ export function qualifiedCupTeams(data: CompetitionDataResponse): QualifiedCupTe
       if (!match) return inspect()
       const home = ids.get(match.homeTeam!.id)!,
         away = ids.get(match.awayTeam!.id)!
-      for (const [h, a] of [
-        [3, 0],
-        [1, 1],
-        [0, 3],
-      ] as const) {
+      for (const [h, a] of outcomes) {
         points[home]! += h
         points[away]! += a
         visit(index + 1)
@@ -89,7 +100,7 @@ export function qualifiedCupTeams(data: CompetitionDataResponse): QualifiedCupTe
   })
 }
 
-/** Default crossing approved for the four-group men's cup; preview IDs never navigate to a match. */
+/** A standard crossing provides placeholders until the administrator publishes a draw. */
 export function cupPreview(data: CompetitionDataResponse) {
   const qualified = qualifiedCupTeams(data)
   if (data.bracket.some((round) => round.matches.length)) {
@@ -140,19 +151,17 @@ export function cupPreview(data: CompetitionDataResponse) {
     }
     return { bracket: data.bracket, qualified, preview: false }
   }
-  if (
-    !/男足/.test(data.tournament.name) ||
-    !qualified.length ||
-    !['A', 'B', 'C', 'D'].every((key) => data.groups.some((g) => groupKey(g.name) === key))
-  )
+  const groupIds = data.groups.map((group) => groupKey(group.name)).sort()
+  const crossings = defaultGroupCrossing(groupIds, cupQualifyingPlaces(data))
+  if (!qualified.length || !crossings.length || new Set(groupIds).size !== groupIds.length)
     return { bracket: data.bracket, qualified, preview: false }
-  const slot = (key: string) => qualified.find((q) => q.group + q.rank === key)?.team ?? null
   const make = (
     code: string,
     title: string,
-    home: string,
-    away: string,
-    seeded = false,
+    homePlaceholder: string,
+    awayPlaceholder: string,
+    homeTeam: TeamSummary | null = null,
+    awayTeam: TeamSummary | null = null,
   ): CupMatchView => ({
     id: `preview:${data.tournament.id}:${code}`,
     tournamentId: data.tournament.id,
@@ -160,10 +169,10 @@ export function cupPreview(data: CompetitionDataResponse) {
     title,
     status: 'SCHEDULED',
     scheduledStartAt: null,
-    homeTeam: seeded ? slot(home) : null,
-    awayTeam: seeded ? slot(away) : null,
-    homePlaceholder: seeded ? `${home[0]}组第${home[1]}` : home,
-    awayPlaceholder: seeded ? `${away[0]}组第${away[1]}` : away,
+    homeTeam,
+    awayTeam,
+    homePlaceholder,
+    awayPlaceholder,
     homeScore: null,
     awayScore: null,
     homePenaltyScore: null,
@@ -173,39 +182,35 @@ export function cupPreview(data: CompetitionDataResponse) {
     stageType: 'KNOCKOUT',
     preview: true,
   })
-  return {
-    qualified,
-    preview: true,
-    bracket: [
-      {
-        id: 'preview-quarter',
-        name: '八强',
-        number: 1,
-        matches: [
-          ['A1', 'B2'],
-          ['C1', 'D2'],
-          ['B1', 'A2'],
-          ['D1', 'C2'],
-        ].map(([home, away], i) => make(`QF${i + 1}`, `八强赛 ${i + 1}`, home!, away!, true)),
-      },
-      {
-        id: 'preview-semi',
-        name: '半决赛',
-        number: 2,
-        matches: [
-          make('SF1', '半决赛 1', '八强1胜者', '八强2胜者'),
-          make('SF2', '半决赛 2', '八强3胜者', '八强4胜者'),
-        ],
-      },
-      {
-        id: 'preview-final',
-        name: '决赛',
-        number: 3,
-        matches: [
-          make('FINAL', '决赛', '半决赛1胜者', '半决赛2胜者'),
-          make('THIRD', '季军赛', '半决赛1负者', '半决赛2负者'),
-        ],
-      },
-    ],
+  const teamAt = (group: string, rank: number) =>
+    qualified.find((entry) => entry.group === group && entry.rank === rank)?.team ?? null
+  const bracket: Array<{ id: string; name: string; number: number; matches: CupMatchView[] }> = []
+  for (let count = crossings.length; count >= 1; count /= 2) {
+    const number = bracket.length + 1
+    const name = count === 1 ? '决赛' : count === 2 ? '半决赛' : count === 4 ? '八强赛' : '十六强赛'
+    const previous = bracket.at(-1)
+    const matches = previous
+      ? Array.from({ length: count }, (_, i) =>
+          make(
+            `R${number}-${i + 1}`,
+            name,
+            `${previous.name}${i * 2 + 1}胜者`,
+            `${previous.name}${i * 2 + 2}胜者`,
+          ),
+        )
+      : crossings.map(([home, away], i) =>
+          make(
+            `R${number}-${i + 1}`,
+            name,
+            `${home.groupId}组第${home.rank}`,
+            `${away.groupId}组第${away.rank}`,
+            teamAt(home.groupId, home.rank),
+            teamAt(away.groupId, away.rank),
+          ),
+        )
+    if (count === 1 && previous)
+      matches.push(make('THIRD', '三四名赛', '半决赛1负者', '半决赛2负者'))
+    bracket.push({ id: `preview-round-${number}`, name, number, matches })
   }
+  return { bracket, qualified, preview: true }
 }

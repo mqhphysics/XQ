@@ -10,12 +10,26 @@ export function realTournaments(catalog: Catalog) {
 export async function viewerDataTournament() {
   const catalog = await campusRepository.catalog(),
     available = realTournaments(catalog)
-  const women = available.filter((t) =>
+  const current = available.find((t) => t.id === catalog.defaultTournamentId)
+  const cupName = catalog.competitions.find(
+    (item) => item.id === current?.competitionDefinitionId,
+  )?.cupName
+  const scope =
+    current && cupName
+      ? available.filter(
+          (t) =>
+            t.seasonId === current.seasonId &&
+            catalog.competitions.some(
+              (item) => item.id === t.competitionDefinitionId && item.cupName === cupName,
+            ),
+        )
+      : available
+  const women = scope.filter((t) =>
     /WOMEN|FEMALE|女/i.test(
       catalog.competitions.find((c) => c.id === t.competitionDefinitionId)?.gender || '',
     ),
   )
-  const men = available.find((t) =>
+  const men = scope.find((t) =>
     /^(?:MEN|MALE)$|男/i.test(
       catalog.competitions.find((c) => c.id === t.competitionDefinitionId)?.gender || '',
     ),
@@ -27,5 +41,5 @@ export async function viewerDataTournament() {
       if (player.rosterSource === 'OFFICIAL_SNAPSHOT' && player.tournamentName === tournament.name)
         return tournament.id
     }
-  return men?.id || available[0]?.id || ''
+  return current?.id || men?.id || available[0]?.id || ''
 }

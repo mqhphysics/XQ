@@ -9,6 +9,7 @@ import type { CampusProfileDto } from '../models/CampusProfileDto';
 import type { CampusReasonDto } from '../models/CampusReasonDto';
 import type { CampusSeasonTeamDto } from '../models/CampusSeasonTeamDto';
 import type { CampusVersionDto } from '../models/CampusVersionDto';
+import type { CreateCupDto } from '../models/CreateCupDto';
 import type { ReporterAppealDto } from '../models/ReporterAppealDto';
 import type { ReporterCaseDto } from '../models/ReporterCaseDto';
 import type { ReporterReinstatementDto } from '../models/ReporterReinstatementDto';
@@ -512,6 +513,51 @@ export class CampusService {
             headers: {
                 'Idempotency-Key': idempotencyKey,
             },
+        });
+    }
+    /**
+     * @param requestBody
+     * @param idempotencyKey 写操作必填，8–128字符；读取可省略
+     * @returns any
+     * @throws ApiError
+     */
+    public static campusControllerCreateCup(
+        requestBody: CreateCupDto,
+        idempotencyKey?: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/admin/campus/competitions',
+            headers: {
+                'Idempotency-Key': idempotencyKey,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @param idempotencyKey 写操作必填，8–128字符；读取可省略
+     * @returns any
+     * @throws ApiError
+     */
+    public static campusControllerFeatureCup(
+        id: string,
+        requestBody: CampusReasonDto,
+        idempotencyKey?: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/admin/campus/competitions/{id}/feature',
+            path: {
+                'id': id,
+            },
+            headers: {
+                'Idempotency-Key': idempotencyKey,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

@@ -28,6 +28,7 @@ export interface TeamSummary {
   groupName?: string | null
 }
 export interface MatchSummary {
+  resultStatus?: string
   id: string
   tournamentId: string
   matchCode: string
@@ -186,6 +187,7 @@ export interface HomeResponse {
   tournament: {
     id: string
     name: string
+    cupName?: string
     seasonName: string
     status: string
     teamCount: number
@@ -240,6 +242,11 @@ export interface PlayerStats {
 }
 
 export interface CompetitionDataResponse {
+  qualification?: {
+    points: { win: number; draw: number; loss: number }
+    qualifiersPerGroup?: 1 | 2
+    forfeit?: { loserPoints: number; both: { points: number } | null }
+  }
   tournament: {
     id: string
     name: string

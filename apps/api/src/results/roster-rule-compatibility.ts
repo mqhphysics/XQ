@@ -22,6 +22,8 @@ export function compatibleResultRules(previous: unknown, current: unknown): bool
   const after = { ...current }
   delete before.progression
   delete after.progression
+  delete before.qualifiersPerGroup
+  delete after.qualifiersPerGroup
   return canonical(before) === canonical(after) || compatibleRosterExpansion(before, after)
 }
 /** Expanding eligibility alone cannot invalidate prior scores; every other rule stays identical. */

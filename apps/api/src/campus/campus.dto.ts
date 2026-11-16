@@ -26,6 +26,14 @@ export class CampusReasonDto {
 export class CampusVersionDto extends CampusReasonDto {
   @ApiProperty({ minimum: 1 }) @Type(() => Number) @IsInt() @Min(1) expectedVersion!: number
 }
+export class CreateCupDto extends CampusReasonDto {
+  @ApiProperty({ format: 'uuid' }) @IsUUID() seasonId!: string
+  @ApiProperty() @IsString() @Matches(/^[A-Z0-9_-]{2,32}$/) code!: string
+  @ApiProperty() @IsString() @Length(1, 80) cupName!: string
+  @ApiProperty({ enum: ['MALE', 'FEMALE', 'UNSPECIFIED'] })
+  @IsIn(['MALE', 'FEMALE', 'UNSPECIFIED'])
+  gender!: string
+}
 export class StudentRecordDto {
   @ApiPropertyOptional({ description: '新增时可不填；修改已有档案时需说明原因' })
   @IsOptional()

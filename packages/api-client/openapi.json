@@ -8525,6 +8525,90 @@
         "tags": [
           "campus"
         ]
+      },
+      "post": {
+        "operationId": "CampusController_createCup",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "写操作必填，8–128字符；读取可省略",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "campus"
+        ]
+      }
+    },
+    "/api/admin/campus/competitions/{id}/feature": {
+      "post": {
+        "operationId": "CampusController_featureCup",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "写操作必填，8–128字符；读取可省略",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampusReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "campus"
+        ]
       }
     },
     "/api/admin/campus/team-seasons": {
@@ -9177,7 +9261,7 @@
   "info": {
     "title": "晓球 API",
     "description": "",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "contact": {}
   },
   "tags": [],
@@ -15232,6 +15316,56 @@
           "decision"
         ]
       },
+      "CreateCupDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "操作原因",
+            "minLength": 2,
+            "maxLength": 1000
+          },
+          "seasonId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "cupName": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "UNSPECIFIED"
+            ]
+          }
+        },
+        "required": [
+          "reason",
+          "seasonId",
+          "code",
+          "cupName",
+          "gender"
+        ]
+      },
+      "CampusReasonDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "操作原因",
+            "minLength": 2,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
       "CampusSeasonTeamDto": {
         "type": "object",
         "properties": {
@@ -15265,20 +15399,6 @@
           "reason",
           "expectedUpdatedAt",
           "name"
-        ]
-      },
-      "CampusReasonDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "description": "操作原因",
-            "minLength": 2,
-            "maxLength": 1000
-          }
-        },
-        "required": [
-          "reason"
         ]
       },
       "RegistrationApplicantDto": {

@@ -1,4 +1,3 @@
-import { publicUgcEnabled, RETIRED_UGC_REASON } from './retired-ugc'
 import { HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
 import type {
@@ -135,9 +134,7 @@ export class AccountCapabilitiesService {
         'schedule.read': capability('schedule', organization),
         'data.read': capability('data', organization),
         'teams.read': capability('teams', organization),
-        'community.write': publicUgcEnabled()
-          ? capability('community', organization)
-          : { enabled: false, reason: RETIRED_UGC_REASON, scopes: [] },
+        'community.write': capability('community', organization),
         'teams.manage': capability(
           'teamManagement',
           administrator ? [...organization, ...teamScopes] : teamScopes,

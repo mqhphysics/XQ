@@ -554,14 +554,11 @@ export class MatchReportService {
           if (body.action !== 'RETURN' && blockingReasons.length)
             throw conflict(blockingReasons.join('；'))
           const fields = reviewing ? parseFields(previous!.fields) : body.fields!
-          const finalKnockoutScore =
-            body.action === 'SAVE_SCORE' &&
-            match.stage?.type === 'KNOCKOUT' &&
-            match.status === 'FINISHED'
+          const finalScore = body.action === 'SAVE_SCORE' && match.status === 'FINISHED'
           const liveReport =
             !!timing &&
             timing.window.opened &&
-            !finalKnockoutScore &&
+            !finalScore &&
             fields.outcome === 'FINISHED' &&
             ['SAVE', 'SAVE_SCORE', 'SUBMIT'].includes(body.action)
           try {
@@ -725,13 +722,14 @@ export class MatchReportService {
               !abandoned &&
               results &&
               mayAdvance &&
-              match.stage?.type === 'KNOCKOUT'
+              (match.stage?.type === 'KNOCKOUT' || match.stage?.type === 'GROUP')
             )
               await results.advanceFromConfirmedMatch(
                 tx,
                 session,
                 match.tournamentId,
                 match.id,
+                match.groupId,
                 requestId,
               )
             if (!liveReport)

@@ -34,7 +34,9 @@ import { useNativePanelVisible } from '../../components/native-navigation/panel-
 
 const tabs = ['积分', '射手榜', '助攻榜']
 export default function NativeDataScreen() {
-  const { state, load, tournamentId } = useNativeCompetition({ viewerDefault: true })
+  const { state, load, selectTournament, tournamentId } = useNativeCompetition({
+    viewerDefault: true,
+  })
   return (
     <>
       <PublicShell active="data" tournamentId={tournamentId}>
@@ -51,7 +53,7 @@ export default function NativeDataScreen() {
           <NativeDataContent
             key={state.data.tournament.id}
             data={state.data}
-            onTournament={(id) => void load(id)}
+            onTournament={selectTournament}
           />
         )}
       </PublicShell>

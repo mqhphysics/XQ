@@ -23,10 +23,14 @@ export function HeroCarousel({
   photos,
   onActiveChange,
   onSelect,
+  cupName,
+  seasonName,
 }: {
   photos?: readonly HeroPhoto[]
   onActiveChange?: (index: number) => void
   onSelect?: (index: number) => void
+  cupName?: string | undefined
+  seasonName?: string | undefined
 }) {
   const slides = photos?.length ? photos : fallback
   const [index, setIndex] = useState(0)
@@ -40,8 +44,10 @@ export function HeroCarousel({
     <View className="experience-hero__media native-home-hero">
       <View className="native-home-hero__copy">
         <View className="native-home-hero__topline">
-          <Text className="native-home-hero__eyebrow">2026 校园足球赛季</Text>
-          <Text className="native-home-season">新生杯</Text>
+          <Text className="native-home-hero__eyebrow">
+            {seasonName ? `${seasonName} ` : ''}校园足球赛季
+          </Text>
+          {cupName && <Text className="native-home-season">{cupName}</Text>}
         </View>
         <Text className="native-home-hero__title">绿茵正燃</Text>
         <Text className="native-home-hero__title native-home-hero__title--warm">青春正好</Text>

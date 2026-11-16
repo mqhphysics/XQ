@@ -1,6 +1,7 @@
 import { productRequest } from '../product/product.repository'
 import { createClientActionId } from '../product/product.repository'
 export interface Catalog {
+  defaultTournamentId?: string | null
   competitions: Array<{
     id: string
     code: string

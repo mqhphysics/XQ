@@ -20,6 +20,7 @@ import { resolveKnockoutResult } from './knockout'
 import { parseResultsRules } from './parse-rules'
 import { parseProgressionRules, type ProgressionRules } from './progression-rules'
 import { finalSlots } from './final-slots'
+import { standardProgression } from './standard-progression'
 import { progressionSourceHash, type ProgressionSource } from './progression-source'
 import { type ProgressionConfirmDto, type ProgressionPreviewDto } from './results.dto'
 import {
@@ -218,6 +219,7 @@ export class ResultsService {
     ruleVersionId: string,
     lock: boolean,
     explicitSlots?: ProgressionRules,
+    automatic = false,
   ) {
     try {
       const tournamentRows = await tx.$queryRawUnsafe<Array<{ id: string; version: number }>>(
@@ -296,6 +298,29 @@ export class ResultsService {
             .digest('hex')
         : factsHash
       const reasons: string[] = []
+      if (automatic)
+        for (const groupId of sourceGroups) {
+          const entrants = new Set(
+            teams.filter((team) => team.groupId === groupId).map((team) => team.teamId),
+          )
+          const games = sourceFixtures.filter((fixture) => fixture.groupId === groupId)
+          const pairs = new Set(
+            games.map((game) => [game.homeTeamId, game.awayTeamId].sort().join(':')),
+          )
+          if (
+            entrants.size < 2 ||
+            games.length !== (entrants.size * (entrants.size - 1)) / 2 ||
+            pairs.size !== games.length ||
+            games.some(
+              (game) =>
+                game.status === 'DRAFT' ||
+                game.homeTeamId === game.awayTeamId ||
+                !entrants.has(game.homeTeamId ?? '') ||
+                !entrants.has(game.awayTeamId ?? ''),
+            )
+          )
+            reasons.push('SOURCE_GROUP_SCHEDULE_INCOMPLETE')
+        }
       const facts = sourceFixtures
         .map(confirmedResultFact)
         .filter((fact): fact is ResultFact & { ruleVersionId: string } => fact !== null)
@@ -432,6 +457,27 @@ export class ResultsService {
     )
   }
 
+  private async fallbackPlans(
+    tx: ResultsTransaction,
+    organizationId: string,
+    tournamentId: string,
+    rules: unknown,
+  ) {
+    const legacy = await this.finalRound(tx, organizationId, tournamentId)
+    const defaults = await standardProgression(tx, organizationId, tournamentId, rules)
+    return legacy
+      ? [
+          legacy,
+          ...defaults.filter(
+            (plan) =>
+              !plan.slots.some((slot) =>
+                legacy.slots.some((existing) => existing.targetMatchId === slot.targetMatchId),
+              ),
+          ),
+        ]
+      : defaults
+  }
+
   private async previewAvailableRound(
     tx: ResultsTransaction,
     organizationId: string,
@@ -439,37 +485,41 @@ export class ResultsService {
     ruleVersionId: string,
     lock: boolean,
   ) {
-    const next = await this.finalRound(tx, organizationId, tournamentId)
-    let configured: Awaited<ReturnType<ResultsService['buildPreview']>>
-    try {
-      configured = await this.buildPreview(tx, organizationId, tournamentId, ruleVersionId, lock)
-    } catch (error) {
+    const { row } = await this.rules(tx, organizationId, tournamentId, ruleVersionId)
+    const explicit =
+      row.rules && typeof row.rules === 'object' && 'progression' in row.rules
+        ? parseProgressionRules(row.rules)
+        : null
+    const configured = explicit
+      ? await this.buildPreview(tx, organizationId, tournamentId, ruleVersionId, lock)
+      : null
+    if (configured?.slots.some((slot) => slot.teamId !== slot.previousTeamId)) return configured
+    let firstPending: Awaited<ReturnType<ResultsService['buildPreview']>> | null = null
+    for (const plan of await this.fallbackPlans(tx, organizationId, tournamentId, row.rules)) {
       if (
-        next &&
-        error instanceof ApiHttpException &&
-        (error.getResponse() as { details?: { reason?: string } }).details?.reason ===
-          'PROGRESSION_RULES_REQUIRED'
+        plan.slots.some((slot) =>
+          explicit?.slots.some((declared) => declared.targetMatchId === slot.targetMatchId),
+        )
       )
-        return this.buildPreview(tx, organizationId, tournamentId, ruleVersionId, lock, next)
-      throw error
+        continue
+      const preview = await this.buildPreview(
+        tx,
+        organizationId,
+        tournamentId,
+        ruleVersionId,
+        lock,
+        plan,
+        true,
+      )
+      const changes = preview.slots.filter((slot) => slot.teamId !== slot.previousTeamId)
+      if (changes.length && changes.every((slot) => slot.previousTeamId === null)) return preview
+      firstPending ??= preview
     }
-    if (configured.slots.some((slot) => slot.teamId !== slot.previousTeamId)) return configured
-    if (
-      !next ||
-      next.slots.some((slot) =>
-        configured.sourceVersions.targets?.some((target) => target.matchId === slot.targetMatchId),
-      )
+    return (
+      configured ??
+      firstPending ??
+      this.buildPreview(tx, organizationId, tournamentId, ruleVersionId, lock)
     )
-      return configured
-    const finals = await this.buildPreview(
-      tx,
-      organizationId,
-      tournamentId,
-      ruleVersionId,
-      lock,
-      next,
-    )
-    return finals.slots.some((slot) => slot.teamId !== slot.previousTeamId) ? finals : configured
   }
 
   /** Report writes already hold the tournament lock before taking any match lock. */
@@ -478,6 +528,7 @@ export class ResultsService {
     session: AuthenticatedSession,
     tournamentId: string,
     matchId: string,
+    groupId: string | null,
     requestId: string,
   ) {
     const organizationId = session.organizationId
@@ -493,31 +544,33 @@ export class ResultsService {
         published.rules && typeof published.rules === 'object' && 'progression' in published.rules
           ? parseProgressionRules(published.rules)
           : null
-      const usesMatch = (plan: ProgressionRules | null) =>
-        plan?.slots.some(
-          (slot) => slot.source.type !== 'GROUP_RANK' && slot.source.matchId === matchId,
-        )
-      if (usesMatch(explicit))
-        preview = await this.buildPreview(tx, organizationId, tournamentId, published.id, true)
-      else {
-        const finals = await this.finalRound(tx, organizationId, tournamentId)
-        if (
-          !finals ||
-          !usesMatch(finals) ||
-          finals.slots.some((slot) =>
-            explicit?.slots.some((existing) => existing.targetMatchId === slot.targetMatchId),
+      const fromReportedMatch = (slot: ProgressionRules['slots'][number]) =>
+        slot.source.type === 'GROUP_RANK'
+          ? !!groupId && slot.source.groupId === groupId
+          : slot.source.matchId === matchId
+      const plan = explicit?.slots.some(fromReportedMatch)
+        ? explicit
+        : (await this.fallbackPlans(tx, organizationId, tournamentId, published.rules)).find(
+            (candidate) =>
+              candidate.slots.some(fromReportedMatch) &&
+              !candidate.slots.some((slot) =>
+                explicit?.slots.some((declared) => declared.targetMatchId === slot.targetMatchId),
+              ),
           )
-        )
-          return
-        preview = await this.buildPreview(
-          tx,
-          organizationId,
-          tournamentId,
-          published.id,
-          true,
-          finals,
-        )
+      if (!plan) return
+      const relevant = {
+        sourceStageId: plan.sourceStageId,
+        slots: plan.slots.filter(fromReportedMatch),
       }
+      preview = await this.buildPreview(
+        tx,
+        organizationId,
+        tournamentId,
+        published.id,
+        true,
+        relevant,
+        true,
+      )
     } catch (error) {
       // Invalid or unresolved competition rules do not invalidate a confirmed match report.
       if (error instanceof ApiHttpException || error instanceof CompetitionRuleError) return

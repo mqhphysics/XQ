@@ -34,6 +34,7 @@ import {
   CampusPlayerDto,
   CampusMediaDto,
   CampusReasonDto,
+  CreateCupDto,
   ReporterAppealDto,
   ReporterCaseDto,
   ReporterReviewDto,
@@ -269,6 +270,27 @@ export class CampusController {
   }
   @Get('admin/campus/competitions') catalog(@Headers('authorization') auth: string | undefined) {
     return this.competitions.admin(auth)
+  }
+  @Post('admin/campus/competitions')
+  @ApiBody({ type: CreateCupDto })
+  createCup(
+    @Headers('authorization') auth: string | undefined,
+    @Headers('idempotency-key') key: string | undefined,
+    @Body() body: CreateCupDto,
+    @Req() req: RequestWithId,
+  ) {
+    return this.competitions.createCup(auth, body, key, req.requestId ?? 'campus')
+  }
+  @Post('admin/campus/competitions/:id/feature')
+  @ApiBody({ type: CampusReasonDto })
+  featureCup(
+    @Headers('authorization') auth: string | undefined,
+    @Headers('idempotency-key') key: string | undefined,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CampusReasonDto,
+    @Req() req: RequestWithId,
+  ) {
+    return this.competitions.feature(auth, id, body, key, req.requestId ?? 'campus')
   }
   @Get('admin/campus/team-seasons')
   @ApiQuery({ name: 'tournamentId', required: false, type: String, format: 'uuid' })

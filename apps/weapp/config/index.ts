@@ -15,6 +15,7 @@ const buildEnvironment = (
         TARO_APP_API_PROXY_ENV?: string
         TARO_APP_API_PROXY_SERVICE?: string
         TARO_APP_API_PROXY_MEDIA_ORIGIN?: string
+        XIAOQIU_WEAPP_UGC?: string
         XIAOQIU_WEAPP_OUTPUT?: string
       }
     }
@@ -50,6 +51,7 @@ const config: UserConfigExport = {
   ],
   env: {
     TARO_APP_VERSION: JSON.stringify(appVersion ?? ''),
+    TARO_APP_UGC: JSON.stringify(buildEnvironment?.XIAOQIU_WEAPP_UGC === '1' ? '1' : '0'),
     TARO_APP_API_BASE_URL: JSON.stringify(
       buildEnvironment?.TARO_APP_API_BASE_URL ?? 'http://127.0.0.1:3001',
     ),

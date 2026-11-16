@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto'
 import { Injectable } from '@nestjs/common'
 import type { FeatureAvailability, ProductConfiguration, ProductModuleId } from '@xiaoqiu/contracts'
-import { publicUgcEnabled } from './retired-ugc'
 
 export const UNAVAILABLE_FEATURE_REASON = '功能暂未开放'
 
@@ -42,7 +41,6 @@ export function buildProductConfiguration(
       const value = environment[variable]?.trim().toLowerCase()
       const enabled =
         implementedModules.has(id as ProductModuleId) &&
-        (id !== 'directMessages' || publicUgcEnabled(environment)) &&
         (value === undefined || value === '' || value === '1' || value === 'true')
       return [id, { enabled, reason: enabled ? null : UNAVAILABLE_FEATURE_REASON }]
     }),

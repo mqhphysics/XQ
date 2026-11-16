@@ -366,7 +366,7 @@ test(
         thread.body.items.find((item: { id: string }) => item.id === official.messageId).kind,
         'ADMIN_NOTICE',
       )
-      assert.equal((await summary()).directUnreadCount, 1)
+      assert.equal((await summary()).directUnreadCount, 0)
       const at = new Date('2026-11-01T12:00:00Z')
       const favorites = await Promise.all(
         Array.from({ length: 34 }, async (_, i) => {

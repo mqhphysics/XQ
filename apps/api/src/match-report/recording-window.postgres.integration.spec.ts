@@ -502,12 +502,12 @@ test(
           },
         })
       const [semi1, semi2, final, third] = await Promise.all([
-        knockoutMatch('SF-01', '半决赛 1', [0, 1]),
-        knockoutMatch('SF-02', '半决赛 2', [2, 3]),
+        knockoutMatch('SF-01', '半决赛 1'),
+        knockoutMatch('SF-02', '半决赛 2'),
         knockoutMatch('FINAL', '决赛：半决赛1胜队 vs 半决赛2胜队'),
         knockoutMatch('THIRD', '三四名赛：半决赛1负队 vs 半决赛2负队'),
       ])
-      const scoreSemi = async (id: string, homePenaltyScore: string, awayPenaltyScore: string) => {
+      const saveOfficialScore = async (id: string, score: Partial<typeof fields>) => {
         const editor = (
           await http
             .post(`/api/matches/${id}/report/editor`)
@@ -517,7 +517,7 @@ test(
         ).body
         const payload = {
           ...command(editor, 'SAVE_SCORE'),
-          fields: { ...fields, homePenaltyScore, awayPenaltyScore },
+          fields: { ...fields, ...score },
         }
         const save = () =>
           http
@@ -527,23 +527,66 @@ test(
             .expect(200)
         assert.deepEqual((await save()).body, (await save()).body)
       }
-      await scoreSemi(semi1.id, '5', '4')
-      assert.equal((await db.match.findUniqueOrThrow({ where: { id: final.id } })).homeTeamId, null)
-      await scoreSemi(semi2.id, '3', '4')
+      const groupFixtures = []
+      for (const [index, groupCode] of ['A', 'B'].entries()) {
+        const group = await db.tournamentGroup.create({
+          data: { organizationId: org.id, stageId: stage.id, groupCode, name: `${groupCode}组` },
+        })
+        const home = teams[index * 2]!,
+          away = teams[index * 2 + 1]!
+        await db.teamRegistration.updateMany({
+          where: {
+            organizationId: org.id,
+            tournamentId: tournament.id,
+            teamId: { in: [home.id, away.id] },
+          },
+          data: { groupId: group.id },
+        })
+        groupFixtures.push(
+          await db.match.create({
+            data: {
+              organizationId: org.id,
+              tournamentId: tournament.id,
+              stageId: stage.id,
+              groupId: group.id,
+              matchCode: `TEST-GROUP-${groupCode}`,
+              title: `${groupCode}组 小组赛`,
+              status: 'FINISHED',
+              scheduledStartAt: new Date(now - 3 * 86400000),
+              homeTeamId: home.id,
+              awayTeamId: away.id,
+            },
+          }),
+        )
+      }
+      await saveOfficialScore(groupFixtures[0]!.id, { homeScore: '1' })
+      const firstGroup = await db.match.findUniqueOrThrow({ where: { id: semi1.id } })
+      assert.deepEqual([firstGroup.homeTeamId, firstGroup.awayTeamId], [teams[0]!.id, null])
+      await saveOfficialScore(groupFixtures[1]!.id, { homeScore: '1' })
+      const cross = await db.match.findUniqueOrThrow({ where: { id: semi1.id } })
+      assert.deepEqual([cross.homeTeamId, cross.awayTeamId], [teams[0]!.id, teams[3]!.id])
+      await db.match.updateMany({
+        where: { id: { in: [semi1.id, semi2.id] } },
+        data: { status: 'FINISHED', scheduledStartAt: new Date(now - 86400000) },
+      })
+      await saveOfficialScore(semi1.id, { homePenaltyScore: '5', awayPenaltyScore: '4' })
+      const partial = await db.match.findUniqueOrThrow({ where: { id: final.id } })
+      assert.deepEqual([partial.homeTeamId, partial.awayTeamId], [teams[0]!.id, null])
+      await saveOfficialScore(semi2.id, { homePenaltyScore: '3', awayPenaltyScore: '4' })
       const [finalFixture, thirdFixture] = await Promise.all(
         [final.id, third.id].map((id) => db.match.findUniqueOrThrow({ where: { id } })),
       )
       assert.deepEqual(
         [finalFixture!.homeTeamId, finalFixture!.awayTeamId],
-        [teams[0]!.id, teams[3]!.id],
+        [teams[0]!.id, teams[1]!.id],
       )
       assert.deepEqual(
         [thirdFixture!.homeTeamId, thirdFixture!.awayTeamId],
-        [teams[1]!.id, teams[2]!.id],
+        [teams[3]!.id, teams[2]!.id],
       )
       assert.equal(
         await db.tournamentProgression.count({ where: { tournamentId: tournament.id } }),
-        1,
+        4,
       )
     } finally {
       await app.close()

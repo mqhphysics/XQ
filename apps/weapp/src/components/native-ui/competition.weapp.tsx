@@ -15,7 +15,6 @@ import { useNativePanelVisible } from '../native-navigation/panel-context.weapp'
 import {
   setNativeTournamentId,
   useNativeTournamentId,
-  getNativeTournamentId,
 } from '../../features/native-navigation/index.weapp'
 
 type CompetitionState =
@@ -38,13 +37,11 @@ export function useNativeCompetition({ viewerDefault = false }: { viewerDefault?
     const ticket = ++sequence.current
     const target = id ?? requested.current
     requested.current = target
-    if (target) setNativeTournamentId(target)
     if (!peekCompetition(target)) setState({ phase: 'loading' })
     try {
       const data = await loadCompetition(target)
       if (ticket === sequence.current) {
         requested.current = data.tournament.id
-        if (!getNativeTournamentId()) setNativeTournamentId(data.tournament.id)
         setState({ phase: 'ready', data })
       }
     } catch (error) {
@@ -57,7 +54,7 @@ export function useNativeCompetition({ viewerDefault = false }: { viewerDefault?
   }, [])
   useNativeRefreshTask(() => load(), true)
   useEffect(() => {
-    if (viewerDefault && initialized.current !== owner) {
+    if (viewerDefault && !routeId && initialized.current !== owner) {
       setState({ phase: 'loading' })
       let active = true
       initialized.current = owner
@@ -78,7 +75,12 @@ export function useNativeCompetition({ viewerDefault = false }: { viewerDefault?
       sequence.current++
     }
   }, [routeId, load, viewerDefault, owner])
-  return { state, load, tournamentId: state.phase === 'ready' ? state.data.tournament.id : routeId }
+  return {
+    state,
+    load,
+    selectTournament: (id: string) => setNativeTournamentId(id),
+    tournamentId: state.phase === 'ready' ? state.data.tournament.id : routeId,
+  }
 }
 
 export function NativeTournamentSelect({

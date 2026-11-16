@@ -89,6 +89,12 @@ export function validateRuleDocument(value: unknown): string | null {
       !Number.isSafeInteger(results.forfeit.both.points))
   )
     return 'forfeit.both 需为 null 或包含 goals/points 的有效对象。'
+  if (
+    value.qualifiersPerGroup !== undefined &&
+    value.qualifiersPerGroup !== 1 &&
+    value.qualifiersPerGroup !== 2
+  )
+    return 'qualifiersPerGroup 可填 1 或 2，其他赛制请配置明确晋级签位。'
   if (value.progression !== undefined) {
     if (
       !object(value.progression) ||

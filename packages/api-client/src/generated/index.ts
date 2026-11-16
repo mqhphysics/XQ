@@ -64,6 +64,7 @@ export type { ConfirmIdentityDto } from './models/ConfirmIdentityDto';
 export type { ContentVersionDto } from './models/ContentVersionDto';
 export type { CreateCommentDto } from './models/CreateCommentDto';
 export type { CreateCompetitionRuleVersionDto } from './models/CreateCompetitionRuleVersionDto';
+export type { CreateCupDto } from './models/CreateCupDto';
 export type { CreateDirectMessageDto } from './models/CreateDirectMessageDto';
 export type { CreateMatchDto } from './models/CreateMatchDto';
 export type { CreateMatchReviewDto } from './models/CreateMatchReviewDto';

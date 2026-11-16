@@ -8,7 +8,6 @@ import { Prisma } from '../generated/prisma/client'
 import { defaultAvatar } from '../media/default-media'
 import { blockedUserIds, lockInteractionPair } from './interaction-policy'
 import { visibleNotificationTargets } from './notification-targets'
-import { publicUgcEnabled } from '../product-config/retired-ugc'
 import type {
   MessageCategory,
   MessageCenterNotificationDto,
@@ -94,9 +93,7 @@ export class MessageCenterService {
   }
 
   private noticeScope(session: AuthenticatedSession) {
-    const systemNotice = publicUgcEnabled()
-      ? Prisma.sql`n.type <> 'DIRECT_MESSAGE'`
-      : Prisma.sql`(n.type <> 'DIRECT_MESSAGE' OR n.metadata->>'kind' = 'ADMIN_NOTICE')`
+    const systemNotice = Prisma.sql`(n.type <> 'DIRECT_MESSAGE' OR n.metadata->>'kind' = 'ADMIN_NOTICE')`
     return Prisma.sql`n.organization_id = ${session.organizationId}::uuid AND n.recipient_user_id = ${session.userId}::uuid AND ${systemNotice} AND (
       n.actor_user_id IS NULL OR n.type NOT IN ('POST_LIKED','POST_COMMENTED','COMMENT_REPLIED') OR NOT EXISTS (
         SELECT 1 FROM user_blocks b WHERE b.organization_id=n.organization_id AND b.blocker_user_id=${session.userId}::uuid AND b.blocked_user_id=n.actor_user_id
@@ -115,35 +112,33 @@ export class MessageCenterService {
       this.prisma.$queryRaw<Array<{ category: MessageCategory; count: number }>>(
         Prisma.sql`SELECT ${categorySql} AS category, count(*)::int AS count FROM user_notifications n WHERE ${this.noticeScope(session)} AND n.read_at IS NULL AND ${this.reminderSql(session, preferences)} GROUP BY 1`,
       ),
-      publicUgcEnabled()
-        ? this.prisma.directMessage.count({
-            where: {
-              organizationId: session.organizationId,
-              senderUserId: { not: session.userId },
-              readAt: null,
-              conversation: { OR: [{ userOneId: session.userId }, { userTwoId: session.userId }] },
-              OR: [
-                { kind: 'ADMIN_NOTICE' },
-                {
-                  sender: {
-                    blockedUsers: {
-                      none: {
-                        organizationId: session.organizationId,
-                        blockedUserId: session.userId,
-                      },
-                    },
-                    blockedByUsers: {
-                      none: {
-                        organizationId: session.organizationId,
-                        blockerUserId: session.userId,
-                      },
-                    },
+      this.prisma.directMessage.count({
+        where: {
+          organizationId: session.organizationId,
+          senderUserId: { not: session.userId },
+          readAt: null,
+          kind: { not: 'ADMIN_NOTICE' },
+          conversation: { OR: [{ userOneId: session.userId }, { userTwoId: session.userId }] },
+          OR: [
+            {
+              sender: {
+                blockedUsers: {
+                  none: {
+                    organizationId: session.organizationId,
+                    blockedUserId: session.userId,
                   },
                 },
-              ],
+                blockedByUsers: {
+                  none: {
+                    organizationId: session.organizationId,
+                    blockerUserId: session.userId,
+                  },
+                },
+              },
             },
-          })
-        : 0,
+          ],
+        },
+      }),
     ])
     const count = (category: MessageCategory) =>
       counts.find((row) => row.category === category)?.count ?? 0

@@ -20,6 +20,7 @@ import {
 } from './home-content'
 import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common'
 import { ERROR_CODES } from '@xiaoqiu/contracts'
+import { groupQualifierCount } from '@xiaoqiu/contracts'
 
 import { AuthService } from '../auth/auth.service'
 import { ApiHttpException } from '../common/api-http.exception'
@@ -209,6 +210,7 @@ export class ExperienceService {
       tournament: {
         id: tournament.id,
         name: tournament.name,
+        cupName: tournament.competitionDefinition?.cupName ?? tournament.name.split('·')[0]!.trim(),
         seasonName: tournament.season.name,
         status: tournament.status,
         teamCount: registrations.length,
@@ -692,6 +694,13 @@ export class ExperienceService {
       seasons,
       schedule: matches.map((match) => mapResultMatch(match, resultContext.official)),
       groups,
+      qualification: resultContext.rules
+        ? {
+            points: resultContext.rules.points,
+            forfeit: resultContext.rules.forfeit,
+            qualifiersPerGroup: resultContext.qualifiersPerGroup,
+          }
+        : undefined,
       resultsMode: resultContext.mode,
       ruleVersionId: resultContext.official?.ruleVersionId ?? null,
       bracket: [...bracketRounds.values()].sort((a, b) => a.number - b.number),
@@ -1027,7 +1036,7 @@ export class ExperienceService {
     const [fixtures, documented, confirmedPlans, scheduleSnapshots] = await Promise.all([
       prisma.match.findMany({
         where: { organizationId, tournamentId: selectedTournamentId, status: { not: 'DRAFT' } },
-        include: matchSummaryInclude,
+        include: { ...matchSummaryInclude, stage: true, group: true, round: true },
         orderBy: [{ scheduledStartAt: { sort: 'desc', nulls: 'last' } }, { id: 'asc' }],
       }),
       prisma.auditLog.findMany({
@@ -2720,6 +2729,7 @@ export class ExperienceService {
         mode: 'DEMO' as const,
         official: null,
         rules: null,
+        qualifiersPerGroup: undefined,
         matchWhere: {
           organizationId,
           tournamentId: tournament.id,
@@ -2745,6 +2755,7 @@ export class ExperienceService {
           mode: 'PENDING' as const,
           official: null,
           rules: null,
+          qualifiersPerGroup: undefined,
           matchWhere: {
             organizationId,
             tournamentId: tournament.id,
@@ -2765,6 +2776,7 @@ export class ExperienceService {
       mode: 'OFFICIAL' as const,
       official,
       rules: parseResultsRules(rule.id, rule.rules),
+      qualifiersPerGroup: groupQualifierCount(rule.rules),
       matchWhere: {
         organizationId,
         tournamentId: tournament.id,

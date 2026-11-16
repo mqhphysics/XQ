@@ -720,6 +720,7 @@ model Season {
 }
 
 model Tournament {
+  featuredAt              DateTime?                @map("featured_at") @db.Timestamptz(3)
   competitionDefinitionId String?                  @map("competition_definition_id") @db.Uuid
   competitionDefinition   CompetitionDefinition?   @relation(fields: [competitionDefinitionId], references: [id], onDelete: Restrict)
   id                      String                   @id @default(uuid()) @db.Uuid

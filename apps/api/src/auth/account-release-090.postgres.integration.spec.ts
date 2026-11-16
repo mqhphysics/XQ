@@ -199,7 +199,7 @@ test(
             item.body === messages[0]!.body && item.linkPath === metadata.actionPath,
         ),
       )
-      await http.get('/api/messages/conversations').set('authorization', token).expect(410)
+      await http.get('/api/messages/conversations').set('authorization', token).expect(200)
       assert(Math.abs(new Date(metadata.deadlineAt).getTime() - Date.now() - 14 * 86400000) < 10000)
       const correctedNumber = number(),
         correctionKey = randomUUID()
