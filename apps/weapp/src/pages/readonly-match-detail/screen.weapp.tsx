@@ -210,10 +210,11 @@ function NativeMatchContent({
     <View className="native-match-detail">
       <View className="native-match-hero">
         <View className="native-match-meta">
-          <Text>
+          <Text className="native-match-meta__phase">
             {match.stageName || '赛事'} ·{' '}
             {knockoutRoundLabel(match) || match.roundName || match.title}
           </Text>
+          <Text className="native-match-meta__venue">{match.venue?.name || '场地待定'}</Text>
           <MatchStatus status={match.status} />
         </View>
         <View className="native-match-scoreboard">
@@ -234,9 +235,7 @@ function NativeMatchContent({
           </View>
           <TeamSide team={match.awayTeam} tournamentId={match.tournamentId} />
         </View>
-        <Text className="native-match-kickoff">
-          {knockoutMatchTime(match.scheduledStartAt)} · {match.venue?.name || '场地待定'}
-        </Text>
+        <Text className="native-match-kickoff">{knockoutMatchTime(match.scheduledStartAt)}</Text>
         <NativeMatchClock
           matchId={match.id}
           initial={match.clock}

@@ -13,6 +13,7 @@ const files = new Map<string, string>([
   ['player-cover-v1.webp', 'player-cover-v1.webp'],
   ['team-cover-v1.webp', 'team-cover-v1.webp'],
   ['team-cover-v2.webp', 'team-cover-v2.webp'],
+  ['team-crest-v1.webp', 'team-crest-v1.webp'],
 ])
 for (let index = 1; index <= DEFAULT_AVATAR_COUNT; index++) {
   const number = String(index).padStart(2, '0')

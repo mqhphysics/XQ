@@ -53,6 +53,11 @@ type PlannedSlot = {
   teamId: string
   previousTeamId: string | null
 }
+type ProgressionActor = {
+  organizationId: string
+  userId: string
+  user: { roles: ReadonlyArray<{ role: string; scopeType: string; scopeId: string }> }
+}
 
 @Injectable()
 export class ResultsService {
@@ -593,13 +598,156 @@ export class ResultsService {
     )
   }
 
+  /** Restricted to the operations CLI. Reuse the official preview and write protection. */
+  async reconcileKnockoutSlots(
+    organizationId: string,
+    tournamentId: string,
+    targetCodes: string[],
+    expectedHash?: string,
+  ) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        if (expectedHash)
+          await tx.$queryRaw`SELECT id FROM tournaments WHERE organization_id = ${organizationId}::uuid AND id = ${tournamentId}::uuid FOR UPDATE`
+        const tournament = await tx.tournament.findFirst({
+          where: { id: tournamentId, organizationId, status: 'PUBLISHED' },
+          select: { id: true },
+        })
+        const targets = await tx.match.findMany({
+          where: {
+            tournamentId,
+            organizationId,
+            matchCode: { in: targetCodes },
+            status: { not: 'DRAFT' },
+            stage: { type: 'KNOCKOUT' },
+          },
+          select: { id: true, matchCode: true },
+          orderBy: { matchCode: 'asc' },
+        })
+        if (!tournament || !targetCodes.length || targets.length !== targetCodes.length)
+          throw failure(
+            HttpStatus.NOT_FOUND,
+            '未找到全部指定的正式淘汰赛场次',
+            'RECONCILIATION_TARGETS_NOT_FOUND',
+          )
+        const { row } = await this.rules(tx, organizationId, tournamentId)
+        const explicit =
+          row.rules && typeof row.rules === 'object' && 'progression' in row.rules
+            ? parseProgressionRules(row.rules)
+            : null
+        const ids = new Set(targets.map((target) => target.id))
+        const defaults = (
+          await this.fallbackPlans(tx, organizationId, tournamentId, row.rules)
+        ).filter(
+          (plan) =>
+            !plan.slots.some(
+              (slot) =>
+                ids.has(slot.targetMatchId) &&
+                explicit?.slots.some((declared) => declared.targetMatchId === slot.targetMatchId),
+            ),
+        )
+        const plans = explicit ? [explicit, ...defaults] : defaults
+        const plan = plans
+          .map((candidate) => ({
+            ...candidate,
+            slots: candidate.slots.filter((slot) => ids.has(slot.targetMatchId)),
+          }))
+          .find(
+            (candidate) =>
+              candidate.slots.length === targets.length * 2 &&
+              candidate.slots.every((slot) => slot.source.type !== 'GROUP_RANK'),
+          )
+        if (!plan)
+          throw failure(
+            HttpStatus.CONFLICT,
+            '指定场次没有完整的胜负来源',
+            'RECONCILIATION_SOURCES_REQUIRED',
+          )
+        const preview = await this.buildPreview(
+          tx,
+          organizationId,
+          tournamentId,
+          row.id,
+          Boolean(expectedHash),
+          plan,
+          true,
+        )
+        const changes = preview.slots.filter((slot) => slot.teamId !== slot.previousTeamId)
+        if (preview.status !== 'READY' || changes.some((slot) => slot.previousTeamId !== null))
+          throw failure(
+            HttpStatus.CONFLICT,
+            '来源未确认、比赛已锁定或已有正式对阵冲突',
+            preview.reasons.join(',') || 'RECONCILIATION_EXISTING_TEAMS',
+          )
+        const teams = await tx.team.findMany({
+          where: { organizationId, id: { in: changes.map((slot) => slot.teamId) } },
+          select: { id: true, name: true },
+        })
+        const result = {
+          mode: expectedHash ? 'apply' : 'preview',
+          sourceHash: preview.sourceHash,
+          changes: changes.map((slot) => ({
+            matchCode: targets.find((target) => target.id === slot.targetMatchId)!.matchCode,
+            side: slot.side,
+            team: teams.find((team) => team.id === slot.teamId)?.name ?? slot.teamId,
+          })),
+        }
+        if (!expectedHash || !changes.length) return result
+        if (expectedHash !== preview.sourceHash)
+          throw failure(HttpStatus.CONFLICT, '来源已变化，请重新预览', 'PROGRESSION_SOURCE_CHANGED')
+        const actors = await tx.user.findMany({
+          where: {
+            profileCohort: 'SYSTEM',
+            displayName: '晓球管理员',
+            status: 'ACTIVE',
+            memberships: { some: { organizationId, status: 'ACTIVE' } },
+          },
+          take: 2,
+          select: {
+            id: true,
+            roleAssignments: {
+              where: {
+                organizationId,
+                role: 'ORGANIZATION_ADMIN',
+                scopeType: 'ORGANIZATION',
+                scopeId: organizationId,
+                revokedAt: null,
+                grantedAt: { lte: new Date() },
+              },
+              select: { role: true, scopeId: true, scopeType: true },
+            },
+          },
+        })
+        const actor = actors[0]
+        if (actors.length !== 1 || !actor?.roleAssignments.length)
+          throw failure(
+            HttpStatus.FORBIDDEN,
+            '当前组织没有可用于审计的系统管理员',
+            'RECONCILIATION_ACTOR_REQUIRED',
+          )
+        await this.persistProgression(
+          tx,
+          { organizationId, userId: actor.id, user: { roles: actor.roleAssignments } },
+          preview,
+          '根据已确认赛果补齐历史空签位',
+          `reconcile-knockout-${randomUUID()}`,
+          true,
+          'CLI',
+        )
+        return result
+      },
+      { isolationLevel: 'Serializable' },
+    )
+  }
+
   private async persistProgression(
     tx: ResultsTransaction,
-    session: AuthenticatedSession,
+    session: ProgressionActor,
     preview: Awaited<ReturnType<ResultsService['buildPreview']>>,
     reason: string,
     requestId: string,
     automatic = false,
+    origin = 'API',
   ) {
     const { tournamentId } = preview
     const version = preview.version + 1
@@ -671,7 +819,7 @@ export class ResultsService {
         afterSummary: json(response),
         reason: reason,
         requestId,
-        source: 'API',
+        source: origin,
       },
     })
     await tx.outboxJob.create({

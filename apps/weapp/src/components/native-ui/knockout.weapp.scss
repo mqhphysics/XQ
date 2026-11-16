@@ -22,8 +22,7 @@
 }
 .native-cup-node,
 .native-cup-match,
-.native-cup-line,
-.native-cup-team__unknown {
+.native-cup-line {
   box-sizing: border-box;
 }
 .native-cup-stage {
@@ -97,20 +96,10 @@
   gap: 6px;
   min-width: 0;
 }
-.native-cup-team .team-crest,
-.native-cup-team__unknown {
+.native-cup-team .team-crest {
   flex: 0 0 42px;
   width: 42px;
   height: 42px;
-}
-.native-cup-team__unknown {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #b8c9a9;
-  border-radius: 50%;
-  color: #819774;
-  font-size: 29px;
 }
 .native-cup-team > text {
   display: block;
@@ -143,9 +132,9 @@
   color: #75866b;
   font-size: 24px;
   line-height: 1.2;
+  white-space: nowrap;
 }
-.native-cup-node--final .native-cup-team .team-crest,
-.native-cup-node--final .native-cup-team__unknown {
+.native-cup-node--final .native-cup-team .team-crest {
   width: 50px;
   height: 50px;
   flex-basis: 50px;

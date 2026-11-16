@@ -872,6 +872,7 @@ export class ExperienceService {
     )
 
     return {
+      tournamentId: selectedTournamentId,
       team: {
         ...mapTeam(withSeasonTeamProfile(team, team.registrations[0]?.teamProfileSnapshot)),
         description: withSeasonTeamProfile(team, team.registrations[0]?.teamProfileSnapshot)

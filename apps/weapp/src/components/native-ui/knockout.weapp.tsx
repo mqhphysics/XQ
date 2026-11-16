@@ -166,11 +166,7 @@ function CupTeam({ match, side }: { match: MatchSummary; side: 'home' | 'away' }
     <View
       className={`native-cup-team${winner && winner !== team?.id ? ' native-cup-team--lost' : ''}`}
     >
-      {team ? (
-        <TeamCrest team={team} interactive={false} size="small" />
-      ) : (
-        <View className="native-cup-team__unknown">?</View>
-      )}
+      <TeamCrest team={team} interactive={false} size="small" />
       <Text>{team?.shortName || team?.name || '待定'}</Text>
     </View>
   )

@@ -274,6 +274,7 @@ export interface CompetitionDataResponse {
 }
 
 export interface TeamDashboardResponse {
+  tournamentId?: string
   rosterSource?: 'OFFICIAL_SNAPSHOT' | 'TEAM_MEMBERSHIP' | 'MIXED'
   team: TeamSummary & {
     description: string | null

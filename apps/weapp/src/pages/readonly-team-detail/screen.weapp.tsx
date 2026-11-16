@@ -16,7 +16,9 @@ import {
   NativeProfileCover,
   NativeStats,
 } from '../../components/native-navigation/profile-parts.weapp'
-import { useNativeRouteState } from '../../features/native-navigation/index.weapp'
+import { openNativeDetail, useNativeRouteState } from '../../features/native-navigation/index.weapp'
+import { useNativeCurrentUser } from '../../features/product/current-user.weapp'
+import { managedTeamIds } from '../me/profile.logic'
 import { useNativeViewport } from '../../features/native-navigation/viewport.weapp'
 import { nativeWideWindow } from '../../features/native-navigation/viewport.logic.weapp'
 import { productRepository, peekNativeProduct } from '../../features/product/product.repository'
@@ -49,6 +51,9 @@ export default function NativeTeamScreen({
   const [tab, setTab] = useNativeRouteState('team-tab-v2', 0)
   const [wideTab, setWideTab] = useNativeRouteState('team-tab-wide', 0)
   const wide = nativeWideWindow(useNativeViewport())
+  const viewer = useNativeCurrentUser()
+  const canManage =
+    data?.team.id === teamId && viewer && managedTeamIds(viewer, [teamId]).includes(teamId)
   const [error, setError] = useState(''),
     [attempt, setAttempt] = useState(0)
   const loadSequence = useRef(0)
@@ -73,7 +78,26 @@ export default function NativeTeamScreen({
     }
   }, [load])
   return (
-    <PublicShell active="team" showBack tournamentId={tournamentId}>
+    <PublicShell
+      active="team"
+      showBack
+      tournamentId={tournamentId}
+      nativeBackActions={
+        canManage && (
+          <Button
+            className="native-recording-tool"
+            onClick={() => {
+              const selected = data.tournamentId || tournamentId
+              void openNativeDetail(
+                `/pages/team-manage/index?teamId=${encodeURIComponent(teamId)}&tournamentId=${encodeURIComponent(selected)}`,
+              )
+            }}
+          >
+            管理球队
+          </Button>
+        )
+      }
+    >
       {!data && !error && <DataState kind="loading" title="正在读取球队档案" />}
       {error && (
         <DataState

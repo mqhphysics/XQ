@@ -6,7 +6,7 @@ import type { CompetitionDataResponse, MatchSummary } from '../../features/produ
 test('dates stay short and use the campus time zone including midnight boundaries', () => {
   assert.equal(knockoutMatchTime('2026-11-26T04:30:00Z'), '11/26周四 12:30')
   assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z'), '09/01周二 10:00')
-  assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z', true), '09/01周二')
+  assert.equal(knockoutMatchTime('2026-09-01T02:00:00Z', true), '09/01')
   assert.equal(knockoutMatchTime('2026-08-31T16:00:00Z'), '09/01周二 00:00')
 })
 

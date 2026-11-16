@@ -26,7 +26,7 @@ test(
       data: { slug: 'test-cups-other-' + code, name: 'FICTIONAL_TEST' },
     })
     const season = await db.season.create({
-      data: { organizationId: org.id, seasonCode: '2026', name: '2026' },
+      data: { organizationId: org.id, seasonCode: '2027', name: '2027' },
     })
     const prior = await db.tournament.create({
       data: {
@@ -112,6 +112,7 @@ test(
       const selected = (await home().expect(200)).body.tournament
       assert.equal(selected.id, draft.id)
       assert.equal(selected.cupName, '技科杯')
+      assert.equal(selected.seasonName, '2027')
       assert.equal((await home(prior.id).expect(200)).body.tournament.id, prior.id)
     } finally {
       await app.close()

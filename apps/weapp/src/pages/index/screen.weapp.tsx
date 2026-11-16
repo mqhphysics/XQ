@@ -602,21 +602,11 @@ function FocusCard({ match, tournamentName }: { match: NativeFocusMatch; tournam
       <View className="native-focus-card__teams">
         <View>
           <TeamCrest team={match.homeTeam} interactive={false} size="small" />
-          <Text>
-            {match.homeTeam?.shortName ||
-              match.homeTeam?.name ||
-              match.homePlaceholder ||
-              '主队待定'}
-          </Text>
+          <Text>{match.homeTeam?.shortName || match.homeTeam?.name || '待定'}</Text>
         </View>
         <View>
           <TeamCrest team={match.awayTeam} interactive={false} size="small" />
-          <Text>
-            {match.awayTeam?.shortName ||
-              match.awayTeam?.name ||
-              match.awayPlaceholder ||
-              '客队待定'}
-          </Text>
+          <Text>{match.awayTeam?.shortName || match.awayTeam?.name || '待定'}</Text>
         </View>
         <Text
           className={`native-focus-card__value${scored ? '' : ' native-focus-card__value--time'}`}

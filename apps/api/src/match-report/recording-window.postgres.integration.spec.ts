@@ -13,6 +13,7 @@ import { MatchReportService } from './match-report.service'
 import { TechnicalStatisticsService } from '../technical-statistics/technical-statistics.service'
 import type { ReportWorkspaceResponseDto } from './match-report.dto'
 import { MatchClockService } from '../schedule/match-clock.service'
+import { ResultsService } from '../results/results.service'
 import { technicalTotals, type TechnicalOperation } from '@xiaoqiu/contracts'
 
 test(
@@ -587,6 +588,58 @@ test(
       assert.equal(
         await db.tournamentProgression.count({ where: { tournamentId: tournament.id } }),
         4,
+      )
+      // Model reports confirmed before automatic advancement was enabled.
+      await db.match.updateMany({
+        where: { id: { in: [final.id, third.id] } },
+        data: { homeTeamId: null, awayTeamId: null },
+      })
+      await db.user.update({
+        where: { id: users[1]!.id },
+        data: { profileCohort: 'SYSTEM', displayName: '晓球管理员' },
+      })
+      await db.roleAssignment.create({
+        data: {
+          organizationId: org.id,
+          userId: users[1]!.id,
+          role: 'ORGANIZATION_ADMIN',
+          scopeType: 'ORGANIZATION',
+          scopeId: org.id,
+        },
+      })
+      const replay = app.get(ResultsService)
+      const codes = [final.matchCode, third.matchCode]
+      const plan = await replay.reconcileKnockoutSlots(org.id, tournament.id, codes)
+      assert.equal(plan.changes.length, 4)
+      assert.equal((await db.match.findUniqueOrThrow({ where: { id: final.id } })).homeTeamId, null)
+      await assert.rejects(
+        replay.reconcileKnockoutSlots(org.id, tournament.id, codes, '0'.repeat(64)),
+        /来源已变化/,
+      )
+      await replay.reconcileKnockoutSlots(org.id, tournament.id, codes, plan.sourceHash)
+      assert.equal(
+        (await db.match.findUniqueOrThrow({ where: { id: final.id } })).awayTeamId,
+        teams[1]!.id,
+      )
+      assert.equal(
+        (await db.match.findUniqueOrThrow({ where: { id: third.id } })).homeTeamId,
+        teams[3]!.id,
+      )
+      assert.deepEqual(
+        (await replay.reconcileKnockoutSlots(org.id, tournament.id, codes, plan.sourceHash))
+          .changes,
+        [],
+      )
+      assert.equal(
+        await db.auditLog.count({
+          where: {
+            organizationId: org.id,
+            targetId: tournament.id,
+            source: 'CLI',
+            action: 'TOURNAMENT_PROGRESSION_CONFIRMED',
+          },
+        }),
+        1,
       )
     } finally {
       await app.close()

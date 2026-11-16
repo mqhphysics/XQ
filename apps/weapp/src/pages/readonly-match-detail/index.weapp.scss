@@ -9,13 +9,25 @@
   background: #fff;
 }
 .native-match-meta {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   color: #7b8977;
   font-size: 25px;
   line-height: 1.4;
+}
+.native-match-meta__phase,
+.native-match-meta__venue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.native-match-meta__venue {
+  text-align: center;
+}
+.native-match-meta > .match-status {
+  justify-self: end;
 }
 .native-match-scoreboard {
   display: grid;

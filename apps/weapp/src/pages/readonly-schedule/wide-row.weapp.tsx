@@ -10,7 +10,7 @@ import {
   matchStatusTone,
 } from '../../features/product/product.format'
 import type { MatchSummary, TeamSummary } from '../../features/product/product.types'
-import { TBD_LABEL } from '../../components/tbd-team'
+import { TbdCrest, TBD_LABEL } from '../../components/tbd-team'
 
 /*
  * Wide windows only: one website schedule row (desktop-schedule.h5.tsx MatchRow) —
@@ -20,6 +20,7 @@ import { TBD_LABEL } from '../../components/tbd-team'
 function RowCrest({ team }: { team: TeamSummary | null }) {
   const [failed, setFailed] = useState(false)
   const src = resolveMediaUrl(team?.crestUrl ?? (team ? demoCrestUrl(team.teamCode) : null))
+  if (!team) return <TbdCrest className="native-schedule-row__crest" size="small" />
   return src && !failed ? (
     <Image
       className="native-schedule-row__crest"
@@ -34,19 +35,11 @@ function RowCrest({ team }: { team: TeamSummary | null }) {
   )
 }
 
-function RowTeam({
-  team,
-  placeholder,
-  away = false,
-}: {
-  team: TeamSummary | null
-  placeholder: string | null | undefined
-  away?: boolean
-}) {
+function RowTeam({ team, away = false }: { team: TeamSummary | null; away?: boolean }) {
   return (
     <View className={`native-schedule-row__team${away ? ' native-schedule-row__team--away' : ''}`}>
       <Text className="native-schedule-row__name">
-        {team ? team.shortName || team.name : placeholder || TBD_LABEL}
+        {team?.shortName || team?.name || TBD_LABEL}
       </Text>
       <RowCrest team={team} />
     </View>
@@ -84,7 +77,7 @@ export function WideScheduleRow({
           </Text>
         </View>
         <View className="native-schedule-row__fixture">
-          <RowTeam team={match.homeTeam} placeholder={match.homePlaceholder} />
+          <RowTeam team={match.homeTeam} />
           <View className="native-schedule-row__score">
             <Text className="native-schedule-row__score-main">
               {scored
@@ -99,7 +92,7 @@ export function WideScheduleRow({
               </Text>
             )}
           </View>
-          <RowTeam away team={match.awayTeam} placeholder={match.awayPlaceholder} />
+          <RowTeam away team={match.awayTeam} />
         </View>
         {adjudicated ? (
           <Text className="native-schedule-row__status native-schedule-row__status--ruled">

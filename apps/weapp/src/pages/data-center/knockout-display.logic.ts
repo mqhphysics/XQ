@@ -1,12 +1,11 @@
 import type { CompetitionDataResponse, MatchSummary } from '../../features/product/product.types'
 import { fixtureRoundKind } from '@xiaoqiu/contracts'
-import { leagueShortDate, leagueTime } from '../../features/product/league-time.ts'
+import { leagueDay, leagueShortDate, leagueTime } from '../../features/product/league-time.ts'
 
 export function knockoutMatchTime(value: string | null, compact = false): string {
   if (!value || !Number.isFinite(Date.parse(value))) return '时间待定'
   // Android WeChat does not always provide Intl; the league uses UTC+8 all year.
-  const date = leagueShortDate(value)
-  return compact ? date : `${date} ${leagueTime(value)}`
+  return compact ? leagueDay(value) : `${leagueShortDate(value)} ${leagueTime(value)}`
 }
 
 export function matchWinnerId(match: MatchSummary): string | null {

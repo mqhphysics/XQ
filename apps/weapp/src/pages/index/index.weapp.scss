@@ -471,7 +471,7 @@ page .native-search-result-row.native-search-result-row {
 }
 .native-feed-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 20px;
   justify-content: space-between;
   gap: 20px;
@@ -479,6 +479,10 @@ page .native-search-result-row.native-search-result-row {
 .native-feed-heading > view {
   flex: 1;
   min-width: 0;
+}
+page .public-app.public-app .native-home-page .native-feed-heading .product-section-heading,
+page .public-app.public-app .native-home-page .native-feed-heading .product-section-heading__title {
+  margin: 0;
 }
 .native-feed-change.native-feed-change {
   display: flex;
