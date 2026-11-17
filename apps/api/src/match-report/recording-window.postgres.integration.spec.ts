@@ -11,7 +11,7 @@ import { PrismaClient } from '../generated/prisma/client'
 import { hashPassword } from '../auth/password'
 import { MatchReportService } from './match-report.service'
 import { TechnicalStatisticsService } from '../technical-statistics/technical-statistics.service'
-import type { ReportWorkspaceResponseDto } from './match-report.dto'
+import type { ReportEventDto, ReportWorkspaceResponseDto } from './match-report.dto'
 import { MatchClockService } from '../schedule/match-clock.service'
 import { ResultsService } from '../results/results.service'
 import { technicalTotals, type TechnicalOperation } from '@xiaoqiu/contracts'
@@ -260,12 +260,12 @@ test(
         homePenaltyScore: '',
         awayPenaltyScore: '',
         outcome: 'FINISHED',
-        events: [],
+        events: [] as ReportEventDto[],
         notes: '',
       }
       const command = (
         workspace: ReportWorkspaceResponseDto,
-        action: 'SAVE_SCORE' | 'COMPLETE',
+        action: 'SAVE_SCORE' | 'COMPLETE' | 'SAVE_LIVE' | 'CONFIRM_SCORE',
       ) => ({
         clientActionId: randomUUID(),
         expectedVersion: workspace.reportVersion,
@@ -312,6 +312,11 @@ test(
       assert.equal((await read()).permissions.canEdit, true)
       assert.equal((await stats()).canRecord, true)
       const prestart = await begin()
+      await http
+        .post(`/api/matches/${match.id}/report`)
+        .set('authorization', tokens[0]!)
+        .send(command(prestart, 'CONFIRM_SCORE'))
+        .expect(403)
       await http
         .post(`/api/matches/${match.id}/report`)
         .set('authorization', tokens[0]!)
@@ -570,10 +575,63 @@ test(
         where: { id: { in: [semi1.id, semi2.id] } },
         data: { status: 'FINISHED', scheduledStartAt: new Date(now - 86400000) },
       })
-      await saveOfficialScore(semi1.id, { homePenaltyScore: '5', awayPenaltyScore: '4' })
+      await db.match.update({
+        where: { id: semi1.id },
+        data: { status: 'LIVE', scheduledStartAt: new Date(now - 15 * 60000) },
+      })
+      const writeSemi = (id: string, payload: ReturnType<typeof command>, who = 0) =>
+        http.post(`/api/matches/${id}/report`).set('authorization', tokens[who]!).send(payload)
+      const firstEditor = await begin(semi1.id)
+      const pendingGoal = {
+        clientEventId: randomUUID(),
+        kind: 'GOAL' as const,
+        side: 'HOME' as const,
+        playerId: firstEditor.homeTeam.players[0].id,
+        minute: '',
+        addedMinute: '',
+        relatedPlayerId: '',
+      }
+      const homeWin = { ...fields, homeScore: '1', events: [pendingGoal] }
+      const live = await writeSemi(semi1.id, {
+        ...command(firstEditor, 'SAVE_LIVE'),
+        fields: homeWin,
+      }).expect(200)
+      assert.equal(live.body.officialResult.status, 'LIVE')
+      assert.equal((await db.match.findUniqueOrThrow({ where: { id: final.id } })).homeTeamId, null)
+      const finalCommand = { ...command(await begin(semi1.id), 'CONFIRM_SCORE'), fields: homeWin }
+      await writeSemi(semi1.id, finalCommand, 2).expect(403)
+      const scoreOnly = (await writeSemi(semi1.id, finalCommand).expect(200)).body
+      assert.deepEqual((await writeSemi(semi1.id, finalCommand).expect(200)).body, scoreOnly)
+      assert.equal(scoreOnly.officialResult.status, 'FINISHED')
+      assert.equal(scoreOnly.inline.canStart, true)
+      assert.equal(scoreOnly.inline.completed, false)
+      assert.equal(scoreOnly.latest.fields.events[0].playerId, pendingGoal.playerId)
+      assert.equal(scoreOnly.latest.fields.events[0].minute, '')
+      assert.equal(await db.matchEvent.count({ where: { matchId: semi1.id } }), 0)
       const partial = await db.match.findUniqueOrThrow({ where: { id: final.id } })
       assert.deepEqual([partial.homeTeamId, partial.awayTeamId], [teams[0]!.id, null])
-      await saveOfficialScore(semi2.id, { homePenaltyScore: '3', awayPenaltyScore: '4' })
+      const supplement = await begin(semi1.id)
+      await writeSemi(semi1.id, { ...command(supplement, 'SAVE_LIVE'), fields: homeWin }).expect(
+        409,
+      )
+      await writeSemi(semi1.id, {
+        ...command(supplement, 'CONFIRM_SCORE'),
+        fields: { ...homeWin, homeScore: '2' },
+      }).expect(409)
+      const supplemented = (
+        await writeSemi(semi1.id, {
+          ...command(supplement, 'CONFIRM_SCORE'),
+          fields: { ...homeWin, events: [{ ...pendingGoal, minute: '15' }] },
+        }).expect(200)
+      ).body
+      assert.equal(supplemented.inline.completed, true)
+      assert.equal(await db.matchEvent.count({ where: { matchId: semi1.id } }), 1)
+      const secondEditor = await begin(semi2.id)
+      await writeSemi(semi2.id, command(secondEditor, 'CONFIRM_SCORE')).expect(400)
+      await writeSemi(semi2.id, {
+        ...command(secondEditor, 'CONFIRM_SCORE'),
+        fields: { ...fields, homePenaltyScore: '3', awayPenaltyScore: '4' },
+      }).expect(200)
       const [finalFixture, thirdFixture] = await Promise.all(
         [final.id, third.id].map((id) => db.match.findUniqueOrThrow({ where: { id } })),
       )

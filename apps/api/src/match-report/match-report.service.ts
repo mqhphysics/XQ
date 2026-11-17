@@ -365,7 +365,10 @@ export class MatchReportService {
       .update(JSON.stringify(canonicalCommand(body)))
       .digest('hex')
     const results = this.results
-    const mayAdvance = results && ['CONFIRM', 'COMPLETE', 'SAVE_SCORE'].includes(body.action)
+    const confirmScore = body.action === 'CONFIRM_SCORE'
+    const saveLive = body.action === 'SAVE_LIVE'
+    const mayAdvance =
+      results && (confirmScore || ['CONFIRM', 'COMPLETE', 'SAVE_SCORE'].includes(body.action))
     try {
       return await this.prisma.$transaction(
         async (tx) => {
@@ -400,8 +403,12 @@ export class MatchReportService {
             !!match.actualStartedAt ||
             (!!match.scheduledStartAt &&
               this.clockNow() >= match.scheduledStartAt.getTime() + AUTO_START_GRACE_MS)
+          const alreadyEnded = match.status === 'FINISHED' || !!match.actualEndedAt
           if (!privilege.administrator && !timing) throw forbidden('请先设置比赛开赛时间')
           if (!privilege.administrator && timing?.locked) throw forbidden(timing.reason)
+          if (confirmScore && !clockStarted && !alreadyEnded)
+            throw forbidden('比赛尚未开始，暂不能确认赛果')
+          if (saveLive && alreadyEnded) throw conflict('比赛已结束，请确认赛果或补录比赛事件')
           if (!privilege.administrator && body.action === 'COMPLETE' && timing && !clockStarted)
             throw forbidden('比赛尚未开始，暂不能完成录入')
           let editorContext: Prisma.JsonObject | null = null
@@ -457,7 +464,8 @@ export class MatchReportService {
             })
             if (completed) throw conflict('这次编辑已经完成，请申请修改')
           }
-          const inlineFinish = body.action === 'COMPLETE' || body.action === 'SAVE_SCORE'
+          const inlineFinish =
+            confirmScore || saveLive || body.action === 'COMPLETE' || body.action === 'SAVE_SCORE'
           if (inlineFinish && !editorContext) throw forbidden('请先从比赛详情开始编辑')
           await tx.idempotencyRecord.create({
             data: {
@@ -479,6 +487,20 @@ export class MatchReportService {
             })
           const previous = await this.latest(tx, match)
           if (previous) this.requireUnchangedMatchContext(match, previous)
+          const confirmed =
+            match.status === 'FINISHED' && match.confirmedReportVersion !== null
+              ? previous?.version === match.confirmedReportVersion
+                ? previous
+                : await tx.matchReportRevision.findFirst({
+                    where: {
+                      organizationId: session.organizationId,
+                      matchId: match.id,
+                      version: match.confirmedReportVersion,
+                    },
+                  })
+              : null
+          const confirmedFields = confirmed?.fields as Record<string, unknown> | undefined
+          const officialScoreSaved = !!confirmedFields && confirmedFields._liveReport !== true
           let status: ReportStatus
           const streamWrite =
             !!timing?.window.started &&
@@ -554,13 +576,36 @@ export class MatchReportService {
           if (body.action !== 'RETURN' && blockingReasons.length)
             throw conflict(blockingReasons.join('；'))
           const fields = reviewing ? parseFields(previous!.fields) : body.fields!
-          const finalScore = body.action === 'SAVE_SCORE' && match.status === 'FINISHED'
+          const finalScore =
+            confirmScore ||
+            (body.action === 'SAVE_SCORE' && match.status === 'FINISHED') ||
+            (!privilege.administrator && officialScoreSaved)
+          if (
+            !privilege.administrator &&
+            officialScoreSaved &&
+            (fields.outcome !== confirmedFields.outcome ||
+              Number(fields.homeScore) !== match.homeScore ||
+              Number(fields.awayScore) !== match.awayScore ||
+              (fields.homePenaltyScore === '' ? null : Number(fields.homePenaltyScore)) !==
+                match.homePenaltyScore ||
+              (fields.awayPenaltyScore === '' ? null : Number(fields.awayPenaltyScore)) !==
+                match.awayPenaltyScore)
+          )
+            throw conflict('赛果已确认，可补录事件，比分更正由管理员处理')
           const liveReport =
-            !!timing &&
-            timing.window.opened &&
-            !finalScore &&
             fields.outcome === 'FINISHED' &&
-            ['SAVE', 'SAVE_SCORE', 'SUBMIT'].includes(body.action)
+            (saveLive ||
+              (!!timing &&
+                timing.window.opened &&
+                !finalScore &&
+                ['SAVE', 'SAVE_SCORE', 'SUBMIT'].includes(body.action)))
+          if (saveLive && !liveReport) throw invalid('比赛未结束时只能暂存正常比赛比分')
+          const allowPlaceholders =
+            !!editorContext &&
+            (confirmScore || saveLive || body.action === 'SAVE' || body.action === 'SAVE_SCORE')
+          const requiresCompleteReport =
+            !liveReport &&
+            (body.action === 'SUBMIT' || body.action === 'CONFIRM' || body.action === 'COMPLETE')
           try {
             validateReportFields(
               fields,
@@ -569,18 +614,25 @@ export class MatchReportService {
                 awayPlayerIds: new Set(context.away.entries.map((entry) => entry.playerProfileId)),
                 isKnockout: match.stage?.type === 'KNOCKOUT',
               },
-              !liveReport &&
-                (body.action === 'SUBMIT' ||
-                  body.action === 'CONFIRM' ||
-                  body.action === 'COMPLETE'),
-              (body.action === 'SAVE' || body.action === 'SAVE_SCORE') && !!editorContext,
+              requiresCompleteReport,
+              allowPlaceholders,
+              requiresCompleteReport || confirmScore || officialScoreSaved,
             )
           } catch (cause) {
             if (cause instanceof ReportRuleError) throw invalid(cause.message)
             throw cause
           }
+          const projectedEvents = projectReportEvents(fields.events)
+          const detailsIncomplete =
+            body.action === 'SAVE_SCORE' ||
+            ((confirmScore || (officialScoreSaved && !requiresCompleteReport)) &&
+              (!recordingComplete(fields.homeScore, fields.awayScore, fields.events) ||
+                projectedEvents.length !== fields.events.length))
           const reporterFinalized =
-            effectiveAction === 'CONFIRM' && !liveReport && body.action !== 'SAVE_SCORE'
+            effectiveAction === 'CONFIRM' && !liveReport && !detailsIncomplete
+          const observedEnd = confirmScore
+            ? timing === null || this.clockNow() < timing.window.estimatedEndAt
+            : reporterFinalized
           const reason =
             body.reason.trim() ||
             (timing && (inlineFinish || streamWrite)
@@ -632,7 +684,7 @@ export class MatchReportService {
                 _matchContext: this.matchContext(match),
                 ...(liveReport ? { _liveReport: true } : {}),
                 ...(reporterFinalized ? { _reporterFinalized: true } : {}),
-                ...(body.action === 'SAVE_SCORE' ? { _detailsIncomplete: true } : {}),
+                ...(detailsIncomplete ? { _detailsIncomplete: true } : {}),
                 ...(editorContext?.approvedCorrection ? { _inlineCorrection: true } : {}),
               },
               homeRosterSnapshotId: context.home.id,
@@ -671,9 +723,10 @@ export class MatchReportService {
                 confirmedReportVersion: version,
                 status: abandoned
                   ? 'CANCELLED'
-                  : liveReport && timing && !clockStarted
+                  : liveReport && !clockStarted
                     ? 'SCHEDULED'
-                    : liveReport && timing && this.clockNow() < timing.window.estimatedEndAt
+                    : liveReport &&
+                        (saveLive || (timing && this.clockNow() < timing.window.estimatedEndAt))
                       ? 'LIVE'
                       : 'FINISHED',
                 ...(reporterFinalized && !match.reporterCompletedAt
@@ -681,7 +734,7 @@ export class MatchReportService {
                   : {}),
                 // An old FINISHED match without an observed end keeps its estimated cutoff;
                 // a late data-entry completion must not reopen technical recording.
-                ...(reporterFinalized &&
+                ...(observedEnd &&
                 !match.actualEndedAt &&
                 match.status !== 'FINISHED' &&
                 fields.outcome === 'FINISHED'
@@ -707,7 +760,6 @@ export class MatchReportService {
             await tx.matchEvent.deleteMany({
               where: { organizationId: session.organizationId, matchId: match.id },
             })
-            const projectedEvents = projectReportEvents(fields.events)
             if (!abandoned && projectedEvents.length)
               await tx.matchEvent.createMany({
                 data: projectedEvents.map(({ side, ...event }) => ({

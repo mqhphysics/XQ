@@ -2,7 +2,6 @@ import { nativeMatchReportChanged } from '../product/native-refresh.weapp'
 import { Button, Input, Picker, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useRef, useState } from 'react'
-import { recordingComplete } from '@xiaoqiu/contracts'
 import type { WriteMatchReportDto } from '../../../../../packages/api-client/src/generated/index'
 import { NativeDialog } from '../../components/native-ui/index.weapp'
 import { readSession } from '../product/session'
@@ -153,14 +152,10 @@ export function NativeMatchReportEntry({
         e.clientEventId === event.clientEventId ? { ...e, ...value } : e,
       ),
     })
-  const save = async (action: 'SAVE_SCORE' | 'COMPLETE') => {
+  const save = async (action: WriteMatchReportDto['action']) => {
     if (!fields || !workspace || lock.current) return
-    if (
-      !pending.current &&
-      action === 'COMPLETE' &&
-      !recordingComplete(fields.homeScore, fields.awayScore, fields.events)
-    ) {
-      setError('请补齐双方比分、进球分钟和进球球员，并核对进球数。乌龙球的球员可留空。')
+    if (!pending.current && (fields.homeScore === '' || fields.awayScore === '')) {
+      setError('请填写双方比分')
       return
     }
     const command = pending.current || {
@@ -189,7 +184,7 @@ export function NativeMatchReportEntry({
       if (key) Taro.removeStorageSync(key)
       setOpen(false)
       void Taro.showToast({
-        title: action === 'COMPLETE' ? '录入已完成' : '比分已保存，可继续补全',
+        title: action === 'SAVE_LIVE' || action === 'SAVE_SCORE' ? '信息已暂存' : '赛果已确认',
         icon: 'none',
       })
       void productRepository
@@ -242,27 +237,38 @@ export function NativeMatchReportEntry({
       {open && (
         <NativeDialog
           title="录入比赛信息"
+          className="native-report-dialog"
           compact={false}
           busy={busy}
           onClose={() => setOpen(false)}
           footer={
             fields ? (
-              <>
-                <Button
-                  className="native-button"
-                  disabled={busy || (waiting && pending.current?.action !== 'SAVE_SCORE')}
-                  onClick={() => void save('SAVE_SCORE')}
-                >
-                  保存比分
-                </Button>
+              waiting && pending.current ? (
                 <Button
                   className="native-button native-button--primary"
-                  disabled={busy || (waiting && pending.current?.action !== 'COMPLETE')}
-                  onClick={() => void save('COMPLETE')}
+                  disabled={busy}
+                  onClick={() => pending.current && void save(pending.current.action)}
                 >
-                  {waiting ? '重试原保存' : '完成录入'}
+                  重试原保存
                 </Button>
-              </>
+              ) : (
+                <>
+                  <Button
+                    className="native-button"
+                    disabled={busy || workspace?.officialResult.status === 'FINISHED'}
+                    onClick={() => void save('SAVE_LIVE')}
+                  >
+                    比赛中 · 暂存信息
+                  </Button>
+                  <Button
+                    className="native-button native-button--primary"
+                    disabled={busy}
+                    onClick={() => void save('CONFIRM_SCORE')}
+                  >
+                    已完赛 · 确认赛果
+                  </Button>
+                </>
+              )
             ) : undefined
           }
         >
@@ -351,6 +357,7 @@ export function NativeMatchReportEntry({
                   ))}
                 </View>
               )}
+              <Text className="native-report-events-label">比赛事件（选填）</Text>
               {fields.events.map((event, index) => {
                 const team = event.side === 'HOME' ? workspace.homeTeam : workspace.awayTeam,
                   players = team.players,

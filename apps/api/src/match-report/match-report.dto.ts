@@ -24,6 +24,8 @@ export const REPORT_ACTIONS = [
   'CORRECT',
   'COMPLETE',
   'SAVE_SCORE',
+  'SAVE_LIVE',
+  'CONFIRM_SCORE',
 ] as const
 export type ReportAction = (typeof REPORT_ACTIONS)[number]
 export const EVENT_KINDS = ['GOAL', 'OWN_GOAL', 'YELLOW_CARD', 'RED_CARD', 'SUBSTITUTION'] as const

@@ -13,7 +13,7 @@ export type WriteMatchReportDto = {
      */
     clientActionId: string;
     expectedVersion: number;
-    action: 'SAVE' | 'SUBMIT' | 'RETURN' | 'CONFIRM' | 'CORRECT' | 'COMPLETE' | 'SAVE_SCORE';
+    action: 'SAVE' | 'SUBMIT' | 'RETURN' | 'CONFIRM' | 'CORRECT' | 'COMPLETE' | 'SAVE_SCORE' | 'SAVE_LIVE' | 'CONFIRM_SCORE';
     reason: string;
     /**
      * SAVE/SUBMIT/CORRECT 必须绑定名单及规程版本；审核动作只复制已有快照
@@ -23,4 +23,3 @@ export type WriteMatchReportDto = {
     ruleVersionId?: string;
     fields?: ReportFieldsDto;
 };
-

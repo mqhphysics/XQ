@@ -36,6 +36,7 @@ export function validateReportFields(
   context: FrozenReportContext,
   complete: boolean,
   allowPlaceholders = false,
+  requireResult = complete,
 ): void {
   if (!['FINISHED', 'HOME_FORFEIT', 'AWAY_FORFEIT', 'ABANDONED'].includes(fields.outcome))
     throw new ReportRuleError('比赛结果无效')
@@ -59,7 +60,7 @@ export function validateReportFields(
   if (hasHomePenalty && Number(fields.homePenaltyScore) === Number(fields.awayPenaltyScore))
     throw new ReportRuleError('点球大战必须决出胜负')
   if (
-    complete &&
+    requireResult &&
     context.isKnockout &&
     fields.outcome === 'FINISHED' &&
     Number(fields.homeScore) === Number(fields.awayScore) &&

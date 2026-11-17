@@ -7,7 +7,7 @@ import { PublicShell } from '../../components/public-shell'
 import { DataState } from '../../components/public-ui'
 import { PostCard, TeamCrest } from '../../components/product-ui'
 import { NativeMatchRow } from '../../components/native-match-row/index.weapp'
-import { leagueDay } from '../../features/product/league-time'
+import { leagueShortDate } from '../../features/product/league-time'
 import { nativeMatchDate } from '../readonly-schedule/native-schedule.logic.weapp'
 import {
   NativeDetailTabs,
@@ -49,10 +49,10 @@ function PlayerSchedule({ matches }: { matches: PlayerDetailResponse['recentMatc
       {[...byDay].map(([day, fixtures]) => (
         <View key={day}>
           <Text className="native-profile-section-title">
-            {day === 'TBD' ? '日期待定' : leagueDay(fixtures[0]!.scheduledStartAt)}
+            {day === 'TBD' ? '日期待定' : leagueShortDate(fixtures[0]!.scheduledStartAt)}
           </Text>
           {fixtures.map((match) => (
-            <NativeMatchRow key={match.id} match={match} showWeekday />
+            <NativeMatchRow key={match.id} match={match} />
           ))}
         </View>
       ))}
@@ -114,7 +114,7 @@ export default function NativePlayerScreen({
     }
   }, [load])
   return (
-    <PublicShell active="data" showBack tournamentId={tournamentId}>
+    <PublicShell active="data" showBack tournamentId={tournamentId} nativeBackTitle="球员详情">
       {!player && !error && <DataState kind="loading" title="正在读取球员档案" />}
       {error && (
         <DataState

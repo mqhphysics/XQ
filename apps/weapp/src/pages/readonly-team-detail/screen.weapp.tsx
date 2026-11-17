@@ -78,26 +78,7 @@ export default function NativeTeamScreen({
     }
   }, [load])
   return (
-    <PublicShell
-      active="team"
-      showBack
-      tournamentId={tournamentId}
-      nativeBackActions={
-        canManage && (
-          <Button
-            className="native-recording-tool"
-            onClick={() => {
-              const selected = data.tournamentId || tournamentId
-              void openNativeDetail(
-                `/pages/team-manage/index?teamId=${encodeURIComponent(teamId)}&tournamentId=${encodeURIComponent(selected)}`,
-              )
-            }}
-          >
-            管理球队
-          </Button>
-        )
-      }
-    >
+    <PublicShell active="team" showBack tournamentId={tournamentId} nativeBackTitle="球队详情">
       {!data && !error && <DataState kind="loading" title="正在读取球队档案" />}
       {error && (
         <DataState
@@ -109,7 +90,20 @@ export default function NativeTeamScreen({
       )}
       {data && (
         <View>
-          <TeamActions data={data} compact={compact} />
+          <TeamActions
+            data={data}
+            compact={compact}
+            onManage={
+              canManage
+                ? () => {
+                    const selected = data.tournamentId || tournamentId
+                    void openNativeDetail(
+                      `/pages/team-manage/index?teamId=${encodeURIComponent(teamId)}&tournamentId=${encodeURIComponent(selected)}`,
+                    )
+                  }
+                : undefined
+            }
+          />
           {(() => {
             const posts = (
               <>
@@ -248,7 +242,15 @@ export default function NativeTeamScreen({
     </PublicShell>
   )
 }
-function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: boolean }) {
+function TeamActions({
+  data,
+  compact,
+  onManage,
+}: {
+  data: TeamDashboardResponse
+  compact: boolean
+  onManage?: (() => void) | undefined
+}) {
   const [prefs, setPrefs] = useState<TeamPreferencesResponse | null>(null),
     [relation, setRelation] = useState<TeamRelationshipResponse | null>(null)
   const [busy, setBusy] = useState(false),
@@ -378,23 +380,29 @@ function TeamActions({ data, compact }: { data: TeamDashboardResponse; compact: 
                     ? '读取关注状态…'
                     : '关注球队'}
             </Button>
-            <Button
-              disabled={
-                busy ||
-                (!!readSession() && !relation) ||
-                relation?.membershipStatus === 'ACTIVE' ||
-                relation?.application?.status === 'PENDING'
-              }
-              onClick={() => void act('join')}
-            >
-              {relation?.membershipStatus === 'ACTIVE'
-                ? '已在队中'
-                : relation?.application?.status === 'PENDING'
-                  ? '申请中'
-                  : readSession() && !relation
-                    ? '读取成员状态…'
-                    : '申请加入'}
-            </Button>
+            {onManage ? (
+              <Button className="native-team-cover-manage" onClick={onManage}>
+                管理球队
+              </Button>
+            ) : (
+              <Button
+                disabled={
+                  busy ||
+                  (!!readSession() && !relation) ||
+                  relation?.membershipStatus === 'ACTIVE' ||
+                  relation?.application?.status === 'PENDING'
+                }
+                onClick={() => void act('join')}
+              >
+                {relation?.membershipStatus === 'ACTIVE'
+                  ? '已在队中'
+                  : relation?.application?.status === 'PENDING'
+                    ? '申请中'
+                    : readSession() && !relation
+                      ? '读取成员状态…'
+                      : '申请加入'}
+              </Button>
+            )}
           </View>
         </NativeProfileCover>
       </View>

@@ -16,9 +16,21 @@
   margin-top: 14px;
   text-align: center;
 }
-.native-report-penalty > input {
+.native-report-penalty .native-field {
   flex: 1;
   min-width: 0;
+  text-align: center;
+}
+.native-report-dialog .native-dialog__footer .native-button {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding-inline: 6px;
+}
+.native-report-events-label {
+  display: block;
+  margin-top: 26px;
+  font-weight: 700;
 }
 .native-report-event {
   margin: 20px 0;

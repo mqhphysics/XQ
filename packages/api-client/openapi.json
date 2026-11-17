@@ -9261,7 +9261,7 @@
   "info": {
     "title": "晓球 API",
     "description": "",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "contact": {}
   },
   "tags": [],
@@ -13218,7 +13218,9 @@
               "CONFIRM",
               "CORRECT",
               "COMPLETE",
-              "SAVE_SCORE"
+              "SAVE_SCORE",
+              "SAVE_LIVE",
+              "CONFIRM_SCORE"
             ]
           },
           "reason": {
@@ -13435,7 +13437,9 @@
               "CONFIRM",
               "CORRECT",
               "COMPLETE",
-              "SAVE_SCORE"
+              "SAVE_SCORE",
+              "SAVE_LIVE",
+              "CONFIRM_SCORE"
             ]
           },
           "reason": {

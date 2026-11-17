@@ -89,7 +89,7 @@ export default function NativePersonScreen({
     }
   }, [load])
   return (
-    <PublicShell active="home" showBack tournamentId={tournamentId}>
+    <PublicShell active="home" showBack tournamentId={tournamentId} nativeBackTitle="用户详情">
       {error && (
         <DataState
           kind="error"

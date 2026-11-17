@@ -7,7 +7,6 @@ import { openMatch } from '../../features/product/match-navigation'
 import { formatDate, formatTime, matchStatusLabel } from '../../features/product/product.format'
 import type { NativeMatchRowProps } from './index'
 import { nativeFocusLabel } from '../../pages/index/home-display.logic.weapp'
-import { leagueWeekday } from '../../features/product/league-time'
 import { TbdCrest } from '../tbd-team'
 
 function Crest({ team }: { team: TeamSummary | null }) {
@@ -31,12 +30,10 @@ export function NativeMatchRow({
   match,
   onClick,
   showDate = false,
-  showWeekday = false,
   competitionLabel,
-}: NativeMatchRowProps & { competitionLabel?: string | undefined; showWeekday?: boolean }) {
+}: NativeMatchRowProps & { competitionLabel?: string | undefined }) {
   const scored = match.homeScore !== null && match.awayScore !== null
   const penalty = match.homePenaltyScore !== null && match.awayPenaltyScore !== null
-  const weekday = showWeekday ? leagueWeekday(match.scheduledStartAt) : ''
   return (
     <Button
       hoverClass="native-press"
@@ -76,14 +73,7 @@ export function NativeMatchRow({
                   : '',
             })}
         </Text>
-        {weekday ? (
-          <View className="native-match__venue native-match__venue--weekday">
-            <Text>{match.venue?.name || '场地待定'}</Text>
-            <Text>· {weekday}</Text>
-          </View>
-        ) : (
-          <Text className="native-match__venue">{match.venue?.name || '场地待定'}</Text>
-        )}
+        <Text className="native-match__venue">{match.venue?.name || '场地待定'}</Text>
         <Text
           className={`native-match__status native-match__status--${match.status.toLowerCase()}`}
         >

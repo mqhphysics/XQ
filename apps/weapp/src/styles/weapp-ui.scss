@@ -642,20 +642,6 @@ input.native-field.native-field {
   justify-self: stretch;
   text-align: center;
 }
-.native-match__venue--weekday {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-.native-match__venue--weekday > text:first-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.native-match__venue--weekday > text:last-child {
-  flex: none;
-}
 .native-match__penalty {
   display: block;
   margin-top: 6px;

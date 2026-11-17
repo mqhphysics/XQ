@@ -9,7 +9,7 @@ export type ReportRevisionViewDto = {
     savedAt: string;
     savedBy: string;
     status: 'DRAFT' | 'SUBMITTED' | 'RETURNED' | 'CONFIRMED';
-    action: 'SAVE' | 'SUBMIT' | 'RETURN' | 'CONFIRM' | 'CORRECT' | 'COMPLETE' | 'SAVE_SCORE';
+    action: 'SAVE' | 'SUBMIT' | 'RETURN' | 'CONFIRM' | 'CORRECT' | 'COMPLETE' | 'SAVE_SCORE' | 'SAVE_LIVE' | 'CONFIRM_SCORE';
     reason: string;
     fields: ReportFieldsDto;
     homeRosterSnapshotId: string;
@@ -18,4 +18,3 @@ export type ReportRevisionViewDto = {
     homePlayers?: Array<ReportPlayerViewDto>;
     awayPlayers?: Array<ReportPlayerViewDto>;
 };
-
